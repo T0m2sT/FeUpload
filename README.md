@@ -1,8 +1,8 @@
-# _FeUpload_ Development Report
+# **FeUpload** Development Report
 
-Welcome to the documentation of _[your product name]_!
+Welcome to the documentation of **FeUpload**!
 
-This Software Development Report, tailored for LEIC-ES-2025-26, provides comprehensive details about _[your product name]_, starting from an high-level vision and going into low-level implementation decisions. 
+This Software Development Report, tailored for LEIC-ES-2025-26, provides comprehensive details about **FeUpload**, starting from an high-level vision and going into low-level implementation decisions. 
 
 It is organised by the following activities: 
 
@@ -60,8 +60,9 @@ To learn more about how to write a good product vision, please read:
 * [Product Management: Product Vision, by ProductPlan](https://www.productplan.com/glossary/product-vision/)
 * [20 Inspiring Vision Statement Examples (2019 Updated), by lifehack.org](https://www.lifehack.org/articles/work/20-sample-vision-statement-for-the-new-startup.html)
 -->
-For lost students who are tired of searching materials and exercises in multiple sources the <APP> is a material vault that will be convenient, helpful and resourceful. Unlike Accio.pt, our product <"main difference"> is the ease of use, student interaction and the variety of materials.<br>
-We are in search of creating The Library of Babel for students.
+FeUpload aims to be the place where students can find, share, rate, and organize notes, exercises, and study materials.
+<br/>
+Because studying is already hard enough.
 
 ### Features and Assumptions
 
