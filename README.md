@@ -1,4 +1,4 @@
-# _[your product name]_ Development Report
+# _FeUpload_ Development Report
 
 Welcome to the documentation of _[your product name]_!
 
@@ -60,18 +60,31 @@ To learn more about how to write a good product vision, please read:
 * [Product Management: Product Vision, by ProductPlan](https://www.productplan.com/glossary/product-vision/)
 * [20 Inspiring Vision Statement Examples (2019 Updated), by lifehack.org](https://www.lifehack.org/articles/work/20-sample-vision-statement-for-the-new-startup.html)
 -->
-For lost students who are tired of searching materials and exercises in multiple sources the <APP> is a ... that will be convinient, helpful and resourceful. Unlike Accio.pt, our product <"main difference">.<br>
+For lost students who are tired of searching materials and exercises in multiple sources the <APP> is a material vault that will be convenient, helpful and resourceful. Unlike Accio.pt, our product <"main difference"> is the ease of use, student interaction and the variety of materials.<br>
 We are in search of creating The Library of Babel for students.
 
 ### Features and Assumptions
-<!-- 
-Indicate an  initial/tentative list of high-level features - high-level capabilities or desired services of the system that are necessary to deliver benefits to the users.
- - Feature XPTO - a few words to briefly describe the feature
- - Feature ABCD - ...
-...
 
-Optionally, indicate an initial/tentative list of assumptions that you are doing about the app and dependencies of the app to other systems.
--->
+- Access to old exams
+    - A page where you can browse through old exams filtering from subject and year
+- Access to extra exercises with answers
+    - A page where you can browse through extra exercises with answers
+- The ability to add new materials
+    - A page where you can upload new materials
+- The ability to rate materials, and see other ratings
+    - Each material will be rateable, you can see materials rating average and comments
+- The ability to access summaries and anotations
+    - A page where you can browse through summaries and anotations
+- The ability to bookmark materials
+    - Every material can be bookmarked, bookmarked materials will be accessible through the Projects page.
+- Student threads, with advice from senior students
+    - Students can create threads with their advice, you can comment on threads
+- The ability to see materials offline (previously downloaded)
+    - Every material can be marked, next time you open the app with internet you still have access to it
+- Toggle between solved and unsolved materials
+    - When seeing a material, you can toggle between the solved and unsolved versions quickly
+- AI integration
+    - Integration of AI to assist you while studying, providing you with summaries, reviewing the topics based on the available material and creation of new materials based on old ones
 
 ## Requirements
 
