@@ -64,6 +64,8 @@ FeUpload aims to be the place where students can find, share, rate, and organize
 <br/>
 Because studying is already hard enough.
 
+
+
 ### Features and Assumptions
 
 - Access to old exams
@@ -117,6 +119,12 @@ For each user story you should write also the acceptance tests (textually in [Gh
 At the end, it is good to add a rough indication of the value of the user story to the customers (e.g. [MoSCoW](https://en.wikipedia.org/wiki/MoSCoW_method) method) and the team should add an estimation of the effort to implement it using points in a kind-of-a Fibonnacci scale (1,2,3,5,8,13,20,40, no idea).
 
 -->
+
+The platform will allow its users to efficiently browse through old exams and exercise sheets, as well as notes and summaries provided by other students and other study material that will help students with their academic life.
+Users can contribute to the platform by publishing the material and annotations they made and/or used and help the community grow.
+All the material will be neatly organized and sorted based on relevance and popularity. A rating system, where users will be able to vote and rate posts, will be put in place for that purpose, along with the ability to bookmark and group material for easy organization and access. The users will also be allowed to filter out solved/unsolved material.
+As a finishing touch, the platform will integrate Artificial Intelligence to aid users during their study by providing extra study content or answers to difficult questions.
+
 
 ### Domain model
 
