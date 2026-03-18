@@ -60,7 +60,7 @@ To learn more about how to write a good product vision, please read:
 * [Product Management: Product Vision, by ProductPlan](https://www.productplan.com/glossary/product-vision/)
 * [20 Inspiring Vision Statement Examples (2019 Updated), by lifehack.org](https://www.lifehack.org/articles/work/20-sample-vision-statement-for-the-new-startup.html)
 -->
-FeUpload aims to be the place where students can find, share, rate, and organize notes, exercises, and study materials.
+FeUpload aims to be the platform where students can find, share, rate, and organize notes, exercises, and study materials.
 <br/>
 Because studying is already hard enough.
 
@@ -120,11 +120,7 @@ At the end, it is good to add a rough indication of the value of the user story 
 
 -->
 
-The platform will allow its users to efficiently browse through old exams and exercise sheets, as well as notes and summaries provided by other students and other study material that will help students with their academic life.
-Users can contribute to the platform by publishing the material and annotations they made and/or used and help the community grow.
-All the material will be neatly organized and sorted based on relevance and popularity. A rating system, where users will be able to vote and rate posts, will be put in place for that purpose, along with the ability to bookmark and group material for easy organization and access. The users will also be allowed to filter out solved/unsolved material.
-As a finishing touch, the platform will integrate Artificial Intelligence to aid users during their study by providing extra study content or answers to difficult questions.
-
+The platform enables students to browse old exams, exercise sheets, notes, and summaries contributed by peers, while also allowing them to publish their own materials and grow the community. Content is organized by relevance and popularity through a rating and voting system, and users can bookmark and group materials for easy access, as well as filter between solved and unsolved versions. An integrated AI assistant rounds out the experience by generating extra study content and answering difficult questions.
 
 ### Domain model
 
