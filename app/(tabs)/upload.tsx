@@ -1,6 +1,6 @@
 import { Text, View } from 'react-native';
 
-export default function HomeScreen() {
+export default function UploadScreen() {
   return (
     <View
       style={{
@@ -15,7 +15,7 @@ export default function HomeScreen() {
           fontSize: 25,
         }}
       >
-        Home
+        Upload
       </Text>
     </View>
   );
