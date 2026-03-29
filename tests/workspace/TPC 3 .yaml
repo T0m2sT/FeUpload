@@ -1,0 +1,11 @@
+appId: com.anonymous.feupload
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible: "Exercises"
+    timeout: 40000
+- tapOn: , Exercises
+- assertVisible: Workout Plan 1
+- tapOn: Workout Plan 1
+- assertVisible: "André Restivo :: html5"
