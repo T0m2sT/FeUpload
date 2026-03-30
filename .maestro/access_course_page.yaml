@@ -1,0 +1,46 @@
+appId: com.anonymous.feupload
+---
+# Acceptance Test: Access Course Page
+#
+# User Story: As a student, I want to access a course page
+# so that I can find study materials for that course.
+#
+# Scenario (Normal): Student navigates to a course page and sees its materials
+#
+# Given I open the FeUpload app and I am on the Home screen
+# When I tap on the "Software Engineering" course
+# Then I see the course page for Software Engineering
+# And I can see the list of study materials for that course
+
+- launchApp:
+    clearState: true
+
+# Given: Home screen is visible with the courses list
+- assertVisible: "Courses"
+- extendedWaitUntil:
+    visible:
+      id: "course-1"
+    timeout: 10000
+
+# When: Student taps on the Software Engineering course
+- tapOn:
+    id: "course-1"
+
+# Then: Course page is displayed with the correct course name
+- extendedWaitUntil:
+    visible: "Study Materials"
+    timeout: 10000
+
+# And: The course code and study materials section are shown
+- assertVisible:
+    id: "course-code"
+- assertVisible:
+    id: "section-header"
+
+# And: Individual materials are listed
+- assertVisible:
+    id: "material-m1"
+- assertVisible:
+    id: "material-m2"
+- assertVisible:
+    id: "material-m3"
