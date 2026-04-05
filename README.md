@@ -133,7 +133,9 @@ Example:
   <img src="https://github.com/FEUP-LEIC-ES-2022-23/templates/blob/main/images/DomainModel.png"/>
 </p>
 -->
-
+ <p align="center" justify="center">
+  <img src="https://github.com/LEIC-ES-2025-26-2LEIC13/T2/blob/main/mockups/DomainUML.png"/>
+</p>
 
 ## Architecture and Design
 <!--
@@ -146,6 +148,9 @@ To document the architecture requires describing the decomposition of the system
 In this section you should start by briefly describing the components of the project and their interrelations. You should describe how you solved typical problems you may have encountered, pointing to well-known architectural and design patterns, if applicable.
 -->
 
+For our application, we require four main components: the frontend, the backend, the database, and an AI service. The frontend, responsible for the user interface, sends requests to the backend. The backend contains the necessary modules and business logic to handle these requests and implement the core functionality of the application.
+
+For data persistence, the system uses a database, while an external AI service provides intelligent features such as content generation and question answering. The backend communicates with both the database and the AI service to retrieve, store, and process information.
 
 ### Logical architecture
 <!--
@@ -157,6 +162,7 @@ Example of _UML package diagram_ showing a _logical view_ of the Eletronic Ticke
 
 ![LogicalView](https://user-images.githubusercontent.com/9655877/160585416-b1278ad7-18d7-463c-b8c6-afa4f7ac7639.png)
 -->
+
  <p align="center" justify="center">
   <img src="https://github.com/LEIC-ES-2025-26-2LEIC13/T2/blob/main/mockups/logicalUML.png"/>
 </p>
