@@ -1,0 +1,15 @@
+appId: com.anonymous.feupload
+---
+# Test: Verify users can access old exams
+# This test navigates to the Exams tab and verifies old exams are visible
+
+- launchApp:
+    clearState: true
+# Navigate to the Exams tab
+- tapOn: "Exams"
+
+# Verify old exam entries are displayed
+- assertVisible: "DA Test 2023"
+
+# Tap on an old exam to verify it's accessible
+- tapOn: "DA Test 2023"
