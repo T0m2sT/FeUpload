@@ -136,7 +136,7 @@ Example:
 </p>
 -->
  <p align="center" justify="center">
-  <img src="https://github.com/LEIC-ES-2025-26-2LEIC13/T2/blob/main/mockups/DomainUML.png"/>
+  <img src="https://github.com/LEIC-ES-2025-26-2LEIC13/T2/blob/main/misc/UMLs/DomainUML.png"/>
 </p>
 
 ### Validation from our target users
@@ -171,7 +171,7 @@ Example of _UML package diagram_ showing a _logical view_ of the Eletronic Ticke
 -->
 
  <p align="center" justify="center">
-  <img src="https://github.com/LEIC-ES-2025-26-2LEIC13/T2/blob/main/mockups/logicalUML.png"/>
+  <img src="https://github.com/LEIC-ES-2025-26-2LEIC13/T2/blob/main/misc/UMLs/logicalUML.png"/>
 </p>
 
 ### Physical architecture
@@ -185,7 +185,7 @@ Example of _UML deployment diagram_ showing a _deployment view_ of the Eletronic
 ![DeploymentView](https://user-images.githubusercontent.com/9655877/160592491-20e85af9-0758-4e1e-a704-0db1be3ee65d.png)
 -->
  <p align="center" justify="center">
-  <img src="https://github.com/LEIC-ES-2025-26-2LEIC13/T2/blob/main/mockups/physicalUML.png"/>
+  <img src="https://github.com/LEIC-ES-2025-26-2LEIC13/T2/blob/main/misc/UMLs/physicalUML.png"/>
 </p>
 
 ### Functional prototype
