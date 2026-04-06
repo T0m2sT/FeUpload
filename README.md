@@ -86,6 +86,8 @@ Because studying is already hard enough.
     - Every material can be marked, next time you open the app with internet you still have access to it
 - Toggle between solved and unsolved materials
     - When seeing a material, you can toggle between the solved and unsolved versions quickly
+- The ability to share projects from other students
+    - A page with projects from senior students
 - AI integration
     - Integration of AI to assist you while studying, providing you with summaries, reviewing the topics based on the available material and creation of new materials based on old ones
 
@@ -136,6 +138,11 @@ Example:
  <p align="center" justify="center">
   <img src="https://github.com/LEIC-ES-2025-26-2LEIC13/T2/blob/main/mockups/DomainUML.png"/>
 </p>
+
+### Validation from our target users
+To refine and improve our app, we decided to interview students. For each user story, we asked how important it was and whether they would use an app like this if they had access to it. We also asked if there were any features they would like to have that could help their past and/or current selves.
+
+Ultimately, we decided to incorporate an additional feature that enables users to share and explore projects created by other students, with the aim of fostering inspiration and facilitating the analysis of project capabilities. Furthermore, we observed that one of the main points emphasized by participants was the importance of effectively filtering and organizing materials by course and class. 
 
 ## Architecture and Design
 <!--
