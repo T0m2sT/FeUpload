@@ -196,6 +196,11 @@ In this subsection please describe which feature, or part of it, you have implem
 
 At this phase, instead of a complete user story, you can simply implement a small part of a feature that demonstrates thay you can use the technology, for example, show a screen with the app credits (name and authors).
 -->
+For Prototype 0, we implemented a basic navigation bar that allows users to switch between pages (Home, Exercises, Exams, and Upload). We also developed a simple Home page displaying available classes; selecting a class directs the user to a dedicated page containing all associated materials. Additionally, in the Exercises and Exams pages, we included a hardcoded example of a resource which, when selected, opens an external URL in a web browser.
+
+<p align="center" justify="center">
+  <img src="https://github.com/LEIC-ES-2025-26-2LEIC13/T2/blob/main/misc/demos/prototype0.gif"/>
+</p>
 
 ## Project management
 <!--
