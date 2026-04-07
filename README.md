@@ -136,7 +136,7 @@ Example:
 </p>
 -->
  <p align="center" justify="center">
-  <img src="https://github.com/LEIC-ES-2025-26-2LEIC13/T2/blob/main/misc/UMLs/DomainUML.png"/>
+  <img src="./misc/UMLs/DomainUML.png"/>
 </p>
 
 ### Validation from our target users
@@ -171,7 +171,7 @@ Example of _UML package diagram_ showing a _logical view_ of the Eletronic Ticke
 -->
 
  <p align="center" justify="center">
-  <img src="https://github.com/LEIC-ES-2025-26-2LEIC13/T2/blob/main/misc/UMLs/logicalUML.png"/>
+  <img src="./misc/UMLs/logicalUML.png"/>
 </p>
 
 ### Physical architecture
@@ -185,7 +185,7 @@ Example of _UML deployment diagram_ showing a _deployment view_ of the Eletronic
 ![DeploymentView](https://user-images.githubusercontent.com/9655877/160592491-20e85af9-0758-4e1e-a704-0db1be3ee65d.png)
 -->
  <p align="center" justify="center">
-  <img src="https://github.com/LEIC-ES-2025-26-2LEIC13/T2/blob/main/misc/UMLs/physicalUML.png"/>
+  <img src="./misc/UMLs/physicalUML.png"/>
 </p>
 
 ### Functional prototype
@@ -196,10 +196,10 @@ In this subsection please describe which feature, or part of it, you have implem
 
 At this phase, instead of a complete user story, you can simply implement a small part of a feature that demonstrates thay you can use the technology, for example, show a screen with the app credits (name and authors).
 -->
-For Prototype 0, we implemented a basic navigation bar that allows users to switch between pages (Home, Exercises, Exams, and Upload). We also developed a simple Home page displaying available classes; selecting a class directs the user to a dedicated page containing all associated materials. Additionally, in the Exercises and Exams pages, we included a hardcoded example of a resource which, when selected, opens an external URL in a web browser.
+For Prototype 0, we implemented a basic navigation bar that allows users to switch between pages (Home, Exercises, Exams, and Upload). We also developed a simple Home page displaying available classes; selecting a class directs the user to a dedicated page containing all associated materials. Additionally, in the Exercises and Exams pages, we included a hardcoded example of a resource which, when selected, opens an external URL in a web browser. And finally, we implemented a basic and hardcoded forms to upload an exam.
 
 <p align="center" justify="center">
-  <img src="https://github.com/LEIC-ES-2025-26-2LEIC13/T2/blob/main/misc/demos/prototype0.gif"/>
+  <img src="./misc/demos/prototype0.gif"/>
 </p>
 
 ## Project management
@@ -225,6 +225,10 @@ You can find below information and references related with the project managemen
 -->
 
 ### Sprint 0
+
+<p align="center" justify="center">
+  <img src="./misc/sprints/sprint0.png"/>
+</p>
 
 ### Sprint 1
 
