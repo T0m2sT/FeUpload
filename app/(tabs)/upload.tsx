@@ -18,12 +18,16 @@ const COURSES = [
 
 const YEARS = ['2025/2026', '2024/2025', '2023/2024', '2022/2023', '2021/2022'];
 
+const LABELS = ['Exam', 'Exercises']
+
 export default function UploadScreen() {
   const [title, setTitle] = useState('');
   const [selectedCourse, setSelectedCourse] = useState('');
   const [selectedYear, setSelectedYear] = useState('');
+  const [selectedLabel, setSelectedLabel] = useState('');
   const [showCourseList, setShowCourseList] = useState(false);
   const [showYearList, setShowYearList] = useState(false);
+  const [showLabelList, setShowLabelList] = useState(false);
   const [fileName, setFileName] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
@@ -48,6 +52,10 @@ export default function UploadScreen() {
       setError('Please select an academic year.');
       return;
     }
+    if (!selectedLabel) {
+        setError('Please select a label.');
+        return;
+    }
     if (!fileName) {
       setError('Please select a file to upload.');
       return;
@@ -64,6 +72,7 @@ export default function UploadScreen() {
           <Text style={styles.successDetail}>Title: {title}</Text>
           <Text style={styles.successDetail}>Course: {selectedCourse}</Text>
           <Text style={styles.successDetail}>Year: {selectedYear}</Text>
+          <Text style={styles.successDetail}>Label: {selectedLabel}</Text>
           <Text style={styles.successDetail}>File: {fileName}</Text>
           <TouchableOpacity
             style={styles.button}
@@ -71,6 +80,7 @@ export default function UploadScreen() {
               setTitle('');
               setSelectedCourse('');
               setSelectedYear('');
+              setSelectedLabel('');
               setFileName('');
               setSubmitted(false);
             }}
@@ -106,6 +116,7 @@ export default function UploadScreen() {
           onPress={() => {
             setShowCourseList(!showCourseList);
             setShowYearList(false);
+            setShowLabelList(false);
           }}
           accessibilityRole="button"
           accessibilityLabel="Select course"
@@ -137,6 +148,7 @@ export default function UploadScreen() {
           onPress={() => {
             setShowYearList(!showYearList);
             setShowCourseList(false);
+            setShowLabelList(false);
           }}
           accessibilityRole="button"
           accessibilityLabel="Select year"
@@ -157,6 +169,38 @@ export default function UploadScreen() {
                 }}
               >
                 <Text style={styles.dropdownText}>{year}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+
+        <Text style={styles.label}>Label</Text>
+        <TouchableOpacity
+          style={styles.selector}
+          onPress={() => {
+            setShowLabelList(!showLabelList);
+            setShowCourseList(false);
+            setShowYearList(false);
+          }}
+          accessibilityRole="button"
+          accessibilityLabel="Select label"
+        >
+          <Text style={selectedLabel ? styles.selectorText : styles.selectorPlaceholder}>
+            {selectedLabel || 'Select a label'}
+          </Text>
+        </TouchableOpacity>
+        {showLabelList && (
+          <View style={styles.dropdown}>
+            {LABELS.map((lbel) => (
+              <TouchableOpacity
+                key={lbel}
+                style={styles.dropdownItem}
+                onPress={() => {
+                  setSelectedLabel(lbel);
+                  setShowLabelList(false);
+                }}
+              >
+                <Text style={styles.dropdownText}>{lbel}</Text>
               </TouchableOpacity>
             ))}
           </View>
