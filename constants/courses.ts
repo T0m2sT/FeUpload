@@ -11,18 +11,93 @@ export type Material = {
   pdf?: string;
 };
 
+export type ThreadReply = {
+  id: string;
+  author: string;
+  body: string;
+  createdAt: string;
+};
+
+export type Thread = {
+  id: string;
+  title: string;
+  author: string;
+  body: string;
+  createdAt: string;
+  replyCount: number;
+  replies: ThreadReply[];
+};
+
 export type Course = {
   id: string;
   name: string;
   code: string;
   materials: Material[];
+  threads: Thread[];
 };
+
+const THREADS_ESOF: Thread[] = [
+  {
+    id: 't1', title: 'Dúvida sobre User Stories', author: 'joao.silva',
+    body: 'Alguém pode explicar a diferença entre uma User Story e um Use Case? Estou a confundir os dois para o projeto.',
+    createdAt: '2025-04-10', replyCount: 3,
+    replies: [
+      { id: 'r1', author: 'ana.costa',   body: 'User Stories são mais informais e centradas no utilizador. Use Cases descrevem interações detalhadas com o sistema.', createdAt: '2025-04-10' },
+      { id: 'r2', author: 'pedro.m',     body: 'O prof. Faria explicou bem na aula 4 — vê os slides!', createdAt: '2025-04-11' },
+      { id: 'r3', author: 'joao.silva',  body: 'Obrigado, já percebi!', createdAt: '2025-04-11' },
+    ],
+  },
+  {
+    id: 't2', title: 'Grupo para o projeto — procuro 2 elementos', author: 'maria.f',
+    body: 'Olá, ainda estou à procura de grupo para o projeto. Tenho experiência com React Native. Alguém precisa de mais um membro?',
+    createdAt: '2025-04-09', replyCount: 1,
+    replies: [
+      { id: 'r1', author: 'rui.b', body: 'Entra no nosso grupo! Somos 3 e precisamos de mais um. Envia-me mensagem.', createdAt: '2025-04-09' },
+    ],
+  },
+  {
+    id: 't3', title: 'Como correr os testes de aceitação?', author: 'tiago.r',
+    body: 'Não consigo configurar o Cucumber no projeto. Alguém já conseguiu?',
+    createdAt: '2025-04-08', replyCount: 0,
+    replies: [],
+  },
+];
+
+const THREADS_FIS: Thread[] = [
+  {
+    id: 't1', title: 'Fórmula para campo elétrico de um dipolo', author: 'carlos.m',
+    body: 'Qual é a fórmula exata para o campo elétrico de um dipolo no eixo de simetria? O livro tem duas versões diferentes.',
+    createdAt: '2025-04-09', replyCount: 2,
+    replies: [
+      { id: 'r1', author: 'inês.l',  body: 'E = 2kp/r³ para o eixo do dipolo. Verifica a página 112 do Serway.', createdAt: '2025-04-09' },
+      { id: 'r2', author: 'carlos.m', body: 'Encontrei, obrigado!', createdAt: '2025-04-10' },
+    ],
+  },
+  {
+    id: 't2', title: 'Dúvida no problema 5 da ficha 3', author: 'beatriz.n',
+    body: 'No problema 5 da ficha 3, não percebo porque o ângulo é 30° e não 60°. Alguém pode explicar?',
+    createdAt: '2025-04-07', replyCount: 0,
+    replies: [],
+  },
+];
+
+const THREADS_GENERIC: Thread[] = [
+  {
+    id: 't1', title: 'Dúvida sobre o exame', author: 'aluno.anon',
+    body: 'O exame vai ter consulta ou é fechado? Não encontro essa informação no moodle.',
+    createdAt: '2025-04-08', replyCount: 1,
+    replies: [
+      { id: 'r1', author: 'monitor.1', body: 'É sem consulta. Podem levar uma folha A4 escrita dos dois lados.', createdAt: '2025-04-08' },
+    ],
+  },
+];
 
 export const COURSES: Record<string, Course> = {
   '1': {
     id: '1',
     name: 'Engenharia de Software',
     code: 'ESOF',
+    threads: THREADS_ESOF,
     materials: [
       { id: 'm1', title: 'Lecture Notes — Agile Methods', type: 'Resumo',  subtitle: '12 páginas',          rating: 4 },
       { id: 'm2', title: 'Exam 2024/2025',                type: 'Exame',   subtitle: 'Part 1 · 10 páginas', rating: 4, pdf: 'https://drive.google.com/file/d/1XfxtcV_zh89cpgwXlahnkjSgzXzZ_kRz/view?usp=drive_link' },
@@ -34,6 +109,7 @@ export const COURSES: Record<string, Course> = {
     id: '2',
     name: 'Física',
     code: 'FIS',
+    threads: THREADS_FIS,
     materials: [
       { id: 'm1', title: 'Guia de Eletromagnetismo', type: 'Resumo', subtitle: '8 páginas', rating: 5 },
       { id: 'm2', title: 'Exam 2023/2024',           type: 'Exame',  subtitle: 'Part 1 · 12 páginas', rating: 3, pdf: 'https://drive.google.com/file/d/1XfxtcV_zh89cpgwXlahnkjSgzXzZ_kRz/view?usp=drive_link' },
@@ -44,6 +120,7 @@ export const COURSES: Record<string, Course> = {
     id: '3',
     name: 'Economia',
     code: 'ECO',
+    threads: THREADS_GENERIC,
     materials: [
       { id: 'm1', title: 'Microeconomia — Resumo', type: 'Resumo', subtitle: '6 páginas', rating: 4 },
       { id: 'm2', title: 'Exame 2023/2024',        type: 'Exame',  subtitle: '10 páginas', rating: 3, pdf: 'https://drive.google.com/file/d/1XfxtcV_zh89cpgwXlahnkjSgzXzZ_kRz/view?usp=drive_link' },
@@ -54,6 +131,7 @@ export const COURSES: Record<string, Course> = {
     id: '4',
     name: 'Programação',
     code: 'PROG',
+    threads: THREADS_GENERIC,
     materials: [
       { id: 'm1', title: 'Sorting Algorithms Cheatsheet', type: 'Resumo', subtitle: '4 páginas', rating: 5 },
       { id: 'm2', title: 'Exam 2024/2025',                type: 'Exame',  subtitle: 'Part 1 · 8 páginas', rating: 4, pdf: 'https://drive.google.com/file/d/1XfxtcV_zh89cpgwXlahnkjSgzXzZ_kRz/view?usp=drive_link' },
@@ -65,6 +143,7 @@ export const COURSES: Record<string, Course> = {
     id: '5',
     name: 'Algoritmos e Estruturas de Dados',
     code: 'AED',
+    threads: THREADS_GENERIC,
     materials: [
       { id: 'm1', title: 'Complexidade — Resumo', type: 'Resumo', subtitle: '5 páginas', rating: 4 },
       { id: 'm2', title: 'Exam 2023/2024',         type: 'Exame',  subtitle: '10 páginas', rating: 4, pdf: 'https://drive.google.com/file/d/1XfxtcV_zh89cpgwXlahnkjSgzXzZ_kRz/view?usp=drive_link' },
@@ -75,6 +154,7 @@ export const COURSES: Record<string, Course> = {
     id: '6',
     name: 'Bases de Dados',
     code: 'BD',
+    threads: THREADS_GENERIC,
     materials: [
       { id: 'm1', title: 'ER Diagram Guide', type: 'Resumo', subtitle: '6 páginas', rating: 5 },
       { id: 'm2', title: 'Exam 2023/2024',   type: 'Exame',  subtitle: '10 páginas', rating: 3, pdf: 'https://drive.google.com/file/d/1XfxtcV_zh89cpgwXlahnkjSgzXzZ_kRz/view?usp=drive_link' },

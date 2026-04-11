@@ -164,6 +164,68 @@ export default function CourseIndexScreen() {
             </View>
           );
         })}
+
+        {/* Threads / Forum */}
+        <Text style={[s.sectionLabel, { marginTop: 28 }]}>Comunidade</Text>
+        {(() => {
+          const threadCount = COURSES[id ?? '']?.threads.length ?? 0;
+          const latestThreads = COURSES[id ?? '']?.threads.slice(0, 2) ?? [];
+          return (
+            <View style={s.forumCard}>
+              <TouchableOpacity
+                style={s.card}
+                testID="section-threads"
+                accessibilityLabel="Fórum de discussão"
+                onPress={() => router.push(`/course/${id}/threads`)}
+              >
+                <View style={[
+                  s.cardIcon,
+                  t.isDark && {
+                    shadowColor: t.accentGlow,
+                    shadowOpacity: 0.5,
+                    shadowRadius: 6,
+                    shadowOffset: { width: 0, height: 0 },
+                  },
+                ]}>
+                  <Ionicons name="chatbubbles-outline" size={20} color={t.accent} />
+                </View>
+                <View style={s.cardInfo}>
+                  <Text style={s.cardTitle}>Fórum de Discussão</Text>
+                  <Text style={s.cardCount}>
+                    {threadCount === 0 ? 'Sem publicações' : `${threadCount} publicaç${threadCount !== 1 ? 'ões' : 'ão'}`}
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={16} color={t.textMuted} />
+              </TouchableOpacity>
+
+              {latestThreads.length > 0 && (
+                <View style={s.threadPreviewList}>
+                  {latestThreads.map((thread, idx) => (
+                    <View key={thread.id}>
+                      {idx > 0 && <View style={s.sep} />}
+                      <TouchableOpacity
+                        style={s.threadPreview}
+                        onPress={() => router.push(`/course/${id}/thread/${thread.id}`)}
+                        activeOpacity={0.7}
+                      >
+                        <View style={s.threadPreviewIcon}>
+                          <Ionicons name="chatbubble-outline" size={13} color={t.accent} />
+                        </View>
+                        <View style={s.threadPreviewInfo}>
+                          <Text style={s.threadPreviewTitle} numberOfLines={1}>{thread.title}</Text>
+                          <Text style={s.threadPreviewMeta}>
+                            {thread.author} · {thread.replyCount} resposta{thread.replyCount !== 1 ? 's' : ''}
+                          </Text>
+                        </View>
+                        <Ionicons name="chevron-forward" size={13} color={t.textMuted} />
+                      </TouchableOpacity>
+                    </View>
+                  ))}
+                </View>
+              )}
+            </View>
+          );
+        })()}
       </ScrollView>
 
       {SHOW_NAV_BAR && <CourseNavBar courseId={id ?? ''} />}
@@ -275,6 +337,47 @@ function makeStyles(t: AppPalette) {
     sep: {
       height: 1,
       backgroundColor: t.surfaceBorder,
+    },
+    forumCard: {
+      backgroundColor: t.surface,
+      borderRadius: 14,
+      borderWidth: 1,
+      borderColor: t.surfaceBorder,
+      overflow: 'hidden',
+      paddingHorizontal: 14,
+    },
+    threadPreviewList: {
+      borderTopWidth: 1,
+      borderTopColor: t.surfaceBorder,
+      marginHorizontal: -14,
+      paddingHorizontal: 14,
+    },
+    threadPreview: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 10,
+      gap: 10,
+    },
+    threadPreviewIcon: {
+      width: 28,
+      height: 28,
+      borderRadius: 8,
+      backgroundColor: t.accentDim,
+      borderWidth: 1,
+      borderColor: t.accentBorder,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    threadPreviewInfo: { flex: 1 },
+    threadPreviewTitle: {
+      fontSize: 13,
+      fontWeight: '500',
+      color: t.textPrimary,
+      marginBottom: 2,
+    },
+    threadPreviewMeta: {
+      fontSize: 11,
+      color: t.textMuted,
     },
   });
 }

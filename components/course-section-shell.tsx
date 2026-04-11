@@ -16,6 +16,7 @@ const TABS: Tab[] = [
   { key: 'exercises', label: 'Exercícios'},
   { key: 'summaries', label: 'Resumos'   },
   { key: 'tips',      label: 'Dicas'     },
+  { key: 'threads',   label: 'Fórum'     },
 ];
 
 type Props = {

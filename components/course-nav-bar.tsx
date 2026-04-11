@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppTheme } from '@/hooks/use-app-theme';
 
-export type CourseNavKey = 'exams' | 'exercises' | 'summaries' | 'tips';
+export type CourseNavKey = 'exams' | 'exercises' | 'summaries' | 'tips' | 'threads';
 
 type NavItem = {
   key: CourseNavKey;
