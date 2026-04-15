@@ -230,6 +230,19 @@ You can find below information and references related with the project managemen
   <img src="./misc/sprints/sprint0.png"/>
 </p>
 
+- What Went Well?<br>
+For Sprint 0, we believe we performed well. We were able to get all team members aligned on the product to be delivered, complete all the planned goals for Sprint 0, and develop a clear understanding of our product.
+
+- What Didn’t Go So Well?<br>
+Defining the concept of the app to be delivered was challenging, as each team member had a different opinion. Thus, we spent a lot of time brainstorming and debating to reach a common app idea that all members would agree on.
+
+- What Have I Learned?<br>
+In this sprint, we learned to define realistic goals and to initiate group development following the Scrum framework.
+
+- What Still Puzzles Me?<br>
+How detailed should be the user stories?<br>
+Which feature is doable to do?
+
 ### Sprint 1
 
 ### Sprint 2

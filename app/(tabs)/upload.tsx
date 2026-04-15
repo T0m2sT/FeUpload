@@ -12,6 +12,8 @@ const TYPES   = ['Exame', 'Ficha', 'Resumo', 'Outro'];
 
 type DropdownKey = 'course' | 'year' | 'type' | null;
 
+const LABELS = ['Exam', 'Exercises']
+
 export default function UploadScreen() {
   const t = useAppTheme();
   const router = useRouter();
