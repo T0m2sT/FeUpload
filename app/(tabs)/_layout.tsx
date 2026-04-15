@@ -38,12 +38,20 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+              name="forums"
+              options={{
+                title: 'Forums',
+                tabBarIcon: ({ color, focused }) => <Ionicons size={28} name={focused ? 'chatbubbles' : 'chatbubbles-outline'} color={color} />,
+            }}
+            />
+      <Tabs.Screen
         name="upload"
         options={{
           title: 'Upload',
           tabBarIcon: ({ color, focused }) => <Ionicons size={28} name={focused ? 'attach' : 'attach-outline'} color={color} />,
         }}
       />
+
     </Tabs>
   );
 }
