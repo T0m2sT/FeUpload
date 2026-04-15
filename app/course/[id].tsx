@@ -1,61 +1,45 @@
-import { Text, View, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Text, View, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-
-const COURSES: Record<string, { name: string; code: string; materials: { id: string; title: string; type: string }[] }> = {
-  '1': {
-    name: 'Engenharia de Software',
-    code: 'ESOF',
-    materials: [
-      { id: 'm1', title: 'Lecture Notes — Agile Methods', type: 'Notes' },
-      { id: 'm2', title: 'Exam 2024/2025', type: 'Exam' },
-      { id: 'm3', title: 'Exercise Sheet 1', type: 'Exercises' },
-    ],
-  },
-  '2': {
-    name: 'Base de Dados',
-    code: 'BD',
-    materials: [
-      { id: 'm1', title: 'ER Diagram Guide', type: 'Notes' },
-      { id: 'm2', title: 'Exam 2023/2024', type: 'Exam' },
-    ],
-  },
-  '3': {
-    name: 'Laboratório de Computadores',
-    code: 'LCOM',
-    materials: [
-      { id: 'm1', title: 'TCP/IP Summary', type: 'Notes' },
-      { id: 'm2', title: 'Lab 1 — Serial Port', type: 'Exercises' },
-    ],
-  },
-  '4': {
-    name: 'Algoritmos e Estruturas de Dados',
-    code: 'AED',
-    materials: [
-      { id: 'm1', title: 'Sorting Algorithms Cheatsheet', type: 'Notes' },
-      { id: 'm2', title: 'Exam 2024/2025', type: 'Exam' },
-    ],
-  },
-  '5': {
-    name: 'Sistemas Operativos',
-    code: 'SO',
-    materials: [
-      { id: 'm1', title: 'Process Management Notes', type: 'Notes' },
-      { id: 'm2', title: 'Exam 2023/2024', type: 'Exam' },
-    ],
-  },
-};
+import { getCourseById } from '../../services/courses';
+import { getMaterialsByCourse } from '../../services/materials';
 
 const TYPE_COLORS: Record<string, string> = {
-  Notes: '#4CAF50',
-  Exam: '#F44336',
-  Exercises: '#FF9800',
+  notes: '#4CAF50',
+  exam: '#F44336',
+  exercise: '#FF9800',
+  summary: '#2196F3',
 };
+
+type Course = { id: string; code: string; name: string; year: number };
+type Material = { id: string; title: string; type: string };
 
 export default function CourseScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const course = COURSES[id ?? ''];
+  const [course, setCourse] = useState<Course | null>(null);
+  const [materials, setMaterials] = useState<Material[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!id) return;
+    Promise.all([getCourseById(id), getMaterialsByCourse(id)])
+      .then(([c, m]) => {
+        setCourse(c);
+        setMaterials(m);
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, [id]);
+
+  if (loading) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color="#0a7ea4" />
+      </View>
+    );
+  }
 
   if (!course) {
     return (
@@ -77,8 +61,9 @@ export default function CourseScreen() {
       <Text testID="section-header" style={styles.sectionHeader}>Study Materials</Text>
 
       <FlatList
-        data={course.materials}
+        data={materials}
         keyExtractor={(item) => item.id}
+        ListEmptyComponent={<Text style={styles.empty}>No materials yet.</Text>}
         renderItem={({ item }) => (
           <View style={styles.materialCard} testID={`material-${item.id}`} accessibilityLabel={item.title}>
             <View style={[styles.typeBadge, { backgroundColor: TYPE_COLORS[item.type] ?? '#999' }]}>
@@ -154,5 +139,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#11181C',
     flex: 1,
+  },
+  empty: {
+    textAlign: 'center',
+    color: '#687076',
+    marginTop: 40,
+    fontSize: 14,
   },
 });

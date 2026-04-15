@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Text,
   View,
@@ -6,33 +6,41 @@ import {
   TouchableOpacity,
   ScrollView,
   StyleSheet,
+  ActivityIndicator,
 } from 'react-native';
-
-const COURSES = [
-  'Software Engineering',
-  'Databases',
-  'Computer Networks',
-  'Operating Systems',
-  'Algorithms',
-];
+import { getCourses } from '../../services/courses';
+import { uploadMaterial } from '../../services/materials';
+import { supabase } from '../../lib/supabase';
 
 const YEARS = ['2025/2026', '2024/2025', '2023/2024', '2022/2023', '2021/2022'];
 
+type Course = { id: string; code: string; name: string };
+
 export default function UploadScreen() {
   const [title, setTitle] = useState('');
-  const [selectedCourse, setSelectedCourse] = useState('');
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [selectedYear, setSelectedYear] = useState('');
   const [showCourseList, setShowCourseList] = useState(false);
   const [showYearList, setShowYearList] = useState(false);
   const [fileName, setFileName] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    getCourses()
+      .then(setCourses)
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
 
   const handleFilePick = () => {
     setFileName('exam_2025.pdf');
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     setError('');
     setSubmitted(false);
 
@@ -53,8 +61,37 @@ export default function UploadScreen() {
       return;
     }
 
-    setSubmitted(true);
+    setSubmitting(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setError('You must be logged in to upload.');
+        return;
+      }
+
+      await uploadMaterial({
+        title: title.trim(),
+        type: 'exam',
+        course_id: selectedCourse.id,
+        user_id: user.id,
+        academic_year: selectedYear,
+      });
+
+      setSubmitted(true);
+    } catch (e: any) {
+      setError(e.message || 'Upload failed. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
   };
+
+  if (loading) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color="#0a7ea4" />
+      </View>
+    );
+  }
 
   if (submitted) {
     return (
@@ -62,14 +99,14 @@ export default function UploadScreen() {
         <View style={styles.successCard}>
           <Text style={styles.successTitle}>Upload Successful!</Text>
           <Text style={styles.successDetail}>Title: {title}</Text>
-          <Text style={styles.successDetail}>Course: {selectedCourse}</Text>
+          <Text style={styles.successDetail}>Course: {selectedCourse?.name}</Text>
           <Text style={styles.successDetail}>Year: {selectedYear}</Text>
           <Text style={styles.successDetail}>File: {fileName}</Text>
           <TouchableOpacity
             style={styles.button}
             onPress={() => {
               setTitle('');
-              setSelectedCourse('');
+              setSelectedCourse(null);
               setSelectedYear('');
               setFileName('');
               setSubmitted(false);
@@ -111,21 +148,21 @@ export default function UploadScreen() {
           accessibilityLabel="Select course"
         >
           <Text style={selectedCourse ? styles.selectorText : styles.selectorPlaceholder}>
-            {selectedCourse || 'Select a course'}
+            {selectedCourse ? selectedCourse.name : 'Select a course'}
           </Text>
         </TouchableOpacity>
         {showCourseList && (
           <View style={styles.dropdown}>
-            {COURSES.map((course) => (
+            {courses.map((course) => (
               <TouchableOpacity
-                key={course}
+                key={course.id}
                 style={styles.dropdownItem}
                 onPress={() => {
                   setSelectedCourse(course);
                   setShowCourseList(false);
                 }}
               >
-                <Text style={styles.dropdownText}>{course}</Text>
+                <Text style={styles.dropdownText}>{course.name}</Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -175,12 +212,15 @@ export default function UploadScreen() {
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.submitButton}
+          style={[styles.submitButton, submitting && { opacity: 0.6 }]}
           onPress={handleSubmit}
           accessibilityRole="button"
           accessibilityLabel="Submit"
+          disabled={submitting}
         >
-          <Text style={styles.submitButtonText}>Upload Exam</Text>
+          <Text style={styles.submitButtonText}>
+            {submitting ? 'Uploading...' : 'Upload Exam'}
+          </Text>
         </TouchableOpacity>
       </View>
     </ScrollView>

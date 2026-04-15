@@ -1,22 +1,40 @@
-import { FlatList, Text, TouchableOpacity, View, StyleSheet } from 'react-native';
+import { useEffect, useState } from 'react';
+import { FlatList, Text, TouchableOpacity, View, StyleSheet, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
+import { getCourses } from '../../services/courses';
 
-const COURSES = [
-  { id: '1', name: 'Engenharia de Software', code: 'ESOF', year: '2' },
-  { id: '2', name: 'Base de Dados', code: 'BD', year: '2' },
-  { id: '3', name: 'Laboratório de Computadores', code: 'LCOM', year: '2' },
-  { id: '4', name: 'Algoritmos e Estruturas de Dados', code: 'AED', year: '2' },
-  { id: '5', name: 'Sistemas Operativos', code: 'SO', year: '2' },
-];
+type Course = {
+  id: string;
+  code: string;
+  name: string;
+  year: number;
+};
 
 export default function HomeScreen() {
   const router = useRouter();
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getCourses()
+      .then(setCourses)
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color="#0a7ea4" />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Courses</Text>
       <FlatList
-        data={COURSES}
+        data={courses}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <TouchableOpacity
