@@ -1,80 +1,221 @@
-import { FlatList, Text, TouchableOpacity, View, StyleSheet } from 'react-native';
+import {
+  Text,
+  TouchableOpacity,
+  View,
+  StyleSheet,
+  TextInput,
+  ScrollView,
+} from 'react-native';
 import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { useAppTheme } from '@/hooks/use-app-theme';
+
+const USER_NAME = 'Rafael';
 
 const COURSES = [
-  { id: '1', name: 'Engenharia de Software', code: 'ESOF', year: '2' },
-  { id: '2', name: 'Base de Dados', code: 'BD', year: '2' },
-  { id: '3', name: 'Laboratório de Computadores', code: 'LCOM', year: '2' },
-  { id: '4', name: 'Algoritmos e Estruturas de Dados', code: 'AED', year: '2' },
-  { id: '5', name: 'Sistemas Operativos', code: 'SO', year: '2' },
+  { id: '1', name: 'Análise Matemática II', dark: false },
+  { id: '2', name: 'Física',                dark: true  },
+  { id: '3', name: 'Economia',              dark: false },
+  { id: '4', name: 'Programação',           dark: true  },
+  { id: '5', name: 'Algoritmos e ED',       dark: true  },
+  { id: '6', name: 'Bases de Dados',        dark: false },
 ];
+
+const OFFLINE_COUNT = 4;
 
 export default function HomeScreen() {
   const router = useRouter();
+  const t = useAppTheme();
+  const s = makeStyles(t);
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Courses</Text>
-      <FlatList
-        data={COURSES}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
+    <ScrollView style={s.scroll} contentContainerStyle={s.container}>
+      {/* Header */}
+      <View style={s.header}>
+        <Text style={s.greetingStatic}>Bem-vindo, </Text>
+        <TouchableOpacity onPress={() => router.push('/profile')} accessibilityLabel="Ir para perfil">
+          <Text style={s.greetingName}>{USER_NAME}</Text>
+        </TouchableOpacity>
+        <View style={{ flex: 1 }} />
+        <TouchableOpacity onPress={() => router.push('/profile')} accessibilityLabel="Perfil">
+          <View style={s.avatarCircle}>
+            <Ionicons name="person-outline" size={18} color={t.accent} />
+          </View>
+        </TouchableOpacity>
+      </View>
+
+      {/* Search */}
+      <View style={s.searchBar}>
+        <Ionicons name="search-outline" size={16} color={t.textSecondary} style={s.searchIcon} />
+        <TextInput
+          style={s.searchInput}
+          placeholder="Procurar por cadeira..."
+          placeholderTextColor={t.textMuted}
+        />
+      </View>
+
+      {/* Course grid */}
+      <Text style={s.sectionLabel}>As minhas cadeiras</Text>
+      <View style={s.grid}>
+        {COURSES.map((item) => (
           <TouchableOpacity
-            style={styles.card}
+            key={item.id}
+            style={s.card}
             onPress={() => router.push(`/course/${item.id}`)}
             testID={`course-${item.id}`}
             accessibilityLabel={item.name}
           >
-            <Text style={styles.courseCode}>{item.code}</Text>
-            <Text style={styles.courseName}>{item.name}</Text>
-            <Text style={styles.courseYear}>Year {item.year}</Text>
+            <View style={s.cardIconWrap}>
+              <Ionicons name="folder-open-outline" size={16} color={t.accent} />
+            </View>
+            <Text style={s.cardText}>{item.name}</Text>
           </TouchableOpacity>
-        )}
-      />
-    </View>
+        ))}
+      </View>
+
+      {/* Offline section */}
+      <View style={s.offlineSection}>
+        <Text style={s.offlineTitle}>Materiais Offline</Text>
+        <TouchableOpacity style={s.offlineRow}>
+          <Ionicons name="cloud-offline-outline" size={18} color={t.textSecondary} />
+          <Text style={s.offlineText}>{OFFLINE_COUNT} disponíveis offline</Text>
+          <Ionicons name="chevron-forward" size={16} color={t.textMuted} />
+        </TouchableOpacity>
+      </View>
+    </ScrollView>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-    paddingTop: 60,
-    backgroundColor: '#f5f5f5',
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    color: '#11181C',
-  },
-  card: {
-    backgroundColor: '#fff',
-    padding: 16,
-    marginBottom: 12,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
-  },
-  courseCode: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#0a7ea4',
-    marginBottom: 4,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-  },
-  courseName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#11181C',
-    marginBottom: 4,
-  },
-  courseYear: {
-    fontSize: 12,
-    color: '#687076',
-  },
-});
+function makeStyles(t: ReturnType<typeof useAppTheme>) {
+  return StyleSheet.create({
+    scroll: {
+      flex: 1,
+      backgroundColor: t.background,
+    },
+    container: {
+      padding: 20,
+      paddingTop: 60,
+      paddingBottom: 32,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 20,
+    },
+    greetingStatic: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      color: t.textPrimary,
+    },
+    greetingName: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      color: t.accent,
+      textDecorationLine: 'underline',
+      textDecorationColor: t.accentBorder,
+    },
+    avatarCircle: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: t.accentDim,
+      borderWidth: 1,
+      borderColor: t.accentBorder,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    searchBar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: t.surface,
+      borderRadius: 12,
+      borderColor: t.surfaceBorder,
+      borderWidth: 1,
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+      marginBottom: 24,
+    },
+    searchIcon: {
+      marginRight: 8,
+    },
+    searchInput: {
+      flex: 1,
+      fontSize: 14,
+      color: t.textPrimary,
+      padding: 0,
+    },
+    sectionLabel: {
+      fontSize: 12,
+      fontWeight: '700',
+      color: t.textSecondary,
+      textTransform: 'uppercase',
+      letterSpacing: 0.8,
+      marginBottom: 12,
+    },
+    grid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 12,
+      marginBottom: 28,
+    },
+    card: {
+      width: '47%',
+      borderRadius: 14,
+      padding: 14,
+      paddingTop: 12,
+      justifyContent: 'flex-end',
+      backgroundColor: t.surface,
+      borderWidth: 1,
+      borderColor: t.surfaceBorder,
+      minHeight: 88,
+      // subtle accent glow on dark
+      ...(t.isDark ? {
+        shadowColor: t.accent,
+        shadowOpacity: 0.06,
+        shadowRadius: 8,
+        shadowOffset: { width: 0, height: 0 },
+      } : {}),
+    },
+    cardIconWrap: {
+      width: 28,
+      height: 28,
+      borderRadius: 8,
+      backgroundColor: t.accentDim,
+      borderWidth: 1,
+      borderColor: t.accentBorder,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: 12,
+    },
+    cardText: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: t.textPrimary,
+    },
+    offlineSection: {
+      backgroundColor: t.surface,
+      borderRadius: 14,
+      borderWidth: 1,
+      borderColor: t.surfaceBorder,
+      padding: 16,
+    },
+    offlineTitle: {
+      fontSize: 12,
+      fontWeight: '700',
+      color: t.textSecondary,
+      textTransform: 'uppercase',
+      letterSpacing: 0.8,
+      marginBottom: 12,
+    },
+    offlineRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    offlineText: {
+      fontSize: 14,
+      color: t.textSecondary,
+      flex: 1,
+    },
+  });
+}
