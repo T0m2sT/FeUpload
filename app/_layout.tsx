@@ -1,60 +1,46 @@
-import { useEffect, useState } from 'react';
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { Stack, useRouter, useSegments } from 'expo-router';
+import { DarkTheme, DefaultTheme, ThemeProvider as NavThemeProvider } from '@react-navigation/native';
+import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
-import { Session } from '@supabase/supabase-js';
-
-import { useColorScheme } from '@/hooks/use-color-scheme';
-import { supabase } from '../lib/supabase';
+import { ThemeProvider, useThemeContext } from '@/contexts/theme-context';
 
 export const unstable_settings = {
   anchor: '(tabs)',
 };
 
-export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
-  const segments = useSegments();
-  const router = useRouter();
+function RootLayoutInner() {
+  const { palette: p } = useThemeContext();
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setLoading(false);
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  useEffect(() => {
-    if (loading) return;
-
-    const inAuthScreen = segments[0] === 'auth';
-
-    if (!session && !inAuthScreen) {
-      router.replace('/auth');
-    } else if (session && inAuthScreen) {
-      router.replace('/');
-    }
-  }, [session, segments, loading]);
-
-  if (loading) return null;
+  const navTheme = {
+    ...(p.isDark ? DarkTheme : DefaultTheme),
+    colors: {
+      ...(p.isDark ? DarkTheme : DefaultTheme).colors,
+      background: p.background,
+      card: p.surface,
+      text: p.textPrimary,
+      border: p.surfaceBorder,
+      primary: p.accent,
+    },
+  };
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
+    <NavThemeProvider value={navTheme}>
+      <Stack screenOptions={{ animation: 'none' }}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="course/[id]" options={{ headerShown: false }} />
-        <Stack.Screen name="auth" options={{ headerShown: false }} />
+        <Stack.Screen name="profile" options={{ headerShown: false }} />
+        <Stack.Screen name="upload" options={{ headerShown: false }} />
         <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
       </Stack>
-      <StatusBar style="auto" />
+      <StatusBar style={p.isDark ? 'light' : 'dark'} />
+    </NavThemeProvider>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <ThemeProvider>
+      <RootLayoutInner />
     </ThemeProvider>
   );
 }

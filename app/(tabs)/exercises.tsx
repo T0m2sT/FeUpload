@@ -1,60 +1,9 @@
-import { useEffect, useState } from 'react';
-import { Text, View, FlatList, TouchableOpacity, Linking, ActivityIndicator, StyleSheet } from 'react-native';
-import { getMaterialsByType } from '../../services/materials';
-
-type Exercise = {
-  id: string;
-  title: string;
-  file_url: string | null;
-  academic_year: string | null;
-  courses: { code: string; name: string } | null;
-  profiles: { name: string } | null;
-};
-
-export default function ExercisesScreen() {
-  const [exercises, setExercises] = useState<Exercise[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    getMaterialsByType('exercise')
-      .then(setExercises)
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, []);
-
-  const openPDF = (url: string) => {
-    Linking.openURL(url);
-  };
-
-  if (loading) {
-    return (
-      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-        <ActivityIndicator size="large" color="#0a7ea4" />
-      </View>
-    );
-  }
-
-  return (
-    <View style={styles.container}>
-      <Text style={styles.heading}>Exercises</Text>
-      <FlatList
-        data={exercises}
-        keyExtractor={(item) => item.id}
-        ListEmptyComponent={<Text style={styles.empty}>No exercises uploaded yet.</Text>}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            onPress={() => item.file_url && openPDF(item.file_url)}
-            style={styles.card}
-            disabled={!item.file_url}
-          >
-            <Text style={styles.title}>{item.title}</Text>
-            {item.courses && <Text style={styles.meta}>{item.courses.code}</Text>}
-            {item.academic_year && <Text style={styles.meta}>{item.academic_year}</Text>}
-          </TouchableOpacity>
-        )}
-      />
-    </View>
-  );
+// Exercises are now course-scoped: /course/[id]/exercises
+// This route is kept so expo-router doesn't error on the tab definition,
+// but it immediately redirects to home.
+import { Redirect } from 'expo-router';
+export default function ExercisesRedirect() {
+  return <Redirect href="/" />;
 }
 
 const styles = StyleSheet.create({
