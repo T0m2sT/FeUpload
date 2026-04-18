@@ -14,6 +14,8 @@ type DropdownKey = 'course' | 'year' | 'type' | null;
 
 const LABELS = ['Exam', 'Exercises']
 
+type Course = { id: string; code: string; name: string };
+
 export default function UploadScreen() {
   const t = useAppTheme();
   const router = useRouter();
