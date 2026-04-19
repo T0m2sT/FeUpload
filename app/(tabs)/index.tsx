@@ -13,12 +13,12 @@ import { useAppTheme } from '@/hooks/use-app-theme';
 const USER_NAME = 'Rafael';
 
 const COURSES = [
-  { id: '1', name: 'Análise Matemática II', dark: false },
-  { id: '2', name: 'Física',                dark: true  },
-  { id: '3', name: 'Economia',              dark: false },
-  { id: '4', name: 'Programação',           dark: true  },
-  { id: '5', name: 'Algoritmos e ED',       dark: true  },
-  { id: '6', name: 'Bases de Dados',        dark: false },
+  { id: 'c1000000-0000-0000-0000-000000000001', name: 'Engenharia de Software', dark: false },
+  { id: 'c1000000-0000-0000-0000-000000000003', name: 'Laboratório de Computadores', dark: true  },
+  { id: 'c1000000-0000-0000-0000-000000000005', name: 'Sistemas Operativos',      dark: false },
+  { id: 'c1000000-0000-0000-0000-000000000006', name: 'Programação',           dark: true  },
+  { id: 'c1000000-0000-0000-0000-000000000004', name: 'Algoritmos e Estruturas de Dados',       dark: true  },
+  { id: 'c1000000-0000-0000-0000-000000000002', name: 'Bases de Dados',        dark: false },
 ];
 
 const OFFLINE_COUNT = 4;

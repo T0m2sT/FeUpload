@@ -1,6 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-  View, Text, TouchableOpacity, ScrollView, TextInput, StyleSheet, Platform,
+    View,
+    Text,
+    TouchableOpacity,
+    ScrollView,
+    TextInput,
+    StyleSheet,
+    Platform,
+    ActivityIndicator,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -8,133 +15,159 @@ import { CourseSectionShell } from '@/components/course-section-shell';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { COURSES, type Thread } from '@/constants/courses';
 import type { AppPalette } from '@/constants/theme';
+import { supabase } from '@/lib/supabase';
 
 export default function CourseThreadsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const t = useAppTheme();
   const s = makeStyles(t);
-  const course = COURSES[id ?? ''];
-  const threads: Thread[] = course?.threads ?? [];
 
+  const [loading, setLoading] = useState(true);
   const [composing, setComposing] = useState(false);
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
-  const [localThreads, setLocalThreads] = useState<Thread[]>(threads);
+  const [localThreads, setLocalThreads] = useState<any[]>([]);
 
-  const submitThread = () => {
-    if (!title.trim() || !body.trim()) return;
-    const newThread: Thread = {
-      id: `local-${Date.now()}`,
-      title: title.trim(),
-      author: 'eu',
-      body: body.trim(),
-      createdAt: new Date().toISOString().slice(0, 10),
-      replyCount: 0,
-      replies: [],
-    };
-    setLocalThreads((prev) => [newThread, ...prev]);
-    setTitle('');
-    setBody('');
-    setComposing(false);
+  useEffect(() => {
+    fetchThreads();
+  }, [id]);
+
+  const fetchThreads = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('threads')
+        .select(`
+          *,
+          profiles (name),
+          thread_replies (id)
+        `)
+        .eq('course_id', id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setLocalThreads(data || []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  return (
-    <CourseSectionShell
-      courseId={id ?? ''}
-      courseCode={course?.code ?? ''}
-      courseName={course?.name ?? ''}
-      activeKey="threads"
-    >
-      {composing ? (
-        <ScrollView style={s.scroll} contentContainerStyle={s.composeContainer}
-          keyboardShouldPersistTaps="handled"
+ const submitThread = async () => {
+   if (!title.trim() || !body.trim()) return;
+
+    console.log("AAAAAAA!");
+   setLoading(true);
+   try {
+     const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+     if (authError || !user) {
+       throw new Error("Não estás autenticado. Faz login novamente.");
+     }
+
+     const { error } = await supabase.from('threads').insert({
+       title: title.trim(),
+       body: body.trim(),
+       course_id: id,
+       user_id: user.id,
+     });
+
+     if (error) throw error;
+
+     setTitle('');
+     setBody('');
+     setComposing(false);
+     fetchThreads();
+
+
+   } catch (err: any) {
+     alert(err.message);
+   } finally {
+     setLoading(false);
+   }
+ };
+
+return (
+  <CourseSectionShell courseId={id ?? ''} activeKey="threads">
+    {loading ? (
+      <ActivityIndicator style={{ marginTop: 50 }} color={t.accent} />
+    ) : composing ? (
+      <ScrollView style={s.scroll} contentContainerStyle={s.composeContainer}>
+        <View style={s.composeHeader}>
+          <Text style={s.composeTitle}>Nova Publicação</Text>
+          <TouchableOpacity onPress={() => setComposing(false)}>
+            <Ionicons name="close" size={24} color={t.textSecondary} />
+          </TouchableOpacity>
+        </View>
+
+        <Text style={s.inputLabel}>Título</Text>
+        <TextInput
+          style={s.input}
+          placeholder="Sobre o que queres falar?"
+          placeholderTextColor={t.textMuted}
+          value={title}
+          onChangeText={setTitle}
+        />
+
+        <Text style={s.inputLabel}>Mensagem</Text>
+        <TextInput
+          style={[s.input, s.inputMulti]}
+          placeholder="Escreve aqui a tua dúvida ou comentário..."
+          placeholderTextColor={t.textMuted}
+          multiline
+          value={body}
+          onChangeText={setBody}
+        />
+
+        <TouchableOpacity
+          style={[s.submitBtn, loading && s.submitBtnDisabled]}
+          onPress={submitThread}
+          disabled={loading}
         >
-          <View style={s.composeHeader}>
-            <Text style={s.composeTitle}>Nova publicação</Text>
-            <TouchableOpacity onPress={() => setComposing(false)}>
-              <Ionicons name="close" size={22} color={t.textSecondary} />
-            </TouchableOpacity>
-          </View>
-
-          <Text style={s.inputLabel}>Título</Text>
-          <TextInput
-            style={s.input}
-            placeholder="Qual é a tua dúvida?"
-            placeholderTextColor={t.textMuted}
-            value={title}
-            onChangeText={setTitle}
-            selectionColor={t.accent}
-          />
-
-          <Text style={s.inputLabel}>Mensagem</Text>
-          <TextInput
-            style={[s.input, s.inputMulti]}
-            placeholder="Descreve a tua questão..."
-            placeholderTextColor={t.textMuted}
-            value={body}
-            onChangeText={setBody}
-            selectionColor={t.accent}
-            multiline
-            numberOfLines={5}
-            textAlignVertical="top"
-          />
-
-          <TouchableOpacity
-            style={[s.submitBtn, (!title.trim() || !body.trim()) && s.submitBtnDisabled]}
-            onPress={submitThread}
-            disabled={!title.trim() || !body.trim()}
-          >
-            <Ionicons name="send-outline" size={15} color={t.background} />
-            <Text style={s.submitBtnText}>Publicar</Text>
-          </TouchableOpacity>
-        </ScrollView>
-      ) : (
-        <ScrollView style={s.scroll} contentContainerStyle={s.listContainer}>
-          {/* New thread button */}
-          <TouchableOpacity style={s.newBtn} onPress={() => setComposing(true)}>
-            <Ionicons name="add-circle-outline" size={16} color={t.accent} />
-            <Text style={s.newBtnText}>Nova publicação</Text>
-          </TouchableOpacity>
-
-          {localThreads.length === 0 ? (
-            <View style={s.empty}>
-              <Ionicons name="chatbubbles-outline" size={40} color={t.textMuted} />
-              <Text style={s.emptyText}>Sem publicações. Sê o primeiro!</Text>
-            </View>
+          {loading ? (
+            <ActivityIndicator color={t.background} />
           ) : (
-            localThreads.map((thread) => (
-              <TouchableOpacity
-                key={thread.id}
-                style={s.card}
-                onPress={() => router.push(`/course/${id}/thread/${thread.id}`)}
-                activeOpacity={0.75}
-              >
-                <View style={s.cardTop}>
-                  <Text style={s.cardTitle} numberOfLines={2}>{thread.title}</Text>
-                  {thread.replyCount > 0 && (
-                    <View style={s.replyBadge}>
-                      <Text style={s.replyBadgeText}>{thread.replyCount}</Text>
-                    </View>
-                  )}
-                </View>
-                <Text style={s.cardBody} numberOfLines={2}>{thread.body}</Text>
-                <View style={s.cardMeta}>
-                  <Ionicons name="person-circle-outline" size={13} color={t.textMuted} />
-                  <Text style={s.cardMetaText}>{thread.author}</Text>
-                  <Text style={s.cardMetaDot}>·</Text>
-                  <Text style={s.cardMetaText}>{thread.createdAt}</Text>
-                  <View style={{ flex: 1 }} />
-                  <Ionicons name="chatbubble-outline" size={13} color={t.textMuted} />
-                  <Text style={s.cardMetaText}>{thread.replyCount} resposta{thread.replyCount !== 1 ? 's' : ''}</Text>
-                </View>
-              </TouchableOpacity>
-            ))
+            <>
+              <Ionicons name="send" size={18} color={t.background} />
+              <Text style={s.submitBtnText}>Publicar no Fórum</Text>
+            </>
           )}
-        </ScrollView>
-      )}
-    </CourseSectionShell>
-  );
+        </TouchableOpacity>
+      </ScrollView>
+    ) : (
+      <ScrollView style={s.scroll} contentContainerStyle={s.listContainer}>
+        <TouchableOpacity style={s.newBtn} onPress={() => setComposing(true)}>
+           <Ionicons name="add-circle-outline" size={20} color={t.accent} />
+           <Text style={s.newBtnText}>Nova publicação</Text>
+        </TouchableOpacity>
+
+        {localThreads.length === 0 ? (
+          <View style={s.empty}>
+            <Text style={s.emptyText}>Ainda não há publicações nesta cadeira.</Text>
+          </View>
+        ) : (
+          localThreads.map((thread) => (
+            <TouchableOpacity
+              key={thread.id}
+              style={s.card}
+              onPress={() => router.push(`/course/${id}/thread/${thread.id}`)}
+            >
+              <Text style={s.cardTitle}>{thread.title}</Text>
+              <Text style={s.cardBody} numberOfLines={2}>{thread.body}</Text>
+              <View style={s.cardMeta}>
+                <Text style={s.cardMetaText}>{thread.profiles?.name || 'Utilizador'}</Text>
+                <Text style={s.cardMetaDot}>•</Text>
+                <Text style={s.cardMetaText}>{new Date(thread.created_at).toLocaleDateString()}</Text>
+              </View>
+            </TouchableOpacity>
+          ))
+        )}
+      </ScrollView>
+    )}
+  </CourseSectionShell>
+);
 }
 
 function makeStyles(t: AppPalette) {

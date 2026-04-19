@@ -47,37 +47,37 @@ const SECTIONS: SectionItem[] = [
 
 // Placeholder course metadata — will be fetched from the database
 const COURSE_META: Record<string, { description: string; professors: string[]; ects: number; semester: string }> = {
-  '1': {
+  'c1000000-0000-0000-0000-000000000001': {
     description: 'Introdução aos princípios e práticas de engenharia de software, incluindo metodologias ágeis, gestão de projetos e qualidade de software.',
     professors: ['Prof. João Pascoal Faria', 'Prof. Alberto Simões'],
     ects: 6,
     semester: '2º Ano, 2º Semestre',
   },
-  '2': {
+  'c1000000-0000-0000-0000-000000000003': {
     description: 'Estudo dos fenómenos físicos fundamentais, incluindo mecânica, termodinâmica e eletromagnetismo.',
     professors: ['Prof. Maria Helena Braga'],
     ects: 6,
     semester: '2º Ano, 1º Semestre',
   },
-  '3': {
+  'c1000000-0000-0000-0000-000000000005': {
     description: 'Conceitos de micro e macroeconomia, mercados, oferta e procura, e política económica.',
     professors: ['Prof. Ana Costa'],
     ects: 4,
     semester: '2º Ano, 2º Semestre',
   },
-  '4': {
+  'c1000000-0000-0000-0000-000000000006': {
     description: 'Programação imperativa e orientada a objetos, estruturas de dados básicas e algoritmos fundamentais.',
     professors: ['Prof. Pedro Ribeiro'],
     ects: 6,
     semester: '1º Ano, 2º Semestre',
   },
-  '5': {
+  'c1000000-0000-0000-0000-000000000004': {
     description: 'Algoritmos clássicos, estruturas de dados avançadas, análise de complexidade e técnicas de programação.',
     professors: ['Prof. Luís Damas', 'Prof. Fernando Silva'],
     ects: 6,
     semester: '2º Ano, 1º Semestre',
   },
-  '6': {
+  'c1000000-0000-0000-0000-000000000002': {
     description: 'Modelação de dados, linguagem SQL, sistemas de gestão de bases de dados relacionais e não relacionais.',
     professors: ['Prof. Rui Moreira'],
     ects: 6,

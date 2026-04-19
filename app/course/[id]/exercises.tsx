@@ -3,6 +3,7 @@ import { CourseSectionShell } from '@/components/course-section-shell';
 import { MaterialList } from '@/components/material-list';
 import { COURSES } from '@/constants/courses';
 
+
 export default function CourseExercisesScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
