@@ -244,6 +244,10 @@ How detailed should be the user stories?<br>
 Which feature is doable to do?
 
 ### Sprint 1
+<h4>Sprint 1 Planning</h4>
+<p align="center" justify="center">
+  <img src="./misc/sprints/sprint1-planning.png"/>
+</p>
 
 ### Sprint 2
 
