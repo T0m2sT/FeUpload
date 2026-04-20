@@ -10,11 +10,20 @@ import { COURSES, type Thread } from '@/constants/courses';
 import type { AppPalette } from '@/constants/theme';
 
 export default function CourseThreadsScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, name, description } = useLocalSearchParams<{
+    id: string;
+    name?: string | string[];
+    description?: string | string[];
+  }>();
   const router = useRouter();
   const t = useAppTheme();
   const s = makeStyles(t);
-  const course = COURSES[id ?? ''];
+  const courseCode = (id ?? '').toUpperCase();
+  const courseNameParam = Array.isArray(name) ? name[0] : name;
+  const courseDescription = Array.isArray(description) ? description[0] : description;
+  const course =
+    Object.values(COURSES).find((c) => c.code.toLowerCase() === courseCode.toLowerCase()) ??
+    COURSES[id ?? ''];
   const threads: Thread[] = course?.threads ?? [];
 
   const [composing, setComposing] = useState(false);
@@ -41,9 +50,10 @@ export default function CourseThreadsScreen() {
 
   return (
     <CourseSectionShell
-      courseId={id ?? ''}
-      courseCode={course?.code ?? ''}
-      courseName={course?.name ?? ''}
+      courseId={courseCode}
+      courseCode={courseCode}
+      courseName={courseNameParam ?? course?.name ?? courseCode}
+      courseDescription={courseDescription}
       activeKey="threads"
     >
       {composing ? (
@@ -104,12 +114,21 @@ export default function CourseThreadsScreen() {
             </View>
           ) : (
             localThreads.map((thread) => (
-              <TouchableOpacity
-                key={thread.id}
-                style={s.card}
-                onPress={() => router.push(`/course/${id}/thread/${thread.id}`)}
-                activeOpacity={0.75}
-              >
+                <TouchableOpacity
+                  key={thread.id}
+                  style={s.card}
+                  onPress={() =>
+                    router.push({
+                      pathname: '/course/[id]/thread/[threadId]',
+                      params: {
+                        id: courseCode,
+                        threadId: thread.id,
+                        name: courseNameParam ?? course?.name ?? courseCode,
+                      },
+                    })
+                  }
+                  activeOpacity={0.75}
+                >
                 <View style={s.cardTop}>
                   <Text style={s.cardTitle} numberOfLines={2}>{thread.title}</Text>
                   {thread.replyCount > 0 && (

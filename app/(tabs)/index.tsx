@@ -82,7 +82,16 @@ export default function HomeScreen() {
           <TouchableOpacity
             key={item.id}
             style={s.card}
-            onPress={() => router.push(`/course/${item.id}`)}
+            onPress={() =>
+              router.push({
+                pathname: '/course/[id]',
+                params: {
+                  id: item.code,
+                  name: item.name,
+                  description: item.description ?? '',
+                },
+              })
+            }
             testID={`course-${item.id}`}
             accessibilityLabel={item.name}
           >
