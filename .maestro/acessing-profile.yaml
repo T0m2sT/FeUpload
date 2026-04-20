@@ -1,0 +1,30 @@
+appId: com.anonymous.feupload
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible: "Bem-vindo, "
+    timeout: 40000
+- tapOn: 
+- assertVisible: INFORMAÇÃO PESSOAL
+- assertVisible: Nome
+- assertVisible: Email
+- assertVisible: Nº de aluno
+- assertVisible: INFORMAÇÃO ACADÉMICA
+- assertVisible: Curso
+- assertVisible: Ano
+- assertVisible: Semestre
+- assertVisible: APARÊNCIA
+- scrollUntilVisible:
+    element:
+      text: , Terminar sessão
+- assertVisible: APARÊNCIA
+- assertVisible: , Sistema, 
+- assertVisible: , Claro
+- assertVisible: , Escuro
+- assertVisible: DEFINIÇÕES
+- assertVisible: Notificações
+- assertVisible: Sincronização Offline
+- tapOn: , Sistema, 
+- tapOn: , Claro
+- tapOn: , Escuro

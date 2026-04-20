@@ -1,0 +1,28 @@
+appId: com.anonymous.feupload
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible: "Bem-vindo, "
+    timeout: 40000
+- tapOn: Laboratório de Computadores
+- tapOn: Exames
+- tapOn: Enviar
+- tapOn: Enviar
+- assertVisible: Por favor seleciona uma cadeira.
+- tapOn: Selecionar cadeira
+- tapOn: Sistemas Operativos
+- assertVisible: Sistemas Operativos
+- tapOn: Selecionar ano
+- tapOn: 2023/2024
+- assertVisible: 2023/2024
+- tapOn: Enviar
+- tapOn: Por favor seleciona o tipo de material.
+- tapOn: Selecionar tipo
+- tapOn: Resumo
+- assertVisible: Resumo
+- tapOn: Escolher ficheiro
+- assertVisible: Recent files
+- tapOn: Back
+- tapOn: Enviar
+- assertVisible: Por favor seleciona um ficheiro.

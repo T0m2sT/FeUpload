@@ -1,0 +1,19 @@
+appId: com.anonymous.feupload
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible: "Bem-vindo, "
+    timeout: 60000
+- tapOn: Engenharia de Software
+- tapOn: Fórum de discussão
+- tapOn: , Nova publicação
+- assertVisible: , Publicar
+- tapOn: Qual é a tua dúvida?
+- tapOn: T
+- tapOn: Descreve a tua questão...
+- tapOn: Q
+- tapOn: , Publicar
+- assertVisible: T
+- assertVisible: Q
+- assertVisible: eu
