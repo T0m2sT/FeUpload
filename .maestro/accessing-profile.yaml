@@ -27,4 +27,4 @@ appId: com.anonymous.feupload
 - assertVisible: Sincronização Offline
 - tapOn: , Sistema, 
 - tapOn: , Claro
-- tapOn: , Escuro
+- tapOn: , Escuron

@@ -5,6 +5,9 @@ appId: com.anonymous.feupload
 - extendedWaitUntil:
     visible: "Bem-vindo, "
     timeout: 40000
+- extendedWaitUntil:
+    visible: Engenharia de Software
+    timeout: 20000
 - tapOn: Engenharia de Software
 - assertVisible: Engenharia de Software
 - tapOn: Exames

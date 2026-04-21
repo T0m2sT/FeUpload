@@ -5,6 +5,9 @@ appId: com.anonymous.feupload
 - extendedWaitUntil:
     visible: "Bem-vindo, "
     timeout: 40000
+- extendedWaitUntil:
+    visible: Laboratório de Computadores
+    timeout: 20000
 - tapOn: Laboratório de Computadores
 - tapOn: Exames
 - tapOn: Enviar

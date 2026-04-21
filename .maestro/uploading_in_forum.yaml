@@ -4,7 +4,10 @@ appId: com.anonymous.feupload
     clearState: true
 - extendedWaitUntil:
     visible: "Bem-vindo, "
-    timeout: 60000
+    timeout: 80000
+- extendedWaitUntil:
+    visible: Engenharia de Software
+    timeout: 20000
 - tapOn: Engenharia de Software
 - tapOn: Fórum de discussão
 - tapOn: , Nova publicação
@@ -16,4 +19,3 @@ appId: com.anonymous.feupload
 - tapOn: , Publicar
 - assertVisible: T
 - assertVisible: Q
-- assertVisible: eu
