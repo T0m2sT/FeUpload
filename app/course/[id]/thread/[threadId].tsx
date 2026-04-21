@@ -9,12 +9,20 @@ import { COURSES, type ThreadReply } from '@/constants/courses';
 import type { AppPalette } from '@/constants/theme';
 
 export default function ThreadDetailScreen() {
-  const { id, threadId } = useLocalSearchParams<{ id: string; threadId: string }>();
+  const { id, threadId, name } = useLocalSearchParams<{
+    id: string;
+    threadId: string;
+    name?: string | string[];
+  }>();
   const router = useRouter();
   const t = useAppTheme();
   const s = makeStyles(t);
 
-  const course = COURSES[id ?? ''];
+  const courseCode = (id ?? '').toUpperCase();
+  const courseNameParam = Array.isArray(name) ? name[0] : name;
+  const course =
+    Object.values(COURSES).find((c) => c.code.toLowerCase() === courseCode.toLowerCase()) ??
+    COURSES[id ?? ''];
   const thread = course?.threads.find((th) => th.id === threadId);
 
   const [replyText, setReplyText] = useState('');
@@ -54,7 +62,7 @@ export default function ThreadDetailScreen() {
           accessibilityLabel="Voltar ao fórum"
         >
           <Ionicons name="arrow-back" size={20} color={t.accent} />
-          <Text style={s.backText}>{course.code}</Text>
+          <Text style={s.backText}>{courseNameParam ?? course?.code ?? courseCode}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() => router.push('/')}
