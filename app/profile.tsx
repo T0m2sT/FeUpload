@@ -1,22 +1,20 @@
+import type { AppPalette } from '@/constants/theme';
+import { useThemeContext, type ThemePreference } from '@/contexts/theme-context';
+import { useAppTheme } from '@/hooks/use-app-theme';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  View, Text, TouchableOpacity, ScrollView, StyleSheet,
-  TextInput, Switch, Platform,
+  Platform,
+  ScrollView, StyleSheet,
+  Switch,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { useAppTheme } from '@/hooks/use-app-theme';
-import { useThemeContext, type ThemePreference } from '@/contexts/theme-context';
-import type { AppPalette } from '@/constants/theme';
 
-// Placeholder — will be fetched from the database / auth provider
-const INITIAL_PROFILE = {
-  name: 'Rafael',
-  email: 'rafael@fe.up.pt',
-  course: 'LEIC',
-  year: '2º Ano',
-  studentId: 'up202312345',
-};
+import { user } from "../constants/user";
 
 type SectionRowProps = {
   label: string;
@@ -52,12 +50,12 @@ export default function ProfileScreen() {
   const s = makeStyles(t);
 
   const { preference, setPreference } = useThemeContext();
-  const [profile, setProfile] = useState(INITIAL_PROFILE);
+  const [profile, setProfile] = useState(user);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [offlineSyncEnabled,   setOfflineSyncEnabled]   = useState(true);
   const [editing, setEditing] = useState(false);
 
-  const update = (key: keyof typeof INITIAL_PROFILE) => (value: string) =>
+  const update = (key: keyof typeof user) => (value: string) =>
     setProfile((prev) => ({ ...prev, [key]: value }));
 
   return (
@@ -111,7 +109,9 @@ export default function ProfileScreen() {
         <View style={s.card}>
           <FieldRow label="Curso" value={profile.course} editable={editing} onChangeText={update('course')} t={t} s={s} />
           <View style={s.divider} />
-          <FieldRow label="Ano"   value={profile.year}   editable={editing} onChangeText={update('year')}   t={t} s={s} />
+          <FieldRow label="Ano"   value={String(profile.year)}   editable={editing} onChangeText={update('year')}   t={t} s={s} />
+          <View style={s.divider} />
+          <FieldRow label="Semestre"   value={String(profile.semester)}   editable={editing} onChangeText={update('semester')}   t={t} s={s} />
         </View>
 
         {/* Appearance */}
@@ -136,7 +136,6 @@ export default function ProfileScreen() {
           ))}
         </View>
 
-        {/* Settings */}
         <Text style={s.sectionLabel}>Definições</Text>
         <View style={s.card}>
           <View style={s.toggleRow}>
@@ -169,7 +168,7 @@ export default function ProfileScreen() {
         {/* Danger zone */}
         <Text style={s.sectionLabel}>Conta</Text>
         <View style={s.card}>
-          <TouchableOpacity style={s.dangerRow}>
+          <TouchableOpacity onPress={() => router.push('/auth')} style={s.dangerRow}>
             <Ionicons name="log-out-outline" size={18} color={t.error} />
             <Text style={[s.dangerText]}>Terminar sessão</Text>
           </TouchableOpacity>

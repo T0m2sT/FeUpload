@@ -11,6 +11,21 @@ type Tab = {
   label: string;
 };
 
+function getTabPath(tab: CourseNavKey) {
+  switch (tab) {
+    case 'exams':
+      return '/course/[id]/exams' as const;
+    case 'exercises':
+      return '/course/[id]/exercises' as const;
+    case 'summaries':
+      return '/course/[id]/summaries' as const;
+    case 'tips':
+      return '/course/[id]/tips' as const;
+    case 'threads':
+      return '/course/[id]/threads' as const;
+  }
+}
+
 const TABS: Tab[] = [
   { key: 'exams',     label: 'Exames'    },
   { key: 'exercises', label: 'Exercícios'},
@@ -23,6 +38,7 @@ type Props = {
   courseId: string;
   courseCode: string;
   courseName: string;
+  courseDescription?: string;
   activeKey: CourseNavKey;
   children: React.ReactNode;
   // Upload button shown on each section screen
@@ -33,6 +49,7 @@ export function CourseSectionShell({
   courseId,
   courseCode,
   courseName,
+  courseDescription,
   activeKey,
   children,
   onUpload,
@@ -48,7 +65,16 @@ export function CourseSectionShell({
         <View style={s.topRow}>
           <TouchableOpacity
             style={s.backBtn}
-            onPress={() => router.push(`/course/${courseId}`)}
+            onPress={() =>
+              router.push({
+                pathname: '/course/[id]',
+                params: {
+                  id: courseId,
+                  name: courseName,
+                  description: courseDescription ?? '',
+                },
+              })
+            }
             accessibilityLabel="Voltar para cadeira"
           >
             <Ionicons name="arrow-back" size={20} color={t.accent} />
@@ -89,7 +115,16 @@ export function CourseSectionShell({
                 key={tab.key}
                 style={[s.tab, active && s.tabActive]}
                 onPress={() => {
-                  if (!active) router.replace(`/course/${courseId}/${tab.key}`);
+                  if (!active) {
+                    router.replace({
+                      pathname: getTabPath(tab.key),
+                      params: {
+                        id: courseId,
+                        name: courseName,
+                        description: courseDescription ?? '',
+                      },
+                    });
+                  }
                 }}
                 accessibilityRole="tab"
                 accessibilityState={{ selected: active }}

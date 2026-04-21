@@ -4,7 +4,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAppTheme } from '@/hooks/use-app-theme';
 // CourseNavBar kept but hidden — re-enable if needed by the team
 import { CourseNavBar } from '@/components/course-nav-bar';
-import { COURSES } from '@/constants/courses';
 import type { AppPalette } from '@/constants/theme';
 
 const SHOW_NAV_BAR = false;
@@ -15,91 +14,57 @@ type SectionItem = {
   key: SectionKey;
   label: string;
   icon: keyof typeof Ionicons.glyphMap;
-  count: (courseId: string) => number;
 };
+
+function getSectionPath(section: SectionKey) {
+  switch (section) {
+    case 'exams':
+      return '/course/[id]/exams' as const;
+    case 'exercises':
+      return '/course/[id]/exercises' as const;
+    case 'summaries':
+      return '/course/[id]/summaries' as const;
+    case 'tips':
+      return '/course/[id]/tips' as const;
+  }
+}
 
 const SECTIONS: SectionItem[] = [
   {
     key: 'exams',
     label: 'Exames',
     icon: 'newspaper-outline',
-    count: (id) => COURSES[id]?.materials.filter((m) => m.type === 'Exame').length ?? 0,
   },
   {
     key: 'exercises',
     label: 'Exercícios',
     icon: 'book-outline',
-    count: (id) => COURSES[id]?.materials.filter((m) => m.type === 'Ficha').length ?? 0,
   },
   {
     key: 'summaries',
     label: 'Resumos',
     icon: 'document-text-outline',
-    count: (id) => COURSES[id]?.materials.filter((m) => m.type === 'Resumo').length ?? 0,
   },
   {
     key: 'tips',
     label: 'Dicas',
     icon: 'bulb-outline',
-    count: (id) => COURSES[id]?.materials.filter((m) => m.type === 'Dica').length ?? 0,
   },
 ];
 
-// Placeholder course metadata — will be fetched from the database
-const COURSE_META: Record<string, { description: string; professors: string[]; ects: number; semester: string }> = {
-  '1': {
-    description: 'Introdução aos princípios e práticas de engenharia de software, incluindo metodologias ágeis, gestão de projetos e qualidade de software.',
-    professors: ['Prof. João Pascoal Faria', 'Prof. Alberto Simões'],
-    ects: 6,
-    semester: '2º Ano, 2º Semestre',
-  },
-  '2': {
-    description: 'Estudo dos fenómenos físicos fundamentais, incluindo mecânica, termodinâmica e eletromagnetismo.',
-    professors: ['Prof. Maria Helena Braga'],
-    ects: 6,
-    semester: '2º Ano, 1º Semestre',
-  },
-  '3': {
-    description: 'Conceitos de micro e macroeconomia, mercados, oferta e procura, e política económica.',
-    professors: ['Prof. Ana Costa'],
-    ects: 4,
-    semester: '2º Ano, 2º Semestre',
-  },
-  '4': {
-    description: 'Programação imperativa e orientada a objetos, estruturas de dados básicas e algoritmos fundamentais.',
-    professors: ['Prof. Pedro Ribeiro'],
-    ects: 6,
-    semester: '1º Ano, 2º Semestre',
-  },
-  '5': {
-    description: 'Algoritmos clássicos, estruturas de dados avançadas, análise de complexidade e técnicas de programação.',
-    professors: ['Prof. Luís Damas', 'Prof. Fernando Silva'],
-    ects: 6,
-    semester: '2º Ano, 1º Semestre',
-  },
-  '6': {
-    description: 'Modelação de dados, linguagem SQL, sistemas de gestão de bases de dados relacionais e não relacionais.',
-    professors: ['Prof. Rui Moreira'],
-    ects: 6,
-    semester: '2º Ano, 2º Semestre',
-  },
-};
 
 export default function CourseIndexScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, name, description } = useLocalSearchParams<{
+    id: string;
+    name?: string | string[];
+    description?: string | string[];
+  }>();
   const router = useRouter();
   const t = useAppTheme();
   const s = makeStyles(t);
-  const course = COURSES[id ?? ''];
-  const meta = COURSE_META[id ?? ''];
-
-  if (!course) {
-    return (
-      <View style={s.root}>
-        <Text style={s.notFound}>Cadeira não encontrada.</Text>
-      </View>
-    );
-  }
+  const courseCode = (id ?? '').toUpperCase();
+  const courseName = Array.isArray(name) ? name[0] : name;
+  const courseDescription = Array.isArray(description) ? description[0] : description;
 
   return (
     <View style={s.root}>
@@ -110,125 +75,96 @@ export default function CourseIndexScreen() {
         </TouchableOpacity>
 
         {/* Course header */}
-        <Text testID="course-code" style={s.code}>{course.code}</Text>
-        <Text testID="course-name" style={s.title}>{course.name}</Text>
+        <Text testID="course-code" style={s.code}>{courseCode}</Text>
+        <Text testID="course-name" style={s.title}>{courseName ?? courseCode}</Text>
 
         {/* Description block */}
-        {meta && (
+        {!!courseDescription && (
           <View style={s.metaCard}>
-            <Text style={s.metaDescription}>{meta.description}</Text>
-            <View style={s.metaRow}>
-              <Ionicons name="school-outline" size={14} color={t.textSecondary} />
-              <Text style={s.metaText}>{meta.professors.join(' · ')}</Text>
-            </View>
-            <View style={s.metaRow}>
-              <Ionicons name="layers-outline" size={14} color={t.textSecondary} />
-              <Text style={s.metaText}>{meta.ects} ECTS · {meta.semester}</Text>
-            </View>
+            <Text style={s.metaDescription}>{courseDescription}</Text>
           </View>
         )}
 
         {/* Section list */}
         <Text style={s.sectionLabel}>Conteúdo</Text>
 
-        {SECTIONS.map((section, index) => {
-          const count = section.count(id ?? '');
-          return (
-            <View key={section.key}>
-              <TouchableOpacity
-                style={s.card}
-                testID={`section-${section.key}`}
-                accessibilityLabel={section.label}
-                onPress={() => router.push(`/course/${id}/${section.key}`)}
-              >
-                <View style={[
-                  s.cardIcon,
-                  t.isDark && {
-                    shadowColor: t.accentGlow,
-                    shadowOpacity: 0.5,
-                    shadowRadius: 6,
-                    shadowOffset: { width: 0, height: 0 },
+        {SECTIONS.map((section, index) => (
+          <View key={section.key}>
+            <TouchableOpacity
+              style={s.card}
+              testID={`section-${section.key}`}
+              accessibilityLabel={section.label}
+              onPress={() =>
+                router.push({
+                  pathname: getSectionPath(section.key),
+                  params: {
+                    id: courseCode,
+                    name: courseName ?? courseCode,
+                    description: courseDescription ?? '',
                   },
-                ]}>
-                  <Ionicons name={section.icon} size={20} color={t.accent} />
-                </View>
-                <View style={s.cardInfo}>
-                  <Text style={s.cardTitle}>{section.label}</Text>
-                  <Text style={s.cardCount}>
-                    {count === 0 ? 'Sem conteúdo' : `${count} item${count !== 1 ? 's' : ''}`}
-                  </Text>
-                </View>
-                <Ionicons name="chevron-forward" size={16} color={t.textMuted} />
-              </TouchableOpacity>
-              {index < SECTIONS.length - 1 && <View style={s.sep} />}
-            </View>
-          );
-        })}
+                })
+              }
+            >
+              <View style={[
+                s.cardIcon,
+                t.isDark && {
+                  shadowColor: t.accentGlow,
+                  shadowOpacity: 0.5,
+                  shadowRadius: 6,
+                  shadowOffset: { width: 0, height: 0 },
+                },
+              ]}>
+                <Ionicons name={section.icon} size={20} color={t.accent} />
+              </View>
+              <View style={s.cardInfo}>
+                <Text style={s.cardTitle}>{section.label}</Text>
+                <Text style={s.cardCount}>Abrir secção</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={16} color={t.textMuted} />
+            </TouchableOpacity>
+            {index < SECTIONS.length - 1 && <View style={s.sep} />}
+          </View>
+        ))}
 
         {/* Threads / Forum */}
         <Text style={[s.sectionLabel, { marginTop: 28 }]}>Comunidade</Text>
-        {(() => {
-          const threadCount = COURSES[id ?? '']?.threads.length ?? 0;
-          const latestThreads = COURSES[id ?? '']?.threads.slice(0, 2) ?? [];
-          return (
-            <View style={s.forumCard}>
-              <TouchableOpacity
-                style={s.card}
-                testID="section-threads"
-                accessibilityLabel="Fórum de discussão"
-                onPress={() => router.push(`/course/${id}/threads`)}
-              >
-                <View style={[
-                  s.cardIcon,
-                  t.isDark && {
-                    shadowColor: t.accentGlow,
-                    shadowOpacity: 0.5,
-                    shadowRadius: 6,
-                    shadowOffset: { width: 0, height: 0 },
-                  },
-                ]}>
-                  <Ionicons name="chatbubbles-outline" size={20} color={t.accent} />
-                </View>
-                <View style={s.cardInfo}>
-                  <Text style={s.cardTitle}>Fórum de Discussão</Text>
-                  <Text style={s.cardCount}>
-                    {threadCount === 0 ? 'Sem publicações' : `${threadCount} publicaç${threadCount !== 1 ? 'ões' : 'ão'}`}
-                  </Text>
-                </View>
-                <Ionicons name="chevron-forward" size={16} color={t.textMuted} />
-              </TouchableOpacity>
-
-              {latestThreads.length > 0 && (
-                <View style={s.threadPreviewList}>
-                  {latestThreads.map((thread, idx) => (
-                    <View key={thread.id}>
-                      {idx > 0 && <View style={s.sep} />}
-                      <TouchableOpacity
-                        style={s.threadPreview}
-                        onPress={() => router.push(`/course/${id}/thread/${thread.id}`)}
-                        activeOpacity={0.7}
-                      >
-                        <View style={s.threadPreviewIcon}>
-                          <Ionicons name="chatbubble-outline" size={13} color={t.accent} />
-                        </View>
-                        <View style={s.threadPreviewInfo}>
-                          <Text style={s.threadPreviewTitle} numberOfLines={1}>{thread.title}</Text>
-                          <Text style={s.threadPreviewMeta}>
-                            {thread.author} · {thread.replyCount} resposta{thread.replyCount !== 1 ? 's' : ''}
-                          </Text>
-                        </View>
-                        <Ionicons name="chevron-forward" size={13} color={t.textMuted} />
-                      </TouchableOpacity>
-                    </View>
-                  ))}
-                </View>
-              )}
+        <View style={s.forumCard}>
+          <TouchableOpacity
+            style={s.card}
+            testID="section-threads"
+            accessibilityLabel="Fórum de discussão"
+            onPress={() =>
+              router.push({
+                pathname: '/course/[id]/threads',
+                params: {
+                  id: courseCode,
+                  name: courseName ?? courseCode,
+                  description: courseDescription ?? '',
+                },
+              })
+            }
+          >
+            <View style={[
+              s.cardIcon,
+              t.isDark && {
+                shadowColor: t.accentGlow,
+                shadowOpacity: 0.5,
+                shadowRadius: 6,
+                shadowOffset: { width: 0, height: 0 },
+              },
+            ]}>
+              <Ionicons name="chatbubbles-outline" size={20} color={t.accent} />
             </View>
-          );
-        })()}
+            <View style={s.cardInfo}>
+              <Text style={s.cardTitle}>Fórum de Discussão</Text>
+              <Text style={s.cardCount}>Abrir fórum</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={16} color={t.textMuted} />
+          </TouchableOpacity>
+        </View>
       </ScrollView>
 
-      {SHOW_NAV_BAR && <CourseNavBar courseId={id ?? ''} />}
+      {SHOW_NAV_BAR && <CourseNavBar courseId={courseCode} />}
     </View>
   );
 }
@@ -243,11 +179,6 @@ function makeStyles(t: AppPalette) {
       padding: 20,
       paddingTop: 60,
       paddingBottom: 32,
-    },
-    notFound: {
-      color: t.textSecondary,
-      fontSize: 16,
-      margin: 20,
     },
     backBtn: {
       flexDirection: 'row',
@@ -286,16 +217,6 @@ function makeStyles(t: AppPalette) {
       fontSize: 13,
       color: t.textSecondary,
       lineHeight: 20,
-    },
-    metaRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 6,
-    },
-    metaText: {
-      fontSize: 12,
-      color: t.textSecondary,
-      flex: 1,
     },
     sectionLabel: {
       fontSize: 12,
@@ -345,39 +266,6 @@ function makeStyles(t: AppPalette) {
       borderColor: t.surfaceBorder,
       overflow: 'hidden',
       paddingHorizontal: 14,
-    },
-    threadPreviewList: {
-      borderTopWidth: 1,
-      borderTopColor: t.surfaceBorder,
-      marginHorizontal: -14,
-      paddingHorizontal: 14,
-    },
-    threadPreview: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingVertical: 10,
-      gap: 10,
-    },
-    threadPreviewIcon: {
-      width: 28,
-      height: 28,
-      borderRadius: 8,
-      backgroundColor: t.accentDim,
-      borderWidth: 1,
-      borderColor: t.accentBorder,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    threadPreviewInfo: { flex: 1 },
-    threadPreviewTitle: {
-      fontSize: 13,
-      fontWeight: '500',
-      color: t.textPrimary,
-      marginBottom: 2,
-    },
-    threadPreviewMeta: {
-      fontSize: 11,
-      color: t.textMuted,
     },
   });
 }

@@ -1,32 +1,55 @@
+import { useAppTheme } from '@/hooks/use-app-theme';
+import { supabase } from '@/lib/supabase';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import React, { useEffect, useState } from "react";
 import {
+  ScrollView,
+  StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
-  StyleSheet,
-  TextInput,
-  ScrollView,
 } from 'react-native';
-import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { useAppTheme } from '@/hooks/use-app-theme';
 
-const USER_NAME = 'Rafael';
 
-const COURSES = [
-  { id: '1', name: 'Análise Matemática II', dark: false },
-  { id: '2', name: 'Física',                dark: true  },
-  { id: '3', name: 'Economia',              dark: false },
-  { id: '4', name: 'Programação',           dark: true  },
-  { id: '5', name: 'Algoritmos e ED',       dark: true  },
-  { id: '6', name: 'Bases de Dados',        dark: false },
-];
+import { user } from '../../constants/user';
+
 
 const OFFLINE_COUNT = 4;
+
+type Course = {
+  id: string;
+  code: string;
+  name: string;
+  description: string;
+};
 
 export default function HomeScreen() {
   const router = useRouter();
   const t = useAppTheme();
   const s = makeStyles(t);
+  
+  const [courses, setCourses] = useState<Course[]>([]);
+
+  useEffect(() => {
+    const fetchCourses = async () => {
+      const { data, error } = await supabase
+        .from("courses")
+        .select("id, code, name, description")
+        .eq("year", user.year)
+        .eq("semester", user.semester);
+
+      if (error) {
+        console.log(error);
+        return;
+      }
+
+      setCourses(data ?? []);
+    };
+
+    fetchCourses();
+  }, []);
 
   return (
     <ScrollView style={s.scroll} contentContainerStyle={s.container}>
@@ -34,7 +57,7 @@ export default function HomeScreen() {
       <View style={s.header}>
         <Text style={s.greetingStatic}>Bem-vindo, </Text>
         <TouchableOpacity onPress={() => router.push('/profile')} accessibilityLabel="Ir para perfil">
-          <Text style={s.greetingName}>{USER_NAME}</Text>
+          <Text style={s.greetingName}>{user.name}</Text>
         </TouchableOpacity>
         <View style={{ flex: 1 }} />
         <TouchableOpacity onPress={() => router.push('/profile')} accessibilityLabel="Perfil">
@@ -57,11 +80,20 @@ export default function HomeScreen() {
       {/* Course grid */}
       <Text style={s.sectionLabel}>As minhas cadeiras</Text>
       <View style={s.grid}>
-        {COURSES.map((item) => (
+        {courses.map((item) => (
           <TouchableOpacity
             key={item.id}
             style={s.card}
-            onPress={() => router.push(`/course/${item.id}`)}
+            onPress={() =>
+              router.push({
+                pathname: '/course/[id]',
+                params: {
+                  id: item.code,
+                  name: item.name,
+                  description: item.description ?? '',
+                },
+              })
+            }
             testID={`course-${item.id}`}
             accessibilityLabel={item.name}
           >
