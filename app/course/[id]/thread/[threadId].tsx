@@ -10,14 +10,20 @@ import type { AppPalette } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
 
 export default function ThreadDetailScreen() {
-  const { id, threadId } = useLocalSearchParams<{ id: string; threadId: string }>();
+  const { id, threadId, name } = useLocalSearchParams<{
+    id: string;
+    threadId: string;
+    name?: string | string[];
+  }>();
   const router = useRouter();
   const t = useAppTheme();
   const s = makeStyles(t);
 
+
   const [thread, setThread] = useState<any>(null);
   const [replies, setReplies] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
   const [replyText, setReplyText] = useState('');
   const [sending, setSending] = useState(false);
 
@@ -98,6 +104,12 @@ export default function ThreadDetailScreen() {
         <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={20} color={t.accent} />
           <Text style={s.backText}>Fórum</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => router.push('/')}
+          accessibilityLabel="Ir para o início"
+        >
+          <Ionicons name="star" size={22} color={t.accent} />
         </TouchableOpacity>
       </View>
 

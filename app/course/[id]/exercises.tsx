@@ -5,16 +5,26 @@ import { COURSES } from '@/constants/courses';
 
 
 export default function CourseExercisesScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, name, description } = useLocalSearchParams<{
+    id: string;
+    name?: string | string[];
+    description?: string | string[];
+  }>();
   const router = useRouter();
-  const course = COURSES[id ?? ''];
+  const courseCode = (id ?? '').toUpperCase();
+  const courseNameParam = Array.isArray(name) ? name[0] : name;
+  const courseDescription = Array.isArray(description) ? description[0] : description;
+  const course =
+    Object.values(COURSES).find((c) => c.code.toLowerCase() === courseCode.toLowerCase()) ??
+    COURSES[id ?? ''];
   const items = course?.materials.filter((m) => m.type === 'Ficha') ?? [];
 
   return (
     <CourseSectionShell
-      courseId={id ?? ''}
-      courseCode={course?.code ?? ''}
-      courseName={course?.name ?? ''}
+      courseId={courseCode}
+      courseCode={courseCode}
+      courseName={courseNameParam ?? course?.name ?? courseCode}
+      courseDescription={courseDescription}
       activeKey="exercises"
       onUpload={() => router.push('/upload')}
     >
