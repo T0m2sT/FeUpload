@@ -223,6 +223,52 @@ You can find below information and references related with the project managemen
     * list of a few improvements to implement next Sprint;
 
 -->
+### Tools and Infrastructure used
+- Expo and Expo Go
+- Supabase
+- React Native
+- NodeJS
+- AndroidStudio
+
+### Setup
+1. Clone the repo
+
+HTTPS
+```sh
+git clone git@github.com:LEIC-ES-2025-26-2LEIC13/T2.git
+```
+SSH
+```sh
+git clone git@github.com:LEIC-ES-2025-26-2LEIC13/T2.git
+```
+
+2. Install JDK17 and nodeJS
+
+Ubuntu 
+```sh
+sudo apt install openjdk-17-jdk
+sudo apt install nodejs npm
+```
+Arch
+```sh
+sudo pacman -S nodejs npm android-sdk android-sdk-platform-tools 
+```
+Windows with choco
+```sh
+choco install -y nodejs-lts microsoft-openjdk17
+```
+
+3. Start project
+```sh
+npx expo run:android
+```
+
+4. Open in a device
+-  Android: Install Expo Go and scan QR code
+- Windows/Linux: Install Android Studio and, create and start an emulator and press 'a' in the terminal which you started the project
+
+### AI usage
+We are using AI to help us create this project, assisting us by explaining how to use certain tools and by generating code. The LLMs used are Gemini, Claude, and ChatGPT.
 
 ### Sprint 0
 
