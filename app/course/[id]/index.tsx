@@ -52,6 +52,7 @@ const SECTIONS: SectionItem[] = [
   },
 ];
 
+
 export default function CourseIndexScreen() {
   const { id, name, description } = useLocalSearchParams<{
     id: string;

@@ -93,8 +93,8 @@ const THREADS_GENERIC: Thread[] = [
 ];
 
 export const COURSES: Record<string, Course> = {
-  '1': {
-    id: '1',
+  'c1000000-0000-0000-0000-000000000001': {
+    id: 'c1000000-0000-0000-0000-000000000001',
     name: 'Engenharia de Software',
     code: 'ESOF',
     threads: THREADS_ESOF,
@@ -105,30 +105,30 @@ export const COURSES: Record<string, Course> = {
       { id: 'm4', title: 'Dicas para o Exame',             type: 'Dica',    subtitle: 'Resumo de pontos-chave' },
     ],
   },
-  '2': {
-    id: '2',
-    name: 'Física',
-    code: 'FIS',
+  'c1000000-0000-0000-0000-000000000003': {
+    id: 'c1000000-0000-0000-0000-000000000003',
+    name: 'Laboratório de Computadores',
+    code: 'LCOM',
     threads: THREADS_FIS,
     materials: [
-      { id: 'm1', title: 'Guia de Eletromagnetismo', type: 'Resumo', subtitle: '8 páginas', rating: 5 },
+      { id: 'm1', title: 'Guia Projeto', type: 'Resumo', subtitle: '8 páginas', rating: 5 },
       { id: 'm2', title: 'Exam 2023/2024',           type: 'Exame',  subtitle: 'Part 1 · 12 páginas', rating: 3, pdf: 'https://drive.google.com/file/d/1XfxtcV_zh89cpgwXlahnkjSgzXzZ_kRz/view?usp=drive_link' },
-      { id: 'm3', title: 'Dicas de Mecânica',         type: 'Dica',   subtitle: 'Fórmulas essenciais' },
+      { id: 'm3', title: 'Dicas de I/O',         type: 'Dica',   subtitle: 'Métodos úteis' },
     ],
   },
-  '3': {
-    id: '3',
-    name: 'Economia',
-    code: 'ECO',
+  'c1000000-0000-0000-0000-000000000005': {
+    id: 'c1000000-0000-0000-0000-000000000005',
+    name: 'Sistemas Operativos',
+    code: 'SO',
     threads: THREADS_GENERIC,
     materials: [
-      { id: 'm1', title: 'Microeconomia — Resumo', type: 'Resumo', subtitle: '6 páginas', rating: 4 },
+      { id: 'm1', title: 'Processos — Resumo', type: 'Resumo', subtitle: '6 páginas', rating: 4 },
       { id: 'm2', title: 'Exame 2023/2024',        type: 'Exame',  subtitle: '10 páginas', rating: 3, pdf: 'https://drive.google.com/file/d/1XfxtcV_zh89cpgwXlahnkjSgzXzZ_kRz/view?usp=drive_link' },
-      { id: 'm3', title: 'Ficha de Exercícios 1',  type: 'Ficha',  subtitle: 'Oferta e Procura · 5 páginas', rating: 3 },
+      { id: 'm3', title: 'Ficha de Exercícios 1',  type: 'Ficha',  subtitle: 'Comunicação entre processos · 5 páginas', rating: 3 },
     ],
   },
-  '4': {
-    id: '4',
+  'c1000000-0000-0000-0000-000000000006': {
+    id: 'c1000000-0000-0000-0000-000000000006',
     name: 'Programação',
     code: 'PROG',
     threads: THREADS_GENERIC,
@@ -139,8 +139,8 @@ export const COURSES: Record<string, Course> = {
       { id: 'm4', title: 'Truques de Debugging',           type: 'Dica',   subtitle: 'Pontos-chave' },
     ],
   },
-  '5': {
-    id: '5',
+  'c1000000-0000-0000-0000-000000000004': {
+    id: 'c1000000-0000-0000-0000-000000000004',
     name: 'Algoritmos e Estruturas de Dados',
     code: 'AED',
     threads: THREADS_GENERIC,
@@ -150,8 +150,8 @@ export const COURSES: Record<string, Course> = {
       { id: 'm3', title: 'Ficha — Grafos',          type: 'Ficha',  subtitle: 'Avançado · 8 páginas', rating: 3 },
     ],
   },
-  '6': {
-    id: '6',
+  'c1000000-0000-0000-0000-000000000002': {
+    id: 'c1000000-0000-0000-0000-000000000002',
     name: 'Bases de Dados',
     code: 'BD',
     threads: THREADS_GENERIC,

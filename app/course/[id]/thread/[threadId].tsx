@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-  View, Text, TouchableOpacity, ScrollView, TextInput, StyleSheet, Platform,
+  View, Text, TouchableOpacity, ScrollView, TextInput, StyleSheet, Platform, ActivityIndicator,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { COURSES, type ThreadReply } from '@/constants/courses';
 import type { AppPalette } from '@/constants/theme';
+import { supabase } from '@/lib/supabase';
 
 export default function ThreadDetailScreen() {
   const { id, threadId, name } = useLocalSearchParams<{
@@ -18,51 +19,91 @@ export default function ThreadDetailScreen() {
   const t = useAppTheme();
   const s = makeStyles(t);
 
-  const courseCode = (id ?? '').toUpperCase();
-  const courseNameParam = Array.isArray(name) ? name[0] : name;
-  const course =
-    Object.values(COURSES).find((c) => c.code.toLowerCase() === courseCode.toLowerCase()) ??
-    COURSES[id ?? ''];
-  const thread = course?.threads.find((th) => th.id === threadId);
+
+  const [thread, setThread] = useState<any>(null);
+  const [replies, setReplies] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const [replyText, setReplyText] = useState('');
-  const [localReplies, setLocalReplies] = useState<ThreadReply[]>(thread?.replies ?? []);
+  const [sending, setSending] = useState(false);
+
+  useEffect(() => {
+    fetchThreadAndReplies();
+  }, [threadId]);
+
+  const fetchThreadAndReplies = async () => {
+    try {
+      setLoading(true);
+      const threadRes = await supabase
+        .from('threads')
+        .select('*, profiles(name)')
+        .eq('id', threadId)
+        .single();
+
+      const repliesRes = await supabase
+        .from('thread_replies')
+        .select('*, profiles(name)')
+        .eq('thread_id', threadId)
+        .order('created_at', { ascending: true });
+
+      if (threadRes.error) throw threadRes.error;
+
+      setThread(threadRes.data);
+      setReplies(repliesRes.data || []);
+    } catch (err) {
+      console.error("Erro ao carregar thread:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const submitReply = async () => {
+    if (!replyText.trim()) return;
+
+    setSending(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return alert("Precisas de estar logado!");
+
+      const { error } = await supabase.from('thread_replies').insert({
+        thread_id: threadId,
+        user_id: user.id,
+        body: replyText.trim(),
+      });
+
+      if (error) throw error;
+
+      setReplyText('');
+      fetchThreadAndReplies();
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setSending(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <View style={[s.root, { justifyContent: 'center' }]}>
+        <ActivityIndicator size="large" color={t.accent} />
+      </View>
+    );
+  }
 
   if (!thread) {
     return (
       <View style={s.root}>
-        <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={20} color={t.accent} />
-          <Text style={s.backText}>Fórum</Text>
-        </TouchableOpacity>
         <Text style={s.notFound}>Publicação não encontrada.</Text>
       </View>
     );
   }
 
-  const submitReply = () => {
-    if (!replyText.trim()) return;
-    const newReply: ThreadReply = {
-      id: `local-${Date.now()}`,
-      author: 'eu',
-      body: replyText.trim(),
-      createdAt: new Date().toISOString().slice(0, 10),
-    };
-    setLocalReplies((prev) => [...prev, newReply]);
-    setReplyText('');
-  };
-
   return (
     <View style={s.root}>
-      {/* Header */}
       <View style={s.header}>
-        <TouchableOpacity
-          style={s.backBtn}
-          onPress={() => router.back()}
-          accessibilityLabel="Voltar ao fórum"
-        >
+        <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={20} color={t.accent} />
-          <Text style={s.backText}>{courseNameParam ?? course?.code ?? courseCode}</Text>
+          <Text style={s.backText}>Fórum</Text>
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() => router.push('/')}
@@ -72,66 +113,59 @@ export default function ThreadDetailScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView
-        style={s.scroll}
-        contentContainerStyle={s.container}
-        keyboardShouldPersistTaps="handled"
-      >
-        {/* Original post */}
+      <ScrollView style={s.scroll} contentContainerStyle={s.container}>
         <View style={s.op}>
           <Text style={s.opTitle}>{thread.title}</Text>
           <View style={s.opMeta}>
             <Ionicons name="person-circle-outline" size={14} color={t.textMuted} />
-            <Text style={s.opMetaText}>{thread.author}</Text>
-            <Text style={s.opMetaDot}>·</Text>
-            <Text style={s.opMetaText}>{thread.createdAt}</Text>
+            <Text style={s.opMetaText}>{thread.profiles?.name || 'Utilizador'}</Text>
+            <Text style={s.opMetaDot}>•</Text>
+            <Text style={s.opMetaText}>
+              {new Date(thread.created_at).toLocaleDateString()}
+            </Text>
           </View>
           <Text style={s.opBody}>{thread.body}</Text>
         </View>
 
-        {/* Replies */}
-        {localReplies.length > 0 && (
-          <Text style={s.sectionLabel}>
-            {localReplies.length} resposta{localReplies.length !== 1 ? 's' : ''}
-          </Text>
-        )}
+        <Text style={s.sectionLabel}>Respostas ({replies.length})</Text>
 
-        {localReplies.map((reply, index) => (
+        {replies.map((reply, index) => (
           <View key={reply.id} style={[s.reply, index === 0 && s.replyFirst]}>
             <View style={s.replyAuthorRow}>
               <View style={s.replyAvatar}>
-                <Text style={s.replyAvatarText}>{reply.author.charAt(0).toUpperCase()}</Text>
+                <Text style={s.replyAvatarText}>
+                  {(reply.profiles?.name || 'U').charAt(0).toUpperCase()}
+                </Text>
               </View>
               <View>
-                <Text style={s.replyAuthor}>{reply.author}</Text>
-                <Text style={s.replyDate}>{reply.createdAt}</Text>
+                <Text style={s.replyAuthor}>{reply.profiles?.name || 'Utilizador'}</Text>
+                <Text style={s.replyDate}>{new Date(reply.created_at).toLocaleDateString()}</Text>
               </View>
             </View>
             <Text style={s.replyBody}>{reply.body}</Text>
           </View>
         ))}
 
-        {/* Reply composer */}
         <View style={s.composer}>
           <Text style={s.composerLabel}>A tua resposta</Text>
           <TextInput
-            style={[s.composerInput]}
-            placeholder="Escreve uma resposta..."
+            style={s.composerInput}
+            placeholder="Escreve aqui..."
             placeholderTextColor={t.textMuted}
+            multiline
             value={replyText}
             onChangeText={setReplyText}
-            selectionColor={t.accent}
-            multiline
-            numberOfLines={3}
-            textAlignVertical="top"
           />
           <TouchableOpacity
-            style={[s.replyBtn, !replyText.trim() && s.replyBtnDisabled]}
+            style={[s.replyBtn, (!replyText.trim() || sending) && s.replyBtnDisabled]}
             onPress={submitReply}
-            disabled={!replyText.trim()}
+            disabled={!replyText.trim() || sending}
           >
-            <Ionicons name="send-outline" size={15} color={t.background} />
-            <Text style={s.replyBtnText}>Responder</Text>
+            {sending ? (
+              <ActivityIndicator color={t.background} />
+            ) : (
+              <Text style={s.replyBtnText}>Enviar Resposta</Text>
+            )}
           </TouchableOpacity>
         </View>
       </ScrollView>
