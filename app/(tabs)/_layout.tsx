@@ -3,9 +3,6 @@ import React from 'react';
 import { HapticTab } from '@/components/haptic-tab';
 import { Ionicons } from '@expo/vector-icons';
 
-// The tab bar is hidden on every tab screen.
-// Navigation happens through in-screen controls.
-// The bar is only surfaced inside course/[id] via a custom component.
 export default function TabLayout() {
   return (
     <Tabs

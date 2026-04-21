@@ -1,0 +1,25 @@
+appId: com.anonymous.feupload
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible: "Bem-vindo, "
+    timeout: 40000
+- extendedWaitUntil:
+    visible: Engenharia de Software
+    timeout: 20000
+- tapOn: Engenharia de Software
+- assertVisible: Engenharia de Software
+- tapOn: Exames
+- tapOn: 
+- tapOn: Exercícios
+- tapOn: 
+- tapOn: Resumos
+- tapOn: 
+- tapOn: Dicas
+- tapOn: 
+- tapOn: Fórum de discussão
+- tapOn: Dicas
+- tapOn: Resumos
+- tapOn: Exercícios
+- tapOn: Exames

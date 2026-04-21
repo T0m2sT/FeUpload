@@ -136,7 +136,6 @@ export default function ProfileScreen() {
           ))}
         </View>
 
-        {/* Settings */}
         <Text style={s.sectionLabel}>Definições</Text>
         <View style={s.card}>
           <View style={s.toggleRow}>
@@ -169,7 +168,7 @@ export default function ProfileScreen() {
         {/* Danger zone */}
         <Text style={s.sectionLabel}>Conta</Text>
         <View style={s.card}>
-          <TouchableOpacity style={s.dangerRow}>
+          <TouchableOpacity onPress={() => router.push('/auth')} style={s.dangerRow}>
             <Ionicons name="log-out-outline" size={18} color={t.error} />
             <Text style={[s.dangerText]}>Terminar sessão</Text>
           </TouchableOpacity>

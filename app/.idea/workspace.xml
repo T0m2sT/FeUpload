@@ -5,7 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="38ee3462-f6b3-4440-9486-f8c5e8c1eb05" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/(tabs)/_layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/(tabs)/_layout.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -36,9 +37,9 @@
     "cf.first.check.clang-format": "false",
     "cidr.known.project.marker": "true",
     "dart.analysis.tool.window.visible": "false",
-    "git-widget-placeholder": "ThreadsScreen",
+    "git-widget-placeholder": "main",
     "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "/home/david-ferreira/Work/Uni/ES/repo/app",
+    "last_opened_file_path": "/home/david-ferreira/Work/Uni/ES/repo",
     "show.migrate.to.gradle.popup": "false"
   }
 }]]></component>

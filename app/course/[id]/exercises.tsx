@@ -5,6 +5,7 @@ import { MaterialList } from '@/components/material-list';
 import type { Material } from '@/constants/courses';
 import { supabase } from '@/lib/supabase';
 
+
 export default function CourseExercisesScreen() {
   const { id, name, description } = useLocalSearchParams<{
     id: string;
