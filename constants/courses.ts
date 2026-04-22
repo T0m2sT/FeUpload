@@ -5,7 +5,7 @@
 export type Material = {
   id: string;
   title: string;
-  type: 'Exame' | 'Ficha' | 'Resumo' | 'Dica';
+  type: 'exam' | 'exercise' | 'summary' | 'notes';
   subtitle?: string;
   rating?: number;
   pdf?: string;
@@ -96,13 +96,13 @@ export const COURSES: Record<string, Course> = {
   'c1000000-0000-0000-0000-000000000001': {
     id: 'c1000000-0000-0000-0000-000000000001',
     name: 'Engenharia de Software',
-    code: 'ESOF',
+    code: 'ES',
     threads: THREADS_ESOF,
     materials: [
-      { id: 'm1', title: 'Lecture Notes — Agile Methods', type: 'Resumo',  subtitle: '12 páginas',          rating: 4 },
-      { id: 'm2', title: 'Exam 2024/2025',                type: 'Exame',   subtitle: 'Part 1 · 10 páginas', rating: 4, pdf: 'https://drive.google.com/file/d/1XfxtcV_zh89cpgwXlahnkjSgzXzZ_kRz/view?usp=drive_link' },
-      { id: 'm3', title: 'Exercise Sheet 1',               type: 'Ficha',   subtitle: 'Fundamentos · 8 páginas', rating: 3 },
-      { id: 'm4', title: 'Dicas para o Exame',             type: 'Dica',    subtitle: 'Resumo de pontos-chave' },
+      { id: 'm1', title: 'Lecture Notes — Agile Methods', type: 'summary',  subtitle: '12 páginas',          rating: 4 },
+      { id: 'm2', title: 'Exam 2024/2025',                type: 'exam',   subtitle: 'Part 1 · 10 páginas', rating: 4, pdf: 'https://drive.google.com/file/d/1XfxtcV_zh89cpgwXlahnkjSgzXzZ_kRz/view?usp=drive_link' },
+      { id: 'm3', title: 'Exercise Sheet 1',               type: 'exercise',   subtitle: 'Fundamentos · 8 páginas', rating: 3 },
+      { id: 'm4', title: 'Dicas para o exam',             type: 'notes',    subtitle: 'summary de pontos-chave' },
     ],
   },
   'c1000000-0000-0000-0000-000000000003': {
@@ -111,9 +111,9 @@ export const COURSES: Record<string, Course> = {
     code: 'LCOM',
     threads: THREADS_FIS,
     materials: [
-      { id: 'm1', title: 'Guia Projeto', type: 'Resumo', subtitle: '8 páginas', rating: 5 },
-      { id: 'm2', title: 'Exam 2023/2024',           type: 'Exame',  subtitle: 'Part 1 · 12 páginas', rating: 3, pdf: 'https://drive.google.com/file/d/1XfxtcV_zh89cpgwXlahnkjSgzXzZ_kRz/view?usp=drive_link' },
-      { id: 'm3', title: 'Dicas de I/O',         type: 'Dica',   subtitle: 'Métodos úteis' },
+      { id: 'm1', title: 'Guia Projeto', type: 'summary', subtitle: '8 páginas', rating: 5 },
+      { id: 'm2', title: 'Exam 2023/2024',           type: 'exam',  subtitle: 'Part 1 · 12 páginas', rating: 3, pdf: 'https://drive.google.com/file/d/1XfxtcV_zh89cpgwXlahnkjSgzXzZ_kRz/view?usp=drive_link' },
+      { id: 'm3', title: 'Dicas de I/O',         type: 'notes',   subtitle: 'Métodos úteis' },
     ],
   },
   'c1000000-0000-0000-0000-000000000005': {
@@ -122,9 +122,9 @@ export const COURSES: Record<string, Course> = {
     code: 'SO',
     threads: THREADS_GENERIC,
     materials: [
-      { id: 'm1', title: 'Processos — Resumo', type: 'Resumo', subtitle: '6 páginas', rating: 4 },
-      { id: 'm2', title: 'Exame 2023/2024',        type: 'Exame',  subtitle: '10 páginas', rating: 3, pdf: 'https://drive.google.com/file/d/1XfxtcV_zh89cpgwXlahnkjSgzXzZ_kRz/view?usp=drive_link' },
-      { id: 'm3', title: 'Ficha de Exercícios 1',  type: 'Ficha',  subtitle: 'Comunicação entre processos · 5 páginas', rating: 3 },
+      { id: 'm1', title: 'Processos — Resumo', type: 'summary', subtitle: '6 páginas', rating: 4 },
+      { id: 'm2', title: 'Exame 2023/2024',        type: 'exam',  subtitle: '10 páginas', rating: 3, pdf: 'https://drive.google.com/file/d/1XfxtcV_zh89cpgwXlahnkjSgzXzZ_kRz/view?usp=drive_link' },
+      { id: 'm3', title: 'Ficha de Exercícios 1',  type: 'exercise',  subtitle: 'Comunicação entre processos · 5 páginas', rating: 3 },
     ],
   },
   'c1000000-0000-0000-0000-000000000006': {
@@ -133,10 +133,10 @@ export const COURSES: Record<string, Course> = {
     code: 'PROG',
     threads: THREADS_GENERIC,
     materials: [
-      { id: 'm1', title: 'Sorting Algorithms Cheatsheet', type: 'Resumo', subtitle: '4 páginas', rating: 5 },
-      { id: 'm2', title: 'Exam 2024/2025',                type: 'Exame',  subtitle: 'Part 1 · 8 páginas', rating: 4, pdf: 'https://drive.google.com/file/d/1XfxtcV_zh89cpgwXlahnkjSgzXzZ_kRz/view?usp=drive_link' },
-      { id: 'm3', title: 'Ficha 1 — Arrays',              type: 'Ficha',  subtitle: 'Básico · 6 páginas', rating: 3 },
-      { id: 'm4', title: 'Truques de Debugging',           type: 'Dica',   subtitle: 'Pontos-chave' },
+      { id: 'm1', title: 'Sorting Algorithms Cheatsheet', type: 'summary', subtitle: '4 páginas', rating: 5 },
+      { id: 'm2', title: 'Exam 2024/2025',                type: 'exam',  subtitle: 'Part 1 · 8 páginas', rating: 4, pdf: 'https://drive.google.com/file/d/1XfxtcV_zh89cpgwXlahnkjSgzXzZ_kRz/view?usp=drive_link' },
+      { id: 'm3', title: 'exercise 1 — Arrays',              type: 'exercise',  subtitle: 'Básico · 6 páginas', rating: 3 },
+      { id: 'm4', title: 'Truques de Debugging',           type: 'notes',   subtitle: 'Pontos-chave' },
     ],
   },
   'c1000000-0000-0000-0000-000000000004': {
@@ -145,9 +145,9 @@ export const COURSES: Record<string, Course> = {
     code: 'AED',
     threads: THREADS_GENERIC,
     materials: [
-      { id: 'm1', title: 'Complexidade — Resumo', type: 'Resumo', subtitle: '5 páginas', rating: 4 },
-      { id: 'm2', title: 'Exam 2023/2024',         type: 'Exame',  subtitle: '10 páginas', rating: 4, pdf: 'https://drive.google.com/file/d/1XfxtcV_zh89cpgwXlahnkjSgzXzZ_kRz/view?usp=drive_link' },
-      { id: 'm3', title: 'Ficha — Grafos',          type: 'Ficha',  subtitle: 'Avançado · 8 páginas', rating: 3 },
+      { id: 'm1', title: 'Complexidade — summary', type: 'summary', subtitle: '5 páginas', rating: 4 },
+      { id: 'm2', title: 'Exam 2023/2024',         type: 'exam',  subtitle: '10 páginas', rating: 4, pdf: 'https://drive.google.com/file/d/1XfxtcV_zh89cpgwXlahnkjSgzXzZ_kRz/view?usp=drive_link' },
+      { id: 'm3', title: 'exercise — Grafos',          type: 'exercise',  subtitle: 'Avançado · 8 páginas', rating: 3 },
     ],
   },
   'c1000000-0000-0000-0000-000000000002': {
@@ -156,9 +156,9 @@ export const COURSES: Record<string, Course> = {
     code: 'BD',
     threads: THREADS_GENERIC,
     materials: [
-      { id: 'm1', title: 'ER Diagram Guide', type: 'Resumo', subtitle: '6 páginas', rating: 5 },
-      { id: 'm2', title: 'Exam 2023/2024',   type: 'Exame',  subtitle: '10 páginas', rating: 3, pdf: 'https://drive.google.com/file/d/1XfxtcV_zh89cpgwXlahnkjSgzXzZ_kRz/view?usp=drive_link' },
-      { id: 'm3', title: 'Ficha — SQL',       type: 'Ficha',  subtitle: 'Queries · 7 páginas', rating: 4 },
+      { id: 'm1', title: 'ER Diagram Guide', type: 'summary', subtitle: '6 páginas', rating: 5 },
+      { id: 'm2', title: 'Exam 2023/2024',   type: 'exam',  subtitle: '10 páginas', rating: 3, pdf: 'https://drive.google.com/file/d/1XfxtcV_zh89cpgwXlahnkjSgzXzZ_kRz/view?usp=drive_link' },
+      { id: 'm3', title: 'exercise — SQL',       type: 'exercise',  subtitle: 'Queries · 7 páginas', rating: 4 },
     ],
   },
 };
