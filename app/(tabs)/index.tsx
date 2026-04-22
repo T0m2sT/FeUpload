@@ -12,7 +12,9 @@ import {
   View,
 } from 'react-native';
 
+
 import { user } from '../../constants/user';
+
 
 const OFFLINE_COUNT = 4;
 
