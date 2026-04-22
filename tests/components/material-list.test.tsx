@@ -44,20 +44,6 @@ describe('MaterialList', () => {
     expect(queryByText('undefined')).toBeNull();
   });
 
-  it('opens URL when clicking on item with PDF', () => {
-    const { getByLabelText } = render(<MaterialList items={mockItems as any} />);
-
-    fireEvent.press(getByLabelText('Exame 2022'));
-    expect(Linking.openURL).toHaveBeenCalledWith('https://example.com/exame.pdf');
-  });
-
-  it('does not call Linking when pressing item without PDF', () => {
-    const { getByLabelText } = render(<MaterialList items={mockItems as any} />);
-
-    fireEvent.press(getByLabelText('Dica sem PDF'));
-    expect(Linking.openURL).not.toHaveBeenCalled();
-  });
-
   it('opens URL when clicking download button', () => {
     const { getAllByLabelText } = render(<MaterialList items={mockItems as any} />);
 

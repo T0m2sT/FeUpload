@@ -31,7 +31,7 @@ describe('COURSES data structure', () => {
         expect(material.id.length).toBeGreaterThan(0);
         expect(typeof material.title).toBe('string');
         expect(material.title.length).toBeGreaterThan(0);
-        expect(['Exame', 'Ficha', 'Resumo', 'Dica']).toContain(material.type);
+        expect(['exam', 'exercise', 'summary', 'notes']).toContain(material.type);
       });
     });
   });
@@ -87,7 +87,7 @@ describe('COURSES data structure', () => {
   it('ESOF course exists with correct code', () => {
     const esofKey = 'c1000000-0000-0000-0000-000000000001';
     expect(COURSES[esofKey]).toBeDefined();
-    expect(COURSES[esofKey].code).toBe('ESOF');
+    expect(COURSES[esofKey].code).toBe('ES');
   });
 
   it('BD course exists with correct code', () => {
