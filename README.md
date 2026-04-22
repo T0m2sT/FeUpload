@@ -270,6 +270,54 @@ npx expo run:android
 ### AI usage
 We are using AI to help us create this project, assisting us by explaining how to use certain tools and by generating code. The LLMs used are Gemini, Claude, and ChatGPT.
 
+### Scrum patterns and evidence
+
+This project follows Scrum practices and keeps the evidence in GitHub issues/PRs, GitHub Project board, and repository notes.
+
+#### Definition of Ready (DoR)
+A Product Backlog Item is considered ready for Sprint Planning only if:
+- It has a clear user value statement and acceptance criteria.
+- Dependencies and technical risks are identified.
+- Effort is estimated (Pigs Estimate / story points).
+- It is small enough to fit in one sprint (no epics in Sprint Backlog).
+- It has a clear test/validation strategy.
+
+#### Sprint Planning and Sprint Backlog
+- Sprint Backlog items are moved from the Product Backlog during Sprint Planning.
+- Planning uses:
+  - **Yesterday’s Weather** (previous sprint velocity as planning baseline),
+  - **Pigs Estimate** (team effort estimates in points),
+  - **Small Items** rule (split large stories before adding to Sprint Backlog).
+- Sprint Backlog is capped by realistic team capacity and excludes epics.
+
+#### Work assignment and WiP policy
+- Sprint Backlog items are assigned only when work starts (pair/trio/team), never pre-assigned at planning time.
+- Work in progress is kept low:
+  - max 1 active item per pair/trio,
+  - avoid paused items,
+  - finish in-progress work before pulling new work.
+
+#### Sprint Review
+- At sprint end, the increment is demonstrated to all stakeholders (teacher included).
+- Feedback is recorded and translated into Product Backlog updates.
+- Evidence: `misc/scrum/sprint-review.md`.
+
+#### Sprint Retrospective
+- A retrospective is held at the end of each sprint and documented.
+- Each retrospective includes:
+  - what worked,
+  - what did not work,
+  - improvement suggestions,
+  - verifiable action points (owner + measurable outcome).
+- Evidence: `misc/scrum/sprint-retrospective.md`.
+
+#### Agile board and release traceability
+- Product Backlog / Sprint Backlog: GitHub Projects board (team board).
+- Releases and increment summary: GitHub Releases + `CHANGELOG.md`.
+- Planning rules and DoR: `misc/scrum/sprint-planning.md`.
+- Sprint Review notes: `misc/scrum/sprint-review.md`.
+- Sprint Retrospective notes: `misc/scrum/sprint-retrospective.md`.
+
 ### Sprint 0
 
 <p align="center" justify="center">
