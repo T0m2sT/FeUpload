@@ -350,10 +350,23 @@ Which feature is doable to do?
 
 ### Sprint 1
 <h4>Sprint 1 Planning</h4>
+
 <p align="center" justify="center">
   <img src="./misc/sprints/sprint1-planning.png"/>
 </p>
+<h4>Sprint Retrospective</h4> 
 
+- [Sprint retrospective details](https://github.com/LEIC-ES-2025-26-2LEIC13/T2/blob/main/misc/scrum/sprint-retrospective.md#sprint-1-retrospective)
+<h4>Sprint review</h4>
+
+- [Sprint Review details](https://github.com/LEIC-ES-2025-26-2LEIC13/T2/blob/main/misc/scrum/sprint-review.md#sprint-1-review)
+<h4>Happiness Meters</h4>
+TODO
+
+<h4>Tests can be found in this directories:</h4> 
+
+- [Acceptance tests directory](https://github.com/LEIC-ES-2025-26-2LEIC13/T2/tree/main/.maestro)
+- [Unit tests directory](https://github.com/LEIC-ES-2025-26-2LEIC13/T2/tree/main/tests)
 ### Sprint 2
 
 ### Sprint 3
