@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1776814268069" clover="3.2.0">
-  <project timestamp="1776814268069" name="All files">
+<coverage generated="1776828742460" clover="3.2.0">
+  <project timestamp="1776828742461" name="All files">
     <metrics statements="161" coveredstatements="157" conditionals="125" coveredconditionals="97" methods="61" coveredmethods="58" elements="347" coveredelements="312" complexity="0" loc="161" ncloc="161" packages="6" files="26" classes="26"/>
     <package name="components">
       <metrics statements="63" coveredstatements="61" conditionals="61" coveredconditionals="54" methods="28" coveredmethods="27"/>
@@ -107,12 +107,12 @@
       </file>
       <file name="icon-symbol.ios.tsx" path="/Users/tomas_teixeira/Documents/LEIC/2A2S/ESOF/T2/components/ui/icon-symbol.ios.tsx">
         <metrics statements="1" coveredstatements="1" conditionals="2" coveredconditionals="1" methods="1" coveredmethods="1"/>
-        <line num="19" count="7" type="stmt"/>
+        <line num="17" count="7" type="stmt"/>
       </file>
       <file name="icon-symbol.tsx" path="/Users/tomas_teixeira/Documents/LEIC/2A2S/ESOF/T2/components/ui/icon-symbol.tsx">
         <metrics statements="2" coveredstatements="0" conditionals="1" coveredconditionals="0" methods="1" coveredmethods="0"/>
         <line num="16" count="0" type="stmt"/>
-        <line num="42" count="0" type="stmt"/>
+        <line num="40" count="0" type="stmt"/>
       </file>
     </package>
     <package name="constants">

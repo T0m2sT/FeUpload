@@ -293,7 +293,7 @@ FN:4,IconSymbol
 FNF:1
 FNH:1
 FNDA:7,IconSymbol
-DA:19,7
+DA:17,7
 LF:1
 LH:1
 BRDA:6,0,0,0
@@ -308,7 +308,7 @@ FNF:1
 FNH:0
 FNDA:0,IconSymbol
 DA:16,0
-DA:42,0
+DA:40,0
 LF:2
 LH:0
 BRDA:30,0,0,0
