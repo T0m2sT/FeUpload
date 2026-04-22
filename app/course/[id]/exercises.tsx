@@ -1,8 +1,11 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { CourseSectionShell } from '@/components/course-section-shell';
 import { MaterialList } from '@/components/material-list';
-import { COURSES } from '@/constants/courses';
-
+import { useEffect, useState } from 'react';
+import { supabase } from '@/lib/supabase';
+import type { Material } from '@/constants/courses';
+import { ActivityIndicator, Text, View } from 'react-native';
+import { useAppTheme } from '@/hooks/use-app-theme';
 
 export default function CourseExercisesScreen() {
   const { id, name, description } = useLocalSearchParams<{
@@ -11,24 +14,89 @@ export default function CourseExercisesScreen() {
     description?: string | string[];
   }>();
   const router = useRouter();
+  const t = useAppTheme();
+  
   const courseCode = (id ?? '').toUpperCase();
   const courseNameParam = Array.isArray(name) ? name[0] : name;
   const courseDescription = Array.isArray(description) ? description[0] : description;
-  const course =
-    Object.values(COURSES).find((c) => c.code.toLowerCase() === courseCode.toLowerCase()) ??
-    COURSES[id ?? ''];
-  const items = course?.materials.filter((m) => m.type === 'Ficha') ?? [];
+
+  const [items, setItems] = useState<Material[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchExercises() {
+      setIsLoading(true);
+      setErrorMsg(null);
+
+      try {
+        // 1. Fetch the course UUID using the course code
+        const { data: courseData, error: courseError } = await supabase
+          .from('courses')
+          .select('id')
+          .ilike('code', courseCode.trim())
+          .single();
+
+        if (courseError || !courseData) {
+          setErrorMsg('Não foi possível encontrar a cadeira especificada.');
+          return;
+        }
+
+        // 2. Fetch the exercises using the course_id
+        const { data, error } = await supabase
+          .from('materials')
+          .select('*')
+          .eq('course_id', courseData.id)
+          .eq('type', 'exercise');
+
+        if (error) {
+          setErrorMsg('Ocorreu um erro ao carregar as fichas.');
+          return;
+        }
+
+        if (data) {
+          const mappedItems: Material[] = data.map((m: any) => ({
+            id: m.id,
+            title: m.title,
+            type: 'Ficha',
+            subtitle: m.description || m.academic_year || undefined,
+            pdf: m.file_url || undefined,
+          }));
+          setItems(mappedItems);
+        }
+      } catch (err) {
+        setErrorMsg('Erro inesperado ao carregar dados.');
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    if (courseCode) {
+      fetchExercises();
+    }
+  }, [courseCode]);
 
   return (
     <CourseSectionShell
       courseId={courseCode}
       courseCode={courseCode}
-      courseName={courseNameParam ?? course?.name ?? courseCode}
+      courseName={courseNameParam ?? courseCode}
       courseDescription={courseDescription}
       activeKey="exercises"
       onUpload={() => router.push('/upload')}
     >
-      <MaterialList items={items} emptyMessage="Sem fichas disponíveis." />
+      {isLoading ? (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingTop: 60 }}>
+          <ActivityIndicator size="large" color={t.accent} />
+          <Text style={{ marginTop: 12, color: t.textSecondary, fontSize: 14 }}>A carregar fichas...</Text>
+        </View>
+      ) : errorMsg ? (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingTop: 60 }}>
+          <Text style={{ color: t.textPrimary, fontSize: 16 }}>{errorMsg}</Text>
+        </View>
+      ) : (
+        <MaterialList items={items} emptyMessage="Sem fichas disponíveis." />
+      )}
     </CourseSectionShell>
   );
 }

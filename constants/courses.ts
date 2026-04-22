@@ -42,9 +42,9 @@ const THREADS_ESOF: Thread[] = [
     body: 'Alguém pode explicar a diferença entre uma User Story e um Use Case? Estou a confundir os dois para o projeto.',
     createdAt: '2025-04-10', replyCount: 3,
     replies: [
-      { id: 'r1', author: 'ana.costa',   body: 'User Stories são mais informais e centradas no utilizador. Use Cases descrevem interações detalhadas com o sistema.', createdAt: '2025-04-10' },
-      { id: 'r2', author: 'pedro.m',     body: 'O prof. Faria explicou bem na aula 4 — vê os slides!', createdAt: '2025-04-11' },
-      { id: 'r3', author: 'joao.silva',  body: 'Obrigado, já percebi!', createdAt: '2025-04-11' },
+      { id: 'r1', author: 'ana.costa', body: 'User Stories são mais informais e centradas no utilizador. Use Cases descrevem interações detalhadas com o sistema.', createdAt: '2025-04-10' },
+      { id: 'r2', author: 'pedro.m', body: 'O prof. Faria explicou bem na aula 4 — vê os slides!', createdAt: '2025-04-11' },
+      { id: 'r3', author: 'joao.silva', body: 'Obrigado, já percebi!', createdAt: '2025-04-11' },
     ],
   },
   {
@@ -69,7 +69,7 @@ const THREADS_FIS: Thread[] = [
     body: 'Qual é a fórmula exata para o campo elétrico de um dipolo no eixo de simetria? O livro tem duas versões diferentes.',
     createdAt: '2025-04-09', replyCount: 2,
     replies: [
-      { id: 'r1', author: 'inês.l',  body: 'E = 2kp/r³ para o eixo do dipolo. Verifica a página 112 do Serway.', createdAt: '2025-04-09' },
+      { id: 'r1', author: 'inês.l', body: 'E = 2kp/r³ para o eixo do dipolo. Verifica a página 112 do Serway.', createdAt: '2025-04-09' },
       { id: 'r2', author: 'carlos.m', body: 'Encontrei, obrigado!', createdAt: '2025-04-10' },
     ],
   },
