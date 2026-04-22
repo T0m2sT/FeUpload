@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import type { AppPalette } from '@/constants/theme';
 import type { Material } from '@/constants/courses';
+import { useRouter } from 'expo-router';
 
 function StarRating({ count, accent }: { count: number; accent: string }) {
   return (
@@ -30,6 +31,11 @@ export function MaterialList({ items, emptyMessage = 'Sem conteúdo disponível.
   const t = useAppTheme();
   const s = makeStyles(t);
 
+  const router = useRouter();
+  const openPDF = (pdf?: string) => {
+    router.push({ pathname: "/pdf-viewer" as any, params: { pdf} });
+  };
+
   if (items.length === 0) {
     return (
       <View style={s.empty}>
@@ -46,7 +52,7 @@ export function MaterialList({ items, emptyMessage = 'Sem conteúdo disponível.
       renderItem={({ item }) => (
         <TouchableOpacity
           style={s.row}
-          onPress={() => item.pdf && Linking.openURL(item.pdf)}
+          onPress={() => openPDF(item.pdf)}
           accessibilityLabel={item.title}
         >
           <View style={[
