@@ -384,6 +384,12 @@ A Product Backlog Item is considered ready for Sprint Planning only if:
 | Add DoR checklist before moving items to Sprint Backlog | Scrum lead for sprint | Every selected item has acceptance criteria + estimate |
 | Limit parallel work to reduce pauses                    | Whole team            | At most one active item per pair/trio                  |
 
+### Happiness Meter
+
+<p align="center" justify="center">
+  <img src="./misc/sprints/sprint1-happiness.png"/>
+</p>
+
 ### Sprint 1
 
 <h4>Sprint 1 Planning</h4>
@@ -398,7 +404,9 @@ A Product Backlog Item is considered ready for Sprint Planning only if:
 
 - [Sprint Review details](https://github.com/LEIC-ES-2025-26-2LEIC13/T2/blob/main/misc/scrum/sprint-review.md#sprint-1-review)
 <h4>Happiness Meters</h4>
-TODO
+<p align="center" justify="center">
+  <img src="./misc/sprints/sprint1-happiness.png"/>
+</p>
 
 <h4>Tests can be found in this directories:</h4>
 
