@@ -1,11 +1,15 @@
+import { fireEvent, render } from '@testing-library/react-native';
+import { useRouter } from 'expo-router';
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { Linking, Platform } from 'react-native';
 import { MaterialList } from '../../components/material-list';
-import { useAppTheme } from '../../hooks/use-app-theme';
-import { Linking } from 'react-native';
 import { darkPalette } from '../../constants/theme';
+import { useAppTheme } from '../../hooks/use-app-theme';
 
 jest.mock('../../hooks/use-app-theme');
+jest.mock('expo-router', () => ({
+  useRouter: jest.fn(),
+}));
 
 const mockItems = [
   { id: '1', title: 'Exame 2022', type: 'Exame', pdf: 'https://example.com/exame.pdf', rating: 4 },
@@ -63,5 +67,55 @@ describe('MaterialList', () => {
   it('renders favorite button for each item', () => {
     const { getAllByLabelText } = render(<MaterialList items={mockItems as any} />);
     expect(getAllByLabelText('Favoritar')).toHaveLength(mockItems.length);
+  });
+
+  describe('openPDF', () => {
+    it('navigates to pdf-viewer when a material row is pressed on native', () => {
+      //Opening with native library
+      const pushMock = jest.fn();
+      (useRouter as jest.Mock).mockReturnValue({ push: pushMock });
+
+      const { getByLabelText } = render(<MaterialList items={mockItems as any} />);
+
+      fireEvent.press(getByLabelText('Exame 2022'));
+
+      expect(pushMock).toHaveBeenCalledWith({
+        pathname: '/pdf-viewer',
+        params: { pdf: 'https://example.com/exame.pdf' },
+      });
+      expect(Linking.openURL).not.toHaveBeenCalled();
+    });
+
+    it('opens URL directly when a material row is pressed on web', () => {
+      //Opening with browser
+      const pushMock = jest.fn();
+      (useRouter as jest.Mock).mockReturnValue({ push: pushMock });
+
+      const originalOS = Platform.OS;
+      Platform.OS = 'web';
+
+      const { getByLabelText } = render(<MaterialList items={mockItems as any} />);
+
+      fireEvent.press(getByLabelText('Exame 2022'));
+
+      expect(Linking.openURL).toHaveBeenCalledWith('https://example.com/exame.pdf');
+      expect(pushMock).not.toHaveBeenCalled();
+
+      Platform.OS = originalOS;
+    });
+
+    it('does nothing when a material row without PDF is pressed', () => {
+      //There is no pdf
+      const pushMock = jest.fn();
+      (useRouter as jest.Mock).mockReturnValue({ push: pushMock });
+
+      const { getByLabelText } = render(<MaterialList items={mockItems as any} />);
+
+      // Press the row for 'Dica sem PDF'
+      fireEvent.press(getByLabelText('Dica sem PDF'));
+
+      expect(pushMock).not.toHaveBeenCalled();
+      expect(Linking.openURL).not.toHaveBeenCalled();
+    });
   });
 });
