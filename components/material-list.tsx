@@ -1,10 +1,10 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, FlatList, Linking, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useAppTheme } from '@/hooks/use-app-theme';
-import type { AppPalette } from '@/constants/theme';
 import type { Material } from '@/constants/courses';
+import type { AppPalette } from '@/constants/theme';
+import { useAppTheme } from '@/hooks/use-app-theme';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import React from 'react';
+import { FlatList, Linking, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 function StarRating({ count, accent }: { count: number; accent: string }) {
   return (
@@ -33,7 +33,12 @@ export function MaterialList({ items, emptyMessage = 'Sem conteúdo disponível.
 
   const router = useRouter();
   const openPDF = (pdf?: string) => {
-    router.push({ pathname: "/pdf-viewer" as any, params: { pdf} });
+    if (!pdf) return;
+    if (Platform.OS === 'web') {
+      Linking.openURL(pdf);
+    } else {
+      router.push({ pathname: "/pdf-viewer" as any, params: { pdf} });
+    }
   };
 
   if (items.length === 0) {
@@ -57,12 +62,17 @@ export function MaterialList({ items, emptyMessage = 'Sem conteúdo disponível.
         >
           <View style={[
             s.iconWrap,
-            t.isDark && {
-              shadowColor: t.accentGlow,
-              shadowOpacity: 0.45,
-              shadowRadius: 5,
-              shadowOffset: { width: 0, height: 0 },
-            },
+            t.isDark && Platform.select({
+              web: {
+                boxShadow: `0px 0px 5px ${t.accentGlow}` as any,
+              },
+              default: {
+                shadowColor: t.accentGlow,
+                shadowOpacity: 0.45,
+                shadowRadius: 5,
+                shadowOffset: { width: 0, height: 0 },
+              }
+            }),
           ]}>
             <Ionicons name="document-text-outline" size={18} color={t.accent} />
           </View>

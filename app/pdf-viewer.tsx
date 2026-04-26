@@ -1,7 +1,7 @@
+import { PdfViewerComponent } from '@/components/PdfViewerComponent';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import React from 'react';
-import { StyleSheet, Dimensions, View } from 'react-native';
-import Pdf from 'react-native-pdf';
-import { useLocalSearchParams, Stack } from 'expo-router';
+import { Dimensions, StyleSheet, View } from 'react-native';
 
 export default function PdfViewer() {
     const { pdf } = useLocalSearchParams();
@@ -10,10 +10,10 @@ export default function PdfViewer() {
     return (
         <View style={styles.container}>
             <Stack.Screen options={{ title: 'View PDF' }} />
-            <Pdf
+            <PdfViewerComponent
                 source={pdfSource}
                 trustAllCerts={false}
-                style={styles.pdf}/>
+                style={styles.pdf} />
         </View>
     );
 }
