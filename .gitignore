@@ -46,4 +46,7 @@ app-example
 
 # local config
 
-.vscode/coverage/
+.vscode/
+
+.idea
+

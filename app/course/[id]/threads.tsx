@@ -154,9 +154,9 @@ export default function CourseThreadsScreen() {
           />
 
           <TouchableOpacity
-            style={[s.submitBtn, loading && s.submitBtnDisabled]}
+            style={[s.submitBtn, (!title.trim() || !body.trim() || loading) && s.submitBtnDisabled]}
             onPress={submitThread}
-            disabled={loading}
+            disabled={!title.trim() || !body.trim() || loading}
           >
             {loading ? (
               <ActivityIndicator color={t.background} />
