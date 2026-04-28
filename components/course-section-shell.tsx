@@ -1,10 +1,10 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
-import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { useAppTheme } from '@/hooks/use-app-theme';
-import type { AppPalette } from '@/constants/theme';
 import type { CourseNavKey } from '@/components/course-nav-bar';
+import type { AppPalette } from '@/constants/theme';
+import { useAppTheme } from '@/hooks/use-app-theme';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import React from 'react';
+import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 type Tab = {
   key: CourseNavKey;
