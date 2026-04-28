@@ -30,23 +30,11 @@ export default function CourseExercisesScreen() {
       setErrorMsg(null);
 
       try {
-        // 1. Fetch the course UUID using the course code
-        const { data: courseData, error: courseError } = await supabase
-          .from('courses')
-          .select('id')
-          .ilike('code', courseCode.trim())
-          .single();
-
-        if (courseError || !courseData) {
-          setErrorMsg('Não foi possível encontrar a cadeira especificada.');
-          return;
-        }
-
-        // 2. Fetch the exercises using the course_id
+        // Fetch the exercises using the class_code directly as per schema
         const { data, error } = await supabase
           .from('materials')
           .select('*')
-          .eq('course_id', courseData.id)
+          .eq('class_code', courseCode)
           .eq('type', 'exercise');
 
         if (error) {
@@ -58,8 +46,9 @@ export default function CourseExercisesScreen() {
           const mappedItems: Material[] = data.map((m: any) => ({
             id: m.id,
             title: m.title,
-            type: 'Ficha',
+            type: m.type as any,
             subtitle: m.description || m.academic_year || undefined,
+            rating: m.rating,
             pdf: m.file_url || undefined,
           }));
           setItems(mappedItems);
