@@ -1,0 +1,13 @@
+appId: com.anonymous.feupload
+---
+- launchApp:
+    clearState: true
+- tapOn: http://10.0.2.2:8081
+- tapOn: Close
+- tapOn: Engenharia de Software
+- tapOn: Exames
+- extendedWaitUntil:
+    visible: Test 22/23
+    timeout: 10000
+- tapOn: Test 22/23
+- assertVisible: View PDF
