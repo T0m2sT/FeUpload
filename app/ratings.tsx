@@ -4,12 +4,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import {
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 type Review = {
@@ -57,13 +57,14 @@ export default function RatingsScreen() {
   const t = useAppTheme();
   const router = useRouter();
   const s = makeStyles(t);
+  const ratingAccent = t.accent;
 
   return (
     <View style={s.root}>
       <ScrollView contentContainerStyle={s.container} showsVerticalScrollIndicator={false}>
         <View style={s.header}>
           <TouchableOpacity onPress={() => router.back()} style={s.backBtn} accessibilityLabel="Voltar">
-            <Ionicons name="chevron-back" size={20} color={t.textPrimary} />
+            <Ionicons name="arrow-back" size={22} color={ratingAccent} />
           </TouchableOpacity>
           <Text style={s.title}>Avaliações de Material</Text>
           <View style={s.headerSpacer} />
@@ -73,7 +74,7 @@ export default function RatingsScreen() {
 
         <View style={s.summaryRow}>
           <Text style={s.averageValue}>{AVERAGE_RATING.toFixed(1)}</Text>
-          <Stars rating={AVERAGE_RATING} size={36} color={t.accent} />
+          <Stars rating={AVERAGE_RATING} size={36} color={ratingAccent} />
         </View>
 
         <View style={s.divider} />
@@ -92,7 +93,7 @@ export default function RatingsScreen() {
                 </View>
 
                 <View style={s.reviewRight}>
-                  <Stars rating={review.rating} size={14} color={t.accent} />
+                  <Stars rating={review.rating} size={14} color={ratingAccent} />
                   <Ionicons name="return-up-back" size={18} color={t.textSecondary} />
                 </View>
               </View>
@@ -101,7 +102,11 @@ export default function RatingsScreen() {
           ))}
         </View>
 
-        <TouchableOpacity style={s.ctaButton} accessibilityRole="button">
+        <TouchableOpacity
+          style={s.ctaButton}
+          accessibilityRole="button"
+          onPress={() => router.push('/material-evaluation')}
+        >
           <Text style={s.ctaText}>Avaliar Material</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -148,7 +153,7 @@ function makeStyles(t: AppPalette) {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      paddingVertical: 16,
+      paddingVertical: 14,
     },
     averageValue: {
       fontSize: 64,
@@ -203,12 +208,13 @@ function makeStyles(t: AppPalette) {
       borderWidth: 1,
       borderColor: t.surfaceBorder,
       backgroundColor: t.surface,
+      alignItems: 'center',
       paddingVertical: 12,
       paddingHorizontal: 18,
     },
     ctaText: {
-      textAlign: 'center',
       fontSize: 16,
+      textAlign: 'center',
       fontWeight: '700',
       color: t.textPrimary,
     },
