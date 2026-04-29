@@ -91,7 +91,7 @@ export function MaterialList({ items, emptyMessage = 'Sem conteúdo disponível.
                 <Ionicons name="cloud-download-outline" size={18} color={t.textSecondary} />
               </TouchableOpacity>
             )}
-            <TouchableOpacity style={s.actionBtn} accessibilityLabel="Favoritar">
+            <TouchableOpacity style={s.actionBtn} accessibilityLabel="Favoritar" onPress={() => router.push('/ratings')}>
               <Ionicons name="star-outline" size={18} color={t.textSecondary} />
             </TouchableOpacity>
           </View>
