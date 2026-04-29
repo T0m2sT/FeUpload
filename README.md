@@ -415,6 +415,13 @@ A Product Backlog Item is considered ready for Sprint Planning only if:
 
 ### Sprint 2
 
+<h4>Sprint 1 Planning</h4>
+
+<p align="center" justify="center">
+  <img src="./misc/sprints/sprint2-planning.png"/>
+</p>
+<h4>Sprint Retrospective</h4>
+
 ### Sprint 3
 
 ### Sprint 4
