@@ -32,12 +32,12 @@ export function MaterialList({ items, emptyMessage = 'Sem conteúdo disponível.
   const s = makeStyles(t);
 
   const router = useRouter();
-  const openPDF = (pdf?: string) => {
+  const openPDF = (pdf?: string, title?: string) => {
     if (!pdf) return;
     if (Platform.OS === 'web') {
       Linking.openURL(pdf);
     } else {
-      router.push({ pathname: "/pdf-viewer" as any, params: { pdf} });
+      router.push({ pathname: "/pdf-viewer" as any, params: { pdf, title: title ?? 'PDF' } });
     }
   };
 
@@ -57,7 +57,7 @@ export function MaterialList({ items, emptyMessage = 'Sem conteúdo disponível.
       renderItem={({ item }) => (
         <TouchableOpacity
           style={s.row}
-          onPress={() => openPDF(item.pdf)}
+          onPress={() => openPDF(item.pdf, item.title)}
           accessibilityLabel={item.title}
         >
           <View style={[
@@ -98,7 +98,7 @@ export function MaterialList({ items, emptyMessage = 'Sem conteúdo disponível.
         </TouchableOpacity>
       )}
       ItemSeparatorComponent={() => <View style={s.sep} />}
-      contentContainerStyle={{ paddingBottom: 20 }}
+      contentContainerStyle={{ paddingBottom: 20, paddingHorizontal: 16 }}
     />
   );
 }
