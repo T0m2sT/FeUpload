@@ -46,6 +46,15 @@ export default function TabLayout() {
             }}
             />
       <Tabs.Screen
+        name="bookmarks"
+        options={{
+          title: 'Bookmarks',
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons size={28} name={focused ? 'bookmark' : 'bookmark-outline'} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="upload"
         options={{
           title: 'Upload',

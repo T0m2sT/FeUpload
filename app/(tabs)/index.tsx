@@ -29,7 +29,7 @@ export default function HomeScreen() {
   const router = useRouter();
   const t = useAppTheme();
   const s = makeStyles(t);
-  
+
   const [courses, setCourses] = useState<Course[]>([]);
 
   useEffect(() => {
@@ -60,6 +60,11 @@ export default function HomeScreen() {
           <Text style={s.greetingName}>{user.name}</Text>
         </TouchableOpacity>
         <View style={{ flex: 1 }} />
+        <TouchableOpacity onPress={() => router.push('/bookmarks')} accessibilityLabel="Marcadores">
+          <View style={s.avatarCircle}>
+            <Ionicons name="bookmark-outline" size={18} color={t.accent} />
+          </View>
+        </TouchableOpacity>
         <TouchableOpacity onPress={() => router.push('/profile')} accessibilityLabel="Perfil">
           <View style={s.avatarCircle}>
             <Ionicons name="person-outline" size={18} color={t.accent} />
