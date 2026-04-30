@@ -1,0 +1,17 @@
+appId: com.anonymous.feupload
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible: FeUpload
+    timeout: 40000
+- assertVisible: Sign in to your account
+- assertVisible: Email
+- assertVisible: Password
+- assertVisible: Sign In
+- tapOn: Email
+- inputText: test@fe.up.pt
+- tapOn: Password
+- inputText: wrongpassword
+- tapOn: Sign In
+- assertVisible: Invalid login credentials
