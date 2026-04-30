@@ -3,6 +3,11 @@
 # dependencies
 node_modules/
 
+.claude
+coverage/
+test_output.txt
+docs/superpowers/
+
 # Expo
 .expo/
 dist/
@@ -48,5 +53,5 @@ app-example
 
 .vscode/
 
-.idea
+**/.idea
 
