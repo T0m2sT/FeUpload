@@ -13,4 +13,5 @@ module.exports = {
     'components/**/*.tsx',
     '!**/*.d.ts',
   ],
+  coverageReporters: ['json', 'json-summary', 'lcov'],
 };

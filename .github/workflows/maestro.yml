@@ -1,0 +1,85 @@
+name: Maestro Acceptance Tests
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "app/**"
+      - "components/**"
+      - "services/**"
+      - ".maestro/**"
+
+permissions:
+  contents: read
+
+jobs:
+  maestro:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20.x"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Maestro CLI
+        run: |
+          export MAESTRO_VERSION=1.39.0
+          curl -Ls "https://get.maestro.mobile.dev" | bash
+          echo "$HOME/.maestro/bin" >> $GITHUB_PATH
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Run Maestro tests on Android emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 33
+          arch: x86_64
+          profile: pixel_5
+          avd-name: maestro_avd
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: true
+          script: |
+            # Start Expo dev server in background
+            npx expo start --android --no-dev --minify &
+            EXPO_PID=$!
+
+            # Wait for Metro bundler to be ready
+            echo "Waiting for Metro bundler..."
+            timeout 120 bash -c 'until curl -s http://localhost:8081/status | grep -q "packager-status:running"; do sleep 3; done'
+            echo "Metro bundler ready."
+
+            # Wait for app to install on emulator
+            sleep 30
+
+            # Run each Maestro flow individually
+            FAILED=0
+            for flow in .maestro/*.yaml .maestro/**/*.yaml; do
+              [ -f "$flow" ] || continue
+              echo "Running: $flow"
+              maestro test "$flow" --format junit --output "maestro-results-$(basename $flow .yaml).xml" || FAILED=1
+            done
+
+            kill $EXPO_PID 2>/dev/null || true
+            exit $FAILED
+
+      - name: Upload Maestro results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: maestro-results
+          path: |
+            maestro-results-*.xml
+            ~/.maestro/tests/
+          retention-days: 14
