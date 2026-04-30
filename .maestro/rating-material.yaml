@@ -1,0 +1,35 @@
+appId: com.anonymous.feupload
+---
+- launchApp:
+    clearState: true
+- tapOn: http://10.0.2.2:8081
+- extendedWaitUntil:
+    visible: Close
+    timeout: 40000
+- tapOn: Close
+- extendedWaitUntil:
+    visible: "Bem-vindo, "
+    timeout: 40000
+- extendedWaitUntil:
+    visible: Engenharia de Software
+    timeout: 20000
+- tapOn: Engenharia de Software
+- tapOn: Exames
+- extendedWaitUntil:
+    visible: Test 22/23
+    timeout: 10000
+- tapOn: Test 22/23
+- assertVisible: View PDF
+- tapOn: Avaliações
+- assertVisible: Avaliações de Material
+- assertVisible: "4.6"
+- assertVisible: Avaliar Material
+- tapOn: Avaliar Material
+- assertVisible: Avaliar
+- assertVisible: Slides Tópicos 1, 2 e 3
+- assertVisible: A tua classificação
+- assertVisible: Bom (3/5)
+- tapOn:
+    text: "Classificação 5"
+- assertVisible: Excelente (5/5)
+- tapOn: Publicar Avaliação
