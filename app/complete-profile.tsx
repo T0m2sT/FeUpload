@@ -12,6 +12,15 @@ import {
   View,
 } from 'react-native';
 import { supabase } from '../lib/supabase';
+import {
+  isValidCourse,
+  isValidName,
+  isValidStudentId,
+  normalizeCourse,
+  normalizeSpaces,
+  normalizeStudentId,
+  parseOptionalInteger,
+} from '../lib/validation';
 
 type Field = {
   key: string;
@@ -49,10 +58,43 @@ export default function CompleteProfileScreen() {
   const set = (key: string) => (val: string) => setValues((v) => ({ ...v, [key]: val }));
 
   const handleSave = async () => {
-    if (!values.name.trim() || !values.studentId.trim() || !values.course.trim()) {
+    const normalizedName = normalizeSpaces(values.name);
+    const normalizedStudentId = normalizeStudentId(values.studentId);
+    const normalizedCourse = normalizeCourse(values.course);
+    const normalizedYear = values.year.trim();
+    const normalizedSemester = values.semester.trim();
+    const parsedYear = parseOptionalInteger(normalizedYear);
+    const parsedSemester = parseOptionalInteger(normalizedSemester);
+
+    if (!normalizedName || !normalizedStudentId || !normalizedCourse) {
       setError('Please fill in name, student number, and course.');
       return;
     }
+    if (!isValidName(normalizedName)) {
+      setError('Please enter a valid full name.');
+      return;
+    }
+    if (!isValidStudentId(normalizedStudentId)) {
+      setError('Please enter a valid student number.');
+      return;
+    }
+    if (!isValidCourse(normalizedCourse)) {
+      setError('Please enter a valid course.');
+      return;
+    }
+    if (!Number.isNaN(parsedYear) && parsedYear !== null && (parsedYear < 1 || parsedYear > 6)) {
+      setError('Year must be between 1 and 6.');
+      return;
+    }
+    if (!Number.isNaN(parsedSemester) && parsedSemester !== null && (parsedSemester < 1 || parsedSemester > 2)) {
+      setError('Semester must be 1 or 2.');
+      return;
+    }
+    if (Number.isNaN(parsedYear) || Number.isNaN(parsedSemester)) {
+      setError('Year and semester must be numeric.');
+      return;
+    }
+
     setError('');
     setLoading(true);
     try {
@@ -62,11 +104,11 @@ export default function CompleteProfileScreen() {
       // Update auth metadata
       await supabase.auth.updateUser({
         data: {
-          name: values.name.trim(),
-          studentId: values.studentId.trim(),
-          course: values.course.trim(),
-          year: values.year.trim(),
-          semester: values.semester.trim(),
+          name: normalizedName,
+          studentId: normalizedStudentId,
+          course: normalizedCourse,
+          year: normalizedYear,
+          semester: normalizedSemester,
           profileComplete: true,
         },
       });
@@ -74,7 +116,7 @@ export default function CompleteProfileScreen() {
       // Update profiles row
       await supabase
         .from('profiles')
-        .update({ name: values.name.trim() })
+        .update({ name: normalizedName })
         .eq('id', user.id);
 
       router.replace('/(tabs)');

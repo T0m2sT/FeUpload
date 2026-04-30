@@ -59,6 +59,14 @@ describe('AuthScreen', () => {
     await waitFor(() => expect(getByText('Please fill in all fields.')).toBeDefined());
   });
 
+  it('shows error for invalid email format', async () => {
+    const { getByText, getByPlaceholderText } = render(<AuthScreen />);
+    fireEvent.changeText(getByPlaceholderText('Email'), 'not-an-email');
+    fireEvent.changeText(getByPlaceholderText('Password'), 'password123');
+    fireEvent.press(getByText('Sign In'));
+    await waitFor(() => expect(getByText('Please enter a valid email address.')).toBeDefined());
+  });
+
   it('shows error when signing up without a name', async () => {
     const { getByText, getByPlaceholderText } = render(<AuthScreen />);
     fireEvent.press(getByText("Don't have an account? Sign Up"));
@@ -115,6 +123,35 @@ describe('AuthScreen', () => {
         options: { data: { name: 'Tomas', profileComplete: false } },
       });
       expect(replaceMock).toHaveBeenCalledWith('/complete-profile');
+    });
+  });
+
+  it('shows error when signing up with a weak password', async () => {
+    const { getByText, getByPlaceholderText } = render(<AuthScreen />);
+    fireEvent.press(getByText("Don't have an account? Sign Up"));
+    fireEvent.changeText(getByPlaceholderText('Name'), 'Tomas');
+    fireEvent.changeText(getByPlaceholderText('Email'), 'tomas@fe.up.pt');
+    fireEvent.changeText(getByPlaceholderText('Password'), 'short');
+    fireEvent.press(getByText('Sign Up'));
+    await waitFor(() => expect(getByText('Password must have at least 8 characters.')).toBeDefined());
+  });
+
+  it('normalizes email and name before sign up', async () => {
+    getSupabaseAuth().signUp.mockResolvedValue({ error: null });
+
+    const { getByText, getByPlaceholderText } = render(<AuthScreen />);
+    fireEvent.press(getByText("Don't have an account? Sign Up"));
+    fireEvent.changeText(getByPlaceholderText('Name'), '  Tomás   Teixeira  ');
+    fireEvent.changeText(getByPlaceholderText('Email'), '  TOMAS@FE.UP.PT ');
+    fireEvent.changeText(getByPlaceholderText('Password'), 'password123');
+    fireEvent.press(getByText('Sign Up'));
+
+    await waitFor(() => {
+      expect(getSupabaseAuth().signUp).toHaveBeenCalledWith({
+        email: 'tomas@fe.up.pt',
+        password: 'password123',
+        options: { data: { name: 'Tomás Teixeira', profileComplete: false } },
+      });
     });
   });
 });
