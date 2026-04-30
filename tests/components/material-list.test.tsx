@@ -81,7 +81,7 @@ describe('MaterialList', () => {
 
       expect(pushMock).toHaveBeenCalledWith({
         pathname: '/pdf-viewer',
-        params: { pdf: 'https://example.com/exame.pdf' },
+        params: { pdf: 'https://example.com/exame.pdf', title: "Exame 2022"},
       });
       expect(Linking.openURL).not.toHaveBeenCalled();
     });
