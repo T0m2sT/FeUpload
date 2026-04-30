@@ -32,3 +32,18 @@ All notable changes to this project are documented in this file.
 ### Quality and delivery notes
 - CI workflow added to run lint and tests on pull requests and pushes to `main`.
 
+## [Sprint 2]
+
+### End-user value
+- Students can view real material ratings and comments backed by Supabase data.
+- Students can submit ratings and optional comments using their authenticated account.
+- Students can edit or delete their own existing review directly from the ratings screen.
+
+### Closed PBIs (implemented in this increment)
+- Material ratings list integrated with Supabase `reviews` and `profiles`.
+- Material evaluation submit flow integrated with Supabase and authenticated user identity.
+- In-place “Editar Avaliação” experience implemented (open-on-click editor, save/cancel/delete actions).
+- Material average rating refresh logic wired to keep `materials.rating` in sync with review changes.
+
+### Quality and delivery notes
+- Tests updated for changed review and navigation behavior.
