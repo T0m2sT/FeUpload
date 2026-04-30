@@ -38,12 +38,18 @@ All notable changes to this project are documented in this file.
 - Students can view real material ratings and comments backed by Supabase data.
 - Students can submit ratings and optional comments using their authenticated account.
 - Students can edit or delete their own existing review directly from the ratings screen.
+- Account and profile forms now validate and normalize user input to prevent invalid data.
+- Updating course information in profile now immediately affects the classes shown on the home page.
 
 ### Closed PBIs (implemented in this increment)
 - Material ratings list integrated with Supabase `reviews` and `profiles`.
 - Material evaluation submit flow integrated with Supabase and authenticated user identity.
 - In-place “Editar Avaliação” experience implemented (open-on-click editor, save/cancel/delete actions).
 - Material average rating refresh logic wired to keep `materials.rating` in sync with review changes.
+- Auth and profile validation layer added (email/name/password/student number/course/year/semester rules).
+- Profile save flow fixed for academic fields and improved error handling.
+- Home course query updated to react to edited profile course metadata.
 
 ### Quality and delivery notes
 - Tests updated for changed review and navigation behavior.
+- Additional tests added/updated for auth validation, profile edit persistence, and Supabase-backed ratings flows.
