@@ -1,0 +1,86 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+      - "sprint-*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20.x"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup Expo
+        uses: expo/expo-github-action@v8
+        with:
+          expo-version: latest
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Build Android preview APK
+        run: eas build --platform android --profile preview --non-interactive
+        id: eas-build
+
+      - name: Generate changelog since last tag
+        id: changelog
+        run: |
+          PREV_TAG=$(git describe --tags --abbrev=0 --exclude="$(git describe --tags --exact-match 2>/dev/null)" 2>/dev/null || git rev-list --max-parents=0 HEAD)
+          CHANGELOG=$(git log "${PREV_TAG}..HEAD" --pretty=format:"- %s (%h)" --no-merges)
+          if [ -z "$CHANGELOG" ]; then
+            CHANGELOG="No changes since last tag"
+          fi
+          echo "CHANGELOG<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          echo "PREV_TAG=$PREV_TAG" >> $GITHUB_OUTPUT
+
+      - name: Update CHANGELOG.md
+        run: |
+          TAG="${{ github.ref_name }}"
+          DATE=$(date +%Y-%m-%d)
+          PREV_CONTENT=$(cat CHANGELOG.md)
+          NEW_SECTION=$(printf "## [%s] - %s\n\n%s\n\n" "$TAG" "$DATE" "${{ steps.changelog.outputs.CHANGELOG }}")
+          printf "%s%s" "$NEW_SECTION" "$PREV_CONTENT" > CHANGELOG.md
+
+      - name: Commit CHANGELOG update
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add CHANGELOG.md
+          if git commit -m "chore: update CHANGELOG for ${{ github.ref_name }}"; then
+            git push origin HEAD:main || { echo "Failed to push CHANGELOG update"; exit 1; }
+          else
+            echo "No changes to commit, skipping push"
+          fi
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          body: |
+            ## Changes since ${{ steps.changelog.outputs.PREV_TAG }}
+
+            ${{ steps.changelog.outputs.CHANGELOG }}
+
+            ---
+            **EAS Build:** Check the [Expo dashboard](https://expo.dev) for the APK download link.
+          draft: false
+          prerelease: ${{ startsWith(github.ref_name, 'sprint-') }}
