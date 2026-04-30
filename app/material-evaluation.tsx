@@ -243,7 +243,7 @@ function makeStyles(t: AppPalette) {
       minHeight: 170,
       borderRadius: 12,
       borderWidth: 2,
-      borderColor: '#2c2d31',
+      borderColor: t.surfaceBorder,
       backgroundColor: t.surface,
       color: t.textPrimary,
       fontSize: 14,
