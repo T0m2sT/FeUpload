@@ -84,7 +84,7 @@ export default function CourseExercisesScreen() {
           <Text style={{ color: t.textPrimary, fontSize: 16 }}>{errorMsg}</Text>
         </View>
       ) : (
-        <MaterialList items={items} emptyMessage="Sem fichas disponíveis." />
+        <MaterialList items={items} emptyMessage="Sem fichas disponíveis." courseCode={courseCode} />
       )}
     </CourseSectionShell>
   );

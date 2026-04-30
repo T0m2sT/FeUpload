@@ -25,9 +25,10 @@ function StarRating({ count, accent }: { count: number; accent: string }) {
 type Props = {
   items: Material[];
   emptyMessage?: string;
+  courseCode?: string;
 };
 
-export function MaterialList({ items, emptyMessage = 'Sem conteúdo disponível.' }: Props) {
+export function MaterialList({ items, emptyMessage = 'Sem conteúdo disponível.', courseCode }: Props) {
   const t = useAppTheme();
   const s = makeStyles(t);
 
@@ -91,7 +92,20 @@ export function MaterialList({ items, emptyMessage = 'Sem conteúdo disponível.
                 <Ionicons name="cloud-download-outline" size={18} color={t.textSecondary} />
               </TouchableOpacity>
             )}
-            <TouchableOpacity style={s.actionBtn} accessibilityLabel="Favoritar" onPress={() => router.push('/ratings')}>
+            <TouchableOpacity
+              style={s.actionBtn}
+              accessibilityLabel="Avaliar material"
+              onPress={() =>
+                router.push({
+                  pathname: '/ratings',
+                  params: {
+                    materialId: item.id,
+                    materialTitle: item.title,
+                    courseCode,
+                  },
+                })
+              }
+            >
               <Ionicons name="star-outline" size={18} color={t.textSecondary} />
             </TouchableOpacity>
           </View>

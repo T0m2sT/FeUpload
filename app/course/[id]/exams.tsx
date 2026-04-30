@@ -63,7 +63,7 @@ export default function CourseExamsScreen() {
       activeKey="exams"
       onUpload={() => router.push('/upload')}
     >
-      <MaterialList items={exams} emptyMessage="Sem exames disponíveis." />
+      <MaterialList items={exams} emptyMessage="Sem exames disponíveis." courseCode={courseCode} />
     </CourseSectionShell>
   );
 }
