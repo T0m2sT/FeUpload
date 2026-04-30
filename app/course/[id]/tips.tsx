@@ -27,7 +27,7 @@ export default function CourseTipsScreen() {
       activeKey="tips"
       onUpload={() => router.push('/upload')}
     >
-      <MaterialList items={items} emptyMessage="Sem dicas disponíveis." />
+      <MaterialList items={items} emptyMessage="Sem dicas disponíveis." courseCode={courseCode} />
     </CourseSectionShell>
   );
 }

@@ -1,9 +1,12 @@
 import type { AppPalette } from '@/constants/theme';
 import { useAppTheme } from '@/hooks/use-app-theme';
+import { supabase } from '@/lib/supabase';
+import { createReview, getReviewsByMaterial, refreshMaterialRating } from '@/services/reviews';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import React, { useMemo, useState } from 'react';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
+  ActivityIndicator,
   Platform,
   ScrollView,
   StyleSheet,
@@ -68,12 +71,91 @@ function ratingLabel(value: number) {
 export default function MaterialEvaluationScreen() {
   const t = useAppTheme();
   const router = useRouter();
+  const { materialId, materialTitle, courseCode } = useLocalSearchParams<{
+    materialId?: string | string[];
+    materialTitle?: string | string[];
+    courseCode?: string | string[];
+  }>();
   const s = makeStyles(t);
   const ratingAccent = t.accent;
+  const selectedMaterialId = Array.isArray(materialId) ? materialId[0] : materialId;
+  const selectedMaterialTitle = Array.isArray(materialTitle) ? materialTitle[0] : materialTitle;
+  const selectedCourseCode = Array.isArray(courseCode) ? courseCode[0] : courseCode;
 
   const [rating, setRating] = useState(3);
   const [comment, setComment] = useState('');
+  const [materialAverageRating, setMaterialAverageRating] = useState(0);
+  const [isLoadingSummary, setIsLoadingSummary] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const summary = useMemo(() => `${ratingLabel(rating)} (${rating}/5)`, [rating]);
+
+  const loadSummary = useCallback(async () => {
+    if (!selectedMaterialId) {
+      setIsLoadingSummary(false);
+      return;
+    }
+
+    setIsLoadingSummary(true);
+    setErrorMsg(null);
+    try {
+      const reviews = await getReviewsByMaterial(selectedMaterialId);
+      if (!reviews || reviews.length === 0) {
+        setMaterialAverageRating(0);
+      } else {
+        const average = reviews.reduce((sum: number, review: any) => sum + review.rating, 0) / reviews.length;
+        setMaterialAverageRating(average);
+      }
+    } catch {
+      setErrorMsg('Ocorreu um erro ao carregar os dados do material.');
+    } finally {
+      setIsLoadingSummary(false);
+    }
+  }, [selectedMaterialId]);
+
+  useEffect(() => {
+    loadSummary();
+  }, [loadSummary]);
+
+  const handlePublish = useCallback(async () => {
+    if (!selectedMaterialId) {
+      setErrorMsg('Material inválido para avaliação.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setErrorMsg(null);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setErrorMsg('Precisas de iniciar sessão para avaliar materiais.');
+        setIsSubmitting(false);
+        return;
+      }
+
+      await createReview({
+        material_id: selectedMaterialId,
+        user_id: user.id,
+        rating,
+        content: comment.trim() || undefined,
+      });
+      await refreshMaterialRating(selectedMaterialId);
+
+      router.replace({
+        pathname: '/ratings',
+        params: {
+          materialId: selectedMaterialId,
+          materialTitle: selectedMaterialTitle,
+          courseCode: selectedCourseCode,
+          refreshKey: String(Date.now()),
+        },
+      });
+    } catch {
+      setErrorMsg('Não foi possível publicar a avaliação.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [comment, rating, router, selectedCourseCode, selectedMaterialId, selectedMaterialTitle]);
 
   return (
     <View style={s.root}>
@@ -94,11 +176,15 @@ export default function MaterialEvaluationScreen() {
           </View>
 
           <View style={s.materialInfo}>
-            <Text style={s.materialTitle}>Slides Tópicos 1, 2 e 3</Text>
-            <Text style={s.materialCourse}>Cadeira: ESOF</Text>
+            <Text style={s.materialTitle}>{selectedMaterialTitle ?? 'Material'}</Text>
+            <Text style={s.materialCourse}>Cadeira: {selectedCourseCode ?? '—'}</Text>
           </View>
 
-          <Stars rating={4} size={12} color={ratingAccent} />
+          {isLoadingSummary ? (
+            <ActivityIndicator size="small" color={ratingAccent} />
+          ) : (
+            <Stars rating={materialAverageRating} size={12} color={ratingAccent} />
+          )}
         </View>
 
         <Text style={s.sectionTitle}>A tua classificação</Text>
@@ -132,8 +218,19 @@ export default function MaterialEvaluationScreen() {
           <Text style={s.toolText}>| @mencionar</Text>
         </View>
 
-        <TouchableOpacity style={s.publishBtn} accessibilityRole="button">
-          <Text style={s.publishText}>Publicar Avaliação</Text>
+        {errorMsg ? <Text style={s.errorText}>{errorMsg}</Text> : null}
+
+        <TouchableOpacity
+          style={[s.publishBtn, (isSubmitting || !selectedMaterialId) && s.publishBtnDisabled]}
+          accessibilityRole="button"
+          onPress={handlePublish}
+          disabled={isSubmitting || !selectedMaterialId}
+        >
+          {isSubmitting ? (
+            <ActivityIndicator color="#ffffff" />
+          ) : (
+            <Text style={s.publishText}>Publicar Avaliação</Text>
+          )}
         </TouchableOpacity>
       </ScrollView>
     </View>
@@ -290,6 +387,15 @@ function makeStyles(t: AppPalette) {
       color: '#ffffff',
       fontSize: 17,
       fontWeight: '700',
+    },
+    publishBtnDisabled: {
+      opacity: 0.7,
+    },
+    errorText: {
+      fontSize: 13,
+      color: '#ff6f6f',
+      textAlign: 'center',
+      marginBottom: 10,
     },
   });
 }

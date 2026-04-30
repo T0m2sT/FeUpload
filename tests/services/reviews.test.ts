@@ -1,4 +1,4 @@
-import { getReviewsByMaterial, createReview, deleteReview } from '../../services/reviews';
+import { getReviewsByMaterial, createReview, deleteReview, updateReview } from '../../services/reviews';
 import { buildSupabaseMock } from '../utils';
 
 jest.mock('../../lib/supabase', () => ({
@@ -92,6 +92,25 @@ describe('reviews service', () => {
     it('throws error when deletion fails', async () => {
       mockChain._error = new Error('Delete failed');
       await expect(deleteReview('r1')).rejects.toThrow('Delete failed');
+    });
+  });
+
+  describe('updateReview', () => {
+    it('updates a review by id', async () => {
+      const payload = { rating: 5, content: 'Updated' };
+      mockChain._data = { id: 'r1', ...payload };
+
+      const result = await updateReview('r1', payload);
+
+      expect(getFrom()).toHaveBeenCalledWith('reviews');
+      expect(mockChain.update).toHaveBeenCalledWith(payload);
+      expect(mockChain.eq).toHaveBeenCalledWith('id', 'r1');
+      expect(result).toEqual({ id: 'r1', ...payload });
+    });
+
+    it('throws error when update fails', async () => {
+      mockChain._error = new Error('Update failed');
+      await expect(updateReview('r1', { rating: 4 })).rejects.toThrow('Update failed');
     });
   });
 });
