@@ -66,7 +66,7 @@ describe('MaterialList', () => {
 
   it('renders favorite button for each item', () => {
     const { getAllByLabelText } = render(<MaterialList items={mockItems as any} />);
-    expect(getAllByLabelText('Favoritar')).toHaveLength(mockItems.length);
+    expect(getAllByLabelText('Avaliar material')).toHaveLength(mockItems.length);
   });
 
   describe('openPDF', () => {
@@ -81,7 +81,7 @@ describe('MaterialList', () => {
 
       expect(pushMock).toHaveBeenCalledWith({
         pathname: '/pdf-viewer',
-        params: { pdf: 'https://example.com/exame.pdf', title: "Exame 2022"},
+        params: { pdf: 'https://example.com/exame.pdf', title: 'Exame 2022' },
       });
       expect(Linking.openURL).not.toHaveBeenCalled();
     });
