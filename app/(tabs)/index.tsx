@@ -1,5 +1,6 @@
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { supabase } from '@/lib/supabase';
+import { normalizeCourse } from '@/lib/validation';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from 'expo-router';
@@ -23,6 +24,8 @@ type Course = {
   description: string;
 };
 
+const GENERIC_PROGRAM_CODES = new Set(['LEIC', 'MIEIC', 'MEIC']);
+
 export default function HomeScreen() {
   const router = useRouter();
   const t = useAppTheme();
@@ -39,12 +42,17 @@ export default function HomeScreen() {
       const meta = u.user_metadata ?? {};
       setUserName(meta.name ?? u.email?.split('@')[0] ?? '');
 
-      const isLeic = !meta.course || meta.course.toUpperCase().replace(/[^A-Z]/g, '') === 'LEIC';
-      if (!isLeic || !meta.year || !meta.semester) { setCourses([]); return; }
+      const normalizedCourse = normalizeCourse(meta.course ?? '');
+      const courseToken = normalizedCourse.toUpperCase().replace(/[^A-Z0-9]/g, '');
+      if (!meta.year || !meta.semester) { setCourses([]); return; }
 
       let query = supabase.from('courses').select('id, code, name, description');
       query = query.eq('year', Number(meta.year));
       query = query.eq('semester', Number(meta.semester));
+
+      if (courseToken && !GENERIC_PROGRAM_CODES.has(courseToken)) {
+        query = query.eq('code', courseToken);
+      }
 
       const { data: coursesData, error } = await query;
       if (error) { console.log(error); return; }

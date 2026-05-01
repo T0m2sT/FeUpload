@@ -15,6 +15,11 @@ import {
   View,
 } from 'react-native';
 import { supabase } from '../lib/supabase';
+import {
+  normalizeCourse,
+  normalizeSpaces,
+  normalizeStudentId,
+} from '../lib/validation';
 
 type Profile = {
   name: string;
@@ -66,6 +71,7 @@ export default function ProfileScreen() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [offlineSyncEnabled, setOfflineSyncEnabled] = useState(true);
   const [editing, setEditing] = useState(false);
+  const [saveError, setSaveError] = useState('');
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -90,21 +96,49 @@ export default function ProfileScreen() {
     setProfile((prev) => ({ ...prev, [key]: value }));
 
   const handleSave = async () => {
+    setSaveError('');
+    const normalizedProfile = {
+      name: normalizeSpaces(profile.name),
+      studentId: normalizeStudentId(profile.studentId),
+      course: normalizeCourse(profile.course),
+      year: profile.year.trim(),
+      semester: profile.semester.trim(),
+    };
+
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-    await Promise.all([
-      supabase.from('profiles').update({ name: profile.name }).eq('id', user.id),
-      supabase.auth.updateUser({
+
+    try {
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ name: normalizedProfile.name })
+        .eq('id', user.id);
+      if (profileError) throw profileError;
+
+      const { data: updatedAuth, error: authError } = await supabase.auth.updateUser({
         data: {
-          name: profile.name,
-          studentId: profile.studentId,
-          course: profile.course,
-          year: profile.year,
-          semester: profile.semester,
+          name: normalizedProfile.name,
+          studentId: normalizedProfile.studentId,
+          course: normalizedProfile.course,
+          year: normalizedProfile.year,
+          semester: normalizedProfile.semester,
         },
-      }),
-    ]);
-    setEditing(false);
+      });
+      if (authError) throw authError;
+
+      const refreshedMeta = updatedAuth.user?.user_metadata ?? {};
+      setProfile((prev) => ({
+        ...prev,
+        name: normalizedProfile.name,
+        studentId: refreshedMeta.studentId ?? normalizedProfile.studentId,
+        course: refreshedMeta.course ?? normalizedProfile.course,
+        year: refreshedMeta.year ?? normalizedProfile.year,
+        semester: refreshedMeta.semester ?? normalizedProfile.semester,
+      }));
+      setEditing(false);
+    } catch (e: any) {
+      setSaveError(e?.message || 'Não foi possível guardar alterações.');
+    }
   };
 
   if (loading) {
@@ -125,7 +159,14 @@ export default function ProfileScreen() {
           </TouchableOpacity>
           <Text style={s.heading}>Perfil</Text>
           <TouchableOpacity
-            onPress={() => editing ? handleSave() : setEditing(true)}
+            onPress={() => {
+              if (editing) {
+                handleSave();
+                return;
+              }
+              setSaveError('');
+              setEditing(true);
+            }}
             style={s.editBtn}
             accessibilityLabel={editing ? 'Guardar' : 'Editar'}
           >
@@ -133,6 +174,8 @@ export default function ProfileScreen() {
             <Text style={s.editBtnText}>{editing ? 'Guardar' : 'Editar'}</Text>
           </TouchableOpacity>
         </View>
+
+        {saveError ? <Text style={s.errorText}>{saveError}</Text> : null}
 
         {/* Avatar */}
         <View style={s.avatarSection}>
@@ -405,6 +448,13 @@ function makeStyles(t: AppPalette) {
     },
     themeLabelActive: {
       color: t.accent,
+      fontWeight: '600',
+    },
+    errorText: {
+      color: t.error,
+      fontSize: 13,
+      textAlign: 'center',
+      marginBottom: 8,
       fontWeight: '600',
     },
   });

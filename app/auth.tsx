@@ -12,6 +12,13 @@ import {
   View,
 } from 'react-native';
 import { supabase } from '../lib/supabase';
+import {
+  isValidEmail,
+  isValidName,
+  isValidPassword,
+  normalizeEmail,
+  normalizeSpaces,
+} from '../lib/validation';
 
 export default function AuthScreen() {
   const { palette: t, preference, setPreference } = useThemeContext();
@@ -31,26 +38,45 @@ export default function AuthScreen() {
 
   const handleAuth = async () => {
     setError('');
-    if (!email.trim() || !password.trim()) {
+    const normalizedEmail = normalizeEmail(email);
+    const normalizedName = normalizeSpaces(name);
+
+    if (!normalizedEmail || !password.trim()) {
       setError('Please fill in all fields.');
       return;
     }
-    if (!isLogin && !name.trim()) {
+    if (!isValidEmail(normalizedEmail)) {
+      setError('Please enter a valid email address.');
+      return;
+    }
+
+    if (!isLogin && !normalizedName) {
       setError('Please enter your name.');
+      return;
+    }
+    if (!isLogin && !isValidName(normalizedName)) {
+      setError('Please enter a valid name (letters and spaces only).');
+      return;
+    }
+    if (!isLogin && !isValidPassword(password)) {
+      setError('Password must have at least 8 characters.');
       return;
     }
 
     setLoading(true);
     try {
       if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { error } = await supabase.auth.signInWithPassword({
+          email: normalizedEmail,
+          password,
+        });
         if (error) throw error;
         router.replace('/(tabs)');
       } else {
         const { error } = await supabase.auth.signUp({
-          email,
+          email: normalizedEmail,
           password,
-          options: { data: { name: name.trim(), profileComplete: false } },
+          options: { data: { name: normalizedName, profileComplete: false } },
         });
         if (error) throw error;
         router.replace('/complete-profile');
