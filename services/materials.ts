@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import { supabase } from '../lib/supabase';
 
 export async function getMaterialsByCourse(classCode: string) {
@@ -40,7 +41,6 @@ export async function uploadMaterialFile(
   /** Course code / acronym (e.g. "ES", "BD") */
   classCode: string,
 ): Promise<string> {
-  // Sanitize filename: keep only alphanumeric, dots, hyphens, underscores.
   // Supabase Storage rejects keys with spaces, accents, parentheses, etc.
   const safeName = fileName
     .normalize('NFD')                        // decompose accented chars
@@ -50,18 +50,27 @@ export async function uploadMaterialFile(
   // e.g. (bucket: LEIC)  Y2/S1/ES/1714900000000_exam2024.pdf
   const path = `Y${courseYear}/S${courseSemester}/${classCode}/${Date.now()}_${safeName}`;
 
-  // FormData is the correct way to upload local files in React Native / Expo.
-  // fetch() on a file:// URI throws "Network request failed" on Android.
-  const formData = new FormData();
-  formData.append('file', {
-    uri: fileUri,
-    name: fileName,
-    type: mimeType,
-  } as unknown as Blob);
+  let body: any;
+
+  if (Platform.OS === 'web') {
+    // On Web, we can fetch the blob directly from the URI (usually a blob: or data: URI)
+    const response = await fetch(fileUri);
+    body = await response.blob();
+  } else {
+    // On Native, we MUST use FormData to handle file:// URIs correctly.
+    // fetch() on a file:// URI throws "Network request failed" on Android.
+    const formData = new FormData();
+    formData.append('file', {
+      uri: fileUri,
+      name: fileName,
+      type: mimeType,
+    } as unknown as Blob);
+    body = formData;
+  }
 
   const { error: uploadError } = await supabase.storage
     .from('LEIC')
-    .upload(path, formData, { contentType: mimeType, upsert: false });
+    .upload(path, body, { contentType: mimeType, upsert: false });
   if (uploadError) throw uploadError;
 
   const { data } = supabase.storage.from('LEIC').getPublicUrl(path);

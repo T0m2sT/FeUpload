@@ -20,7 +20,7 @@ import { uploadMaterial, uploadMaterialFile } from '@/services/materials';
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 type MaterialType = 'exam' | 'exercise' | 'notes' | 'summary';
-type DropdownKey = 'course' | 'year' | 'type' | null;
+type DropdownKey = 'course' | 'year' | 'type' | 'courseYear' | 'courseSemester' | null;
 
 type Course = {
   id: string;
@@ -68,6 +68,8 @@ export default function UploadScreen() {
   const [year, setYear] = useState('2024/2025');
   const [materialType, setMaterialType] = useState<MaterialType | null>(null);
   const [pickedFile, setPickedFile] = useState<PickedFile | null>(null);
+  const [courseYear, setCourseYear] = useState<number | null>(null);
+  const [courseSemester, setCourseSemester] = useState<number | null>(null);
   const [open, setOpen] = useState<DropdownKey>(null);
 
   // Async state
@@ -188,6 +190,8 @@ export default function UploadScreen() {
     setTitle('');
     setDescription('');
     setCourse(null);
+    setCourseYear(null);
+    setCourseSemester(null);
     setYear('');
     setMaterialType(null);
     setPickedFile(null);
@@ -296,6 +300,90 @@ export default function UploadScreen() {
         {/* ── Dropdowns ── */}
         <Text style={s.sectionLabel}>Detalhes</Text>
         <View style={s.formCard}>
+          {/* Ano Curricular */}
+          <TouchableOpacity
+            style={s.fieldRow}
+            onPress={() => toggle('courseYear')}
+            accessibilityLabel="Selecionar ano curricular"
+          >
+            <Text style={s.fieldLabel}>Ano Curricular</Text>
+            <View style={s.fieldRight}>
+              <Text style={courseYear ? s.fieldValue : s.fieldPlaceholder}>
+                {courseYear ? `${courseYear}º Ano` : 'Todos'}
+              </Text>
+              <Ionicons
+                name={open === 'courseYear' ? 'chevron-up' : 'chevron-down'}
+                size={14}
+                color={t.textSecondary}
+              />
+            </View>
+          </TouchableOpacity>
+          {open === 'courseYear' && (
+            <View style={s.dropdown}>
+              {[null, 1, 2, 3].map((y) => (
+                <TouchableOpacity
+                  key={String(y)}
+                  style={s.dropItem}
+                  onPress={() => {
+                    setCourseYear(y);
+                    setCourse(null);
+                    setOpen(null);
+                  }}
+                  accessibilityLabel={y ? `${y}º Ano` : 'Todos os anos'}
+                >
+                  <Text style={[s.dropText, courseYear === y && s.dropTextActive]}>
+                    {y ? `${y}º Ano` : 'Todos'}
+                  </Text>
+                  {courseYear === y && <Ionicons name="checkmark" size={14} color={t.accent} />}
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+
+          <View style={s.divider} />
+
+          {/* Semestre */}
+          <TouchableOpacity
+            style={s.fieldRow}
+            onPress={() => toggle('courseSemester')}
+            accessibilityLabel="Selecionar semestre"
+          >
+            <Text style={s.fieldLabel}>Semestre</Text>
+            <View style={s.fieldRight}>
+              <Text style={courseSemester ? s.fieldValue : s.fieldPlaceholder}>
+                {courseSemester ? `${courseSemester}º Semestre` : 'Todos'}
+              </Text>
+              <Ionicons
+                name={open === 'courseSemester' ? 'chevron-up' : 'chevron-down'}
+                size={14}
+                color={t.textSecondary}
+              />
+            </View>
+          </TouchableOpacity>
+          {open === 'courseSemester' && (
+            <View style={s.dropdown}>
+              {[null, 1, 2].map((sVal) => (
+                <TouchableOpacity
+                  key={String(sVal)}
+                  style={s.dropItem}
+                  onPress={() => {
+                    setCourseSemester(sVal);
+                    setCourse(null);
+                    setOpen(null);
+                  }}
+                  accessibilityLabel={sVal ? `${sVal}º Semestre` : 'Todos os semestres'}
+                >
+                  <Text style={[s.dropText, courseSemester === sVal && s.dropTextActive]}>
+                    {sVal ? `${sVal}º Semestre` : 'Todos'}
+                  </Text>
+                  {courseSemester === sVal && <Ionicons name="checkmark" size={14} color={t.accent} />}
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+
+          <View style={s.divider} />
+
           {/* Cadeira */}
           <TouchableOpacity
             style={s.fieldRow}
@@ -328,24 +416,40 @@ export default function UploadScreen() {
               {courses.length === 0 ? (
                 <Text style={[s.dropText, { padding: 14 }]}>Sem cadeiras disponíveis.</Text>
               ) : (
-                courses.map((c) => (
-                  <TouchableOpacity
-                    key={c.id}
-                    style={s.dropItem}
-                    onPress={() => { setCourse(c); setOpen(null); }}
-                    accessibilityLabel={`${c.code} ${c.name}`}
-                  >
-                    <View style={{ flex: 1 }}>
-                      <Text style={[s.dropText, course?.id === c.id && s.dropTextActive]}>
-                        {c.name}
+                (() => {
+                  const filtered = courses.filter((c) => {
+                    const matchYear = !courseYear || c.year === courseYear;
+                    const matchSemester = !courseSemester || c.semester === courseSemester;
+                    return matchYear && matchSemester;
+                  });
+
+                  if (filtered.length === 0) {
+                    return (
+                      <Text style={[s.dropText, { padding: 16, textAlign: 'center', opacity: 0.6 }]}>
+                        Nenhuma cadeira encontrada para os filtros selecionados.
                       </Text>
-                      <Text style={s.dropSubText}>{c.code}</Text>
-                    </View>
-                    {course?.id === c.id && (
-                      <Ionicons name="checkmark" size={14} color={t.accent} />
-                    )}
-                  </TouchableOpacity>
-                ))
+                    );
+                  }
+
+                  return filtered.map((c) => (
+                    <TouchableOpacity
+                      key={c.id}
+                      style={s.dropItem}
+                      onPress={() => { setCourse(c); setOpen(null); }}
+                      accessibilityLabel={`${c.code} ${c.name}`}
+                    >
+                      <View style={{ flex: 1 }}>
+                        <Text style={[s.dropText, course?.id === c.id && s.dropTextActive]}>
+                          {c.name}
+                        </Text>
+                        <Text style={s.dropSubText}>{c.code}</Text>
+                      </View>
+                      {course?.id === c.id && (
+                        <Ionicons name="checkmark" size={14} color={t.accent} />
+                      )}
+                    </TouchableOpacity>
+                  ));
+                })()
               )}
             </View>
           )}
