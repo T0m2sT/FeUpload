@@ -1,0 +1,93 @@
+appId: com.anonymous.feupload
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible: feupload
+    timeout: 80000
+- tapOn: http://10.0.2.2:8081
+- extendedWaitUntil:
+    visible: Close
+    timeout: 40000
+- tapOn: Close
+- extendedWaitUntil:
+    visible: "FeUpload"
+    timeout: 40000
+- tapOn: Email
+- inputText: test123456789@gmail.com
+- tapOn: Password
+- inputText: "123456789"
+- tapOn: Sign In
+- tapOn: Teoria da Computação
+- tapOn: Exercícios
+- tapOn: Enviar material
+- assertVisible: Enviar Material
+- assertVisible: "ex: Exame 2023 – 1ª Época"
+- assertVisible: Breve descrição do conteúdo…
+- assertVisible: Selecionar ano curricular
+- assertVisible: Selecionar semestre
+- assertVisible: Selecionar cadeira
+- assertVisible: Selecionar ano letivo
+- assertVisible: Selecionar tipo de material
+- assertVisible: Escolher ficheiro
+- assertVisible:
+    text: Enviar material
+    index: 1
+- tapOn:
+    text: Enviar material
+    index: 1
+- assertVisible: Por favor indica um título.
+- tapOn: "ex: Exame 2023 – 1ª Época"
+- inputText: Exercicio 1
+- tapOn: Back
+- tapOn:
+    text: Enviar material
+    index: 1
+- assertVisible: Por favor seleciona uma cadeira.
+- tapOn: Breve descrição do conteúdo…
+- tapOn: Back
+- inputText: Exercicio 1 de TCOM
+- tapOn:
+    text: Enviar material
+    index: 1
+- assertVisible: Por favor seleciona uma cadeira.
+- tapOn: Selecionar cadeira
+- assertVisible: ALGA Álgebra Linear e Geometria Analítica
+- assertVisible: AED Algoritmos e Estruturas de Dados
+- assertVisible: AM_I Análise Matemática I
+- tapOn: Selecionar ano curricular
+- tapOn: 1º Ano
+- tapOn: Selecionar semestre
+- tapOn: 2º Semestre
+- tapOn: Selecionar cadeira
+- tapOn: TC Teoria da Computação
+- scrollUntilVisible:
+    element:
+      text: Selecionar ano letivo
+- tapOn: Selecionar ano letivo
+- tapOn: 2024/2025
+- tapOn: Selecionar tipo de material
+- tapOn: Ficha / Exercícios
+- tapOn: Enviar material
+- assertVisible: Por favor seleciona um ficheiro.
+- tapOn: Escolher ficheiro
+- tapOn: Show roots
+- tapOn:
+    text: Downloads
+    index: 2
+- tapOn: ex1.pdf
+- tapOn:
+    text: Enviar material
+    index: 1
+- extendedWaitUntil:
+    visible: Enviado!
+    timeout: 90000
+- assertVisible: Exercicio 1
+- assertVisible: Teoria da Computação
+- assertVisible: 2024/2025
+- assertVisible: Ficha / Exercícios
+- assertVisible: ex1.pdf
+- tapOn: Voltar
+- tapOn: Exames
+- tapOn: Exercícios
+- assertVisible: Exercicio 1
