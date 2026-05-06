@@ -2,11 +2,11 @@ appId: com.anonymous.feupload
 ---
 - launchApp:
     clearState: true
-- tapOn: http://10.0.2.2:8081
-- extendedWaitUntil:
-    visible: Close
-    timeout: 40000
-- tapOn: Close
+- tapOn: Email
+- inputText: test2@example.com
+- tapOn: Password
+- inputText: "test2"
+- tapOn: Sign In
 - extendedWaitUntil:
     visible: "Bem-vindo, "
     timeout: 40000
@@ -16,11 +16,14 @@ appId: com.anonymous.feupload
 - tapOn: Engenharia de Software
 - tapOn: Fórum de discussão
 - tapOn: , Nova publicação
-- assertVisible: , Publicar
-- tapOn: Qual é a tua dúvida?
-- tapOn: T
-- tapOn: Descreve a tua questão...
-- tapOn: Q
-- tapOn: , Publicar
-- assertVisible: T
-- assertVisible: Q
+- tapOn: Sobre o que queres falar?
+- inputText: Hello
+- assertVisible: Hello
+- tapOn: Escreve aqui a tua dúvida ou comentário...
+- inputText: Hello Hello
+- assertVisible: Hello Hello
+- tapOn: , Publicar no Fórum
+- assertVisible: Hello Hello
+- tapOn: Hello, Hello Hello, , test2, ·, 5/6/2026, , 0 respostas
+- tapOn: Hello
+- tapOn: Hello Hello

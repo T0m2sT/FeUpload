@@ -2,11 +2,11 @@ appId: com.anonymous.feupload
 ---
 - launchApp:
     clearState: true
-- tapOn: http://10.0.2.2:8081
-- extendedWaitUntil:
-    visible: Close
-    timeout: 40000
-- tapOn: Close
+- tapOn: Email
+- inputText: test2@example.com
+- tapOn: Password
+- inputText: "test2"
+- tapOn: Sign In
 - extendedWaitUntil:
     visible: "Bem-vindo, "
     timeout: 40000
@@ -16,21 +16,32 @@ appId: com.anonymous.feupload
 - tapOn: Laboratório de Computadores
 - tapOn: Exames
 - tapOn: Enviar
-- tapOn: Enviar
+- tapOn:
+    text: Enviar material
+    index: 1
+- assertVisible: Por favor indica um título.
+- tapOn: "ex: Exame 2023 – 1ª Época"
+- inputText: Exame 123
+- assertVisible: Exame 123
+- tapOn: Back
+- tapOn:
+    text: Enviar material
+    index: 1
 - assertVisible: Por favor seleciona uma cadeira.
 - tapOn: Selecionar cadeira
-- tapOn: Sistemas Operativos
-- assertVisible: Sistemas Operativos
-- tapOn: Selecionar ano
-- tapOn: 2023/2024
-- assertVisible: 2023/2024
-- tapOn: Enviar
-- tapOn: Por favor seleciona o tipo de material.
-- tapOn: Selecionar tipo
-- tapOn: Resumo
-- assertVisible: Resumo
+- tapOn: ALGA Álgebra Linear e Geometria Analítica
+- assertVisible: ALGA – Álgebra Linear e Geometria Analítica
+- tapOn: Selecionar ano letivo
+- tapOn: 2025/2026
+- assertVisible: 2025/2026
+- tapOn:
+    text: Enviar material
+    index: 1
+- assertVisible: Por favor seleciona o tipo de material.
+- tapOn: Selecionar tipo de material
+- tapOn: Exame
+- assertVisible: Exame
 - tapOn: Escolher ficheiro
-- assertVisible: Recent files
+- assertVisible:
+    id: toolbar
 - tapOn: Back
-- tapOn: Enviar
-- assertVisible: Por favor seleciona um ficheiro.

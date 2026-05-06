@@ -2,11 +2,11 @@ appId: com.anonymous.feupload
 ---
 - launchApp:
     clearState: true
-- tapOn: http://10.0.2.2:8081
-- extendedWaitUntil:
-    visible: Close
-    timeout: 40000
-- tapOn: Close
+- tapOn: Email
+- inputText: test2@example.com
+- tapOn: Password
+- inputText: "test2"
+- tapOn: Sign In
 - extendedWaitUntil:
     visible: "Bem-vindo, "
     timeout: 40000
