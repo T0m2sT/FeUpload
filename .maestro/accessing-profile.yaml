@@ -3,13 +3,13 @@ appId: com.anonymous.feupload
 - launchApp:
     clearState: true
 - extendedWaitUntil:
-    visible: feupload
+    visible: FeUpload
     timeout: 40000
-- tapOn: http://10.0.2.2:8081
-- extendedWaitUntil:
-    visible: Close
-    timeout: 40000
-- tapOn: Close
+- tapOn: Email
+- inputText: test123456789@gmail.com
+- tapOn: Password
+- inputText: "123456789"
+- tapOn: Sign In
 - extendedWaitUntil:
     visible: "Bem-vindo, "
     timeout: 40000
@@ -35,4 +35,4 @@ appId: com.anonymous.feupload
 - assertVisible: Sincronização Offline
 - tapOn: , Sistema, 
 - tapOn: , Claro
-- tapOn: , Escuron
+- tapOn: , Escuro

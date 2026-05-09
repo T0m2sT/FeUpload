@@ -2,11 +2,11 @@ appId: com.anonymous.feupload
 ---
 - launchApp:
     clearState: true
-- tapOn: http://10.0.2.2:8081
-- extendedWaitUntil:
-    visible: Close
-    timeout: 40000
-- tapOn: Close
+- tapOn: Email
+- inputText: test2@example.com
+- tapOn: Password
+- inputText: "test2"
+- tapOn: Sign In
 - extendedWaitUntil:
     visible: "Bem-vindo, "
     timeout: 40000
@@ -15,18 +15,12 @@ appId: com.anonymous.feupload
     timeout: 20000
 - tapOn: Engenharia de Software
 - tapOn: Exames
-- extendedWaitUntil:
-    visible: Test 22/23
-    timeout: 10000
-- tapOn: Test 22/23
-- assertVisible: View PDF
-- tapOn: Avaliações
+- tapOn: Avaliar material
 - assertVisible: Avaliações de Material
-- assertVisible: "4.6"
+- assertVisible: "3.0"
 - assertVisible: Avaliar Material
 - tapOn: Avaliar Material
 - assertVisible: Avaliar
-- assertVisible: Slides Tópicos 1, 2 e 3
 - assertVisible: A tua classificação
 - assertVisible: Bom (3/5)
 - tapOn:
