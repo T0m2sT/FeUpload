@@ -21,6 +21,56 @@ export async function getMaterialsByType(type: 'exam' | 'exercise' | 'notes' | '
   return data;
 }
 
+export type SummaryListItem = {
+  id: string;
+  title: string;
+  description: string | null;
+  file_url: string | null;
+  created_at: string;
+  author: string;
+  avgRating: number;
+  ratingCount: number;
+};
+
+export async function getSummariesByClassCode(classCode: string): Promise<SummaryListItem[]> {
+  const { data, error } = await supabase
+    .from('materials')
+    .select('id, title, description, file_url, created_at, profiles(name), reviews(rating)')
+    .eq('type', 'summary')
+    .eq('class_code', classCode);
+  if (error) throw error;
+
+  const items: SummaryListItem[] = (data ?? []).map((row: any) => {
+    const ratings: number[] = (row.reviews ?? []).map((r: any) => r.rating);
+    const avg = ratings.length ? ratings.reduce((s, r) => s + r, 0) / ratings.length : 0;
+    return {
+      id: row.id,
+      title: row.title,
+      description: row.description,
+      file_url: row.file_url,
+      created_at: row.created_at,
+      author: row.profiles?.name ?? 'Desconhecido',
+      avgRating: avg,
+      ratingCount: ratings.length,
+    };
+  });
+
+  items.sort((a, b) => b.avgRating - a.avgRating);
+  return items;
+}
+
+export async function getSummaryById(id: string) {
+  const { data, error } = await supabase
+    .from('materials')
+    .select('id, title, description, file_url, created_at, type, class_code, profiles(name), reviews(rating)')
+    .eq('id', id)
+    .single();
+  if (error) throw error;
+  const ratings: number[] = (data.reviews ?? []).map((r: any) => r.rating);
+  const avgRating = ratings.length ? ratings.reduce((s, r) => s + r, 0) / ratings.length : 0;
+  return { ...data, avgRating, ratingCount: ratings.length };
+}
+
 /**
  * Upload a file to Supabase Storage and return its public URL.
  *
@@ -41,24 +91,19 @@ export async function uploadMaterialFile(
   /** Course code / acronym (e.g. "ES", "BD") */
   classCode: string,
 ): Promise<string> {
-  // Supabase Storage rejects keys with spaces, accents, parentheses, etc.
   const safeName = fileName
-    .normalize('NFD')                        // decompose accented chars
-    .replace(/[\u0300-\u036f]/g, '')         // strip accent marks
-    .replace(/[^a-zA-Z0-9._-]/g, '_');      // replace everything else
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9._-]/g, '_');
 
-  // e.g. (bucket: LEIC)  Y2/S1/ES/1714900000000_exam2024.pdf
   const path = `Y${courseYear}/S${courseSemester}/${classCode}/${Date.now()}_${safeName}`;
 
   let body: any;
 
   if (Platform.OS === 'web') {
-    // On Web, we can fetch the blob directly from the URI (usually a blob: or data: URI)
     const response = await fetch(fileUri);
     body = await response.blob();
   } else {
-    // On Native, we MUST use FormData to handle file:// URIs correctly.
-    // fetch() on a file:// URI throws "Network request failed" on Android.
     const formData = new FormData();
     formData.append('file', {
       uri: fileUri,
