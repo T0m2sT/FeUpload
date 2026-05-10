@@ -1,8 +1,10 @@
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { supabase } from '@/lib/supabase';
+import { normalizeCourse } from '@/lib/validation';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useEffect, useState } from "react";
+import { useFocusEffect } from 'expo-router';
+import React, { useCallback, useState } from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -11,9 +13,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-
-
-import { user } from '../../constants/user';
 
 
 const OFFLINE_COUNT = 4;
@@ -25,31 +24,42 @@ type Course = {
   description: string;
 };
 
+const GENERIC_PROGRAM_CODES = new Set(['LEIC', 'MIEIC', 'MEIC']);
+
 export default function HomeScreen() {
   const router = useRouter();
   const t = useAppTheme();
   const s = makeStyles(t);
 
   const [courses, setCourses] = useState<Course[]>([]);
+  const [userName, setUserName] = useState('');
 
-  useEffect(() => {
-    const fetchCourses = async () => {
-      const { data, error } = await supabase
-        .from("courses")
-        .select("id, code, name, description")
-        .eq("year", user.year)
-        .eq("semester", user.semester);
+  useFocusEffect(useCallback(() => {
+    const init = async () => {
+      const { data } = await supabase.auth.getUser();
+      const u = data.user;
+      if (!u) return;
+      const meta = u.user_metadata ?? {};
+      setUserName(meta.name ?? u.email?.split('@')[0] ?? '');
 
-      if (error) {
-        console.log(error);
-        return;
+      const normalizedCourse = normalizeCourse(meta.course ?? '');
+      const courseToken = normalizedCourse.toUpperCase().replace(/[^A-Z0-9]/g, '');
+      if (!meta.year || !meta.semester) { setCourses([]); return; }
+
+      let query = supabase.from('courses').select('id, code, name, description');
+      query = query.eq('year', Number(meta.year));
+      query = query.eq('semester', Number(meta.semester));
+
+      if (courseToken && !GENERIC_PROGRAM_CODES.has(courseToken)) {
+        query = query.eq('code', courseToken);
       }
 
-      setCourses(data ?? []);
+      const { data: coursesData, error } = await query;
+      if (error) { console.log(error); return; }
+      setCourses(coursesData ?? []);
     };
-
-    fetchCourses();
-  }, []);
+    init();
+  }, []));
 
   return (
     <ScrollView style={s.scroll} contentContainerStyle={s.container}>
@@ -57,7 +67,7 @@ export default function HomeScreen() {
       <View style={s.header}>
         <Text style={s.greetingStatic}>Bem-vindo, </Text>
         <TouchableOpacity onPress={() => router.push('/profile')} accessibilityLabel="Ir para perfil">
-          <Text style={s.greetingName}>{user.name}</Text>
+          <Text style={s.greetingName}>{userName}</Text>
         </TouchableOpacity>
         <View style={{ flex: 1 }} />
         <TouchableOpacity onPress={() => router.push('/bookmarks')} accessibilityLabel="Marcadores">

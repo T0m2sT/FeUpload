@@ -1,0 +1,27 @@
+appId: com.anonymous.feupload
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible: FeUpload
+    timeout: 40000
+- assertVisible: Sign in to your account
+- tapOn: "Don't have an account? Sign Up"
+- assertVisible: Create a new account
+- assertVisible: Name
+- assertVisible: Email
+- assertVisible: Password
+- tapOn: Sign Up
+- assertVisible: Please fill in all fields.
+- tapOn: Name
+- inputText: Test User
+- tapOn: Sign Up
+- assertVisible: Please fill in all fields.
+- tapOn: Email
+- inputText: testuser@fe.up.pt
+- tapOn: Password
+- inputText: testpassword123
+- tapOn: Sign Up
+- extendedWaitUntil:
+    visible: Complete your profile
+    timeout: 10000

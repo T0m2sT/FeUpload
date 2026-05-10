@@ -14,17 +14,16 @@ appId: com.anonymous.feupload
     visible: Engenharia de Software
     timeout: 20000
 - tapOn: Engenharia de Software
-- assertVisible: Engenharia de Software
 - tapOn: Exames
-- tapOn: 
-- tapOn: Exercícios
-- tapOn: 
-- tapOn: Resumos
-- tapOn: 
-- tapOn: Dicas
-- tapOn: 
-- tapOn: Fórum de discussão
-- tapOn: Dicas
-- tapOn: Resumos
-- tapOn: Exercícios
-- tapOn: Exames
+- tapOn: Avaliar material
+- assertVisible: Avaliações de Material
+- assertVisible: "3.0"
+- assertVisible: Avaliar Material
+- tapOn: Avaliar Material
+- assertVisible: Avaliar
+- assertVisible: A tua classificação
+- assertVisible: Bom (3/5)
+- tapOn:
+    text: "Classificação 5"
+- assertVisible: Excelente (5/5)
+- tapOn: Publicar Avaliação

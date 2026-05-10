@@ -3,8 +3,9 @@ import { useThemeContext, type ThemePreference } from '@/contexts/theme-context'
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
   Platform,
   ScrollView, StyleSheet,
   Switch,
@@ -13,8 +14,21 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { supabase } from '../lib/supabase';
+import {
+  normalizeCourse,
+  normalizeSpaces,
+  normalizeStudentId,
+} from '../lib/validation';
 
-import { user } from "../constants/user";
+type Profile = {
+  name: string;
+  email: string;
+  studentId: string;
+  course: string;
+  year: string;
+  semester: string;
+};
 
 type SectionRowProps = {
   label: string;
@@ -38,7 +52,7 @@ function FieldRow({ label, value, editable, onChangeText, t, s }: SectionRowProp
           selectionColor={t.accent}
         />
       ) : (
-        <Text style={s.fieldValue}>{value}</Text>
+        <Text style={s.fieldValue}>{value || '—'}</Text>
       )}
     </View>
   );
@@ -50,13 +64,90 @@ export default function ProfileScreen() {
   const s = makeStyles(t);
 
   const { preference, setPreference } = useThemeContext();
-  const [profile, setProfile] = useState(user);
+  const [profile, setProfile] = useState<Profile>({
+    name: '', email: '', studentId: '', course: '', year: '', semester: '',
+  });
+  const [loading, setLoading] = useState(true);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [offlineSyncEnabled,   setOfflineSyncEnabled]   = useState(true);
+  const [offlineSyncEnabled, setOfflineSyncEnabled] = useState(true);
   const [editing, setEditing] = useState(false);
+  const [saveError, setSaveError] = useState('');
 
-  const update = (key: keyof typeof user) => (value: string) =>
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      const u = data.user;
+      if (!u) { setLoading(false); return; }
+      const meta = u.user_metadata ?? {};
+      supabase.from('profiles').select('name, email').eq('id', u.id).single().then(({ data: p }) => {
+        setProfile({
+          name: p?.name ?? meta.name ?? u.email?.split('@')[0] ?? '',
+          email: p?.email ?? u.email ?? '',
+          studentId: meta.studentId ?? '',
+          course: meta.course ?? '',
+          year: meta.year ?? '',
+          semester: meta.semester ?? '',
+        });
+        setLoading(false);
+      }).catch(() => setLoading(false));
+    }).catch(() => setLoading(false));
+  }, []);
+
+  const update = (key: keyof Profile) => (value: string) =>
     setProfile((prev) => ({ ...prev, [key]: value }));
+
+  const handleSave = async () => {
+    setSaveError('');
+    const normalizedProfile = {
+      name: normalizeSpaces(profile.name),
+      studentId: normalizeStudentId(profile.studentId),
+      course: normalizeCourse(profile.course),
+      year: profile.year.trim(),
+      semester: profile.semester.trim(),
+    };
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    try {
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ name: normalizedProfile.name })
+        .eq('id', user.id);
+      if (profileError) throw profileError;
+
+      const { data: updatedAuth, error: authError } = await supabase.auth.updateUser({
+        data: {
+          name: normalizedProfile.name,
+          studentId: normalizedProfile.studentId,
+          course: normalizedProfile.course,
+          year: normalizedProfile.year,
+          semester: normalizedProfile.semester,
+        },
+      });
+      if (authError) throw authError;
+
+      const refreshedMeta = updatedAuth.user?.user_metadata ?? {};
+      setProfile((prev) => ({
+        ...prev,
+        name: normalizedProfile.name,
+        studentId: refreshedMeta.studentId ?? normalizedProfile.studentId,
+        course: refreshedMeta.course ?? normalizedProfile.course,
+        year: refreshedMeta.year ?? normalizedProfile.year,
+        semester: refreshedMeta.semester ?? normalizedProfile.semester,
+      }));
+      setEditing(false);
+    } catch (e: any) {
+      setSaveError(e?.message || 'Não foi possível guardar alterações.');
+    }
+  };
+
+  if (loading) {
+    return (
+      <View style={[s.root, { alignItems: 'center', justifyContent: 'center' }]}>
+        <ActivityIndicator color={t.accent} />
+      </View>
+    );
+  }
 
   return (
     <View style={s.root}>
@@ -68,7 +159,14 @@ export default function ProfileScreen() {
           </TouchableOpacity>
           <Text style={s.heading}>Perfil</Text>
           <TouchableOpacity
-            onPress={() => setEditing((e) => !e)}
+            onPress={() => {
+              if (editing) {
+                handleSave();
+                return;
+              }
+              setSaveError('');
+              setEditing(true);
+            }}
             style={s.editBtn}
             accessibilityLabel={editing ? 'Guardar' : 'Editar'}
           >
@@ -76,6 +174,8 @@ export default function ProfileScreen() {
             <Text style={s.editBtnText}>{editing ? 'Guardar' : 'Editar'}</Text>
           </TouchableOpacity>
         </View>
+
+        {saveError ? <Text style={s.errorText}>{saveError}</Text> : null}
 
         {/* Avatar */}
         <View style={s.avatarSection}>
@@ -88,7 +188,7 @@ export default function ProfileScreen() {
               shadowOffset: { width: 0, height: 0 },
             },
           ]}>
-            <Text style={s.avatarInitial}>{profile.name.charAt(0).toUpperCase()}</Text>
+            <Text style={s.avatarInitial}>{(profile.name || '?').charAt(0).toUpperCase()}</Text>
           </View>
           <Text style={s.avatarName}>{profile.name}</Text>
           <Text style={s.avatarSub}>{profile.email}</Text>
@@ -99,19 +199,19 @@ export default function ProfileScreen() {
         <View style={s.card}>
           <FieldRow label="Nome"        value={profile.name}      editable={editing} onChangeText={update('name')}      t={t} s={s} />
           <View style={s.divider} />
-          <FieldRow label="Email"       value={profile.email}     editable={editing} onChangeText={update('email')}     t={t} s={s} />
+          <FieldRow label="Email"       value={profile.email}     editable={false}                                       t={t} s={s} />
           <View style={s.divider} />
-          <FieldRow label="Nº de aluno" value={profile.studentId} editable={false}                                       t={t} s={s} />
+          <FieldRow label="Nº de aluno" value={profile.studentId} editable={editing} onChangeText={update('studentId')} t={t} s={s} />
         </View>
 
         {/* Academic info */}
         <Text style={s.sectionLabel}>Informação Académica</Text>
         <View style={s.card}>
-          <FieldRow label="Curso" value={profile.course} editable={editing} onChangeText={update('course')} t={t} s={s} />
+          <FieldRow label="Curso"    value={profile.course}   editable={editing} onChangeText={update('course')}   t={t} s={s} />
           <View style={s.divider} />
-          <FieldRow label="Ano"   value={String(profile.year)}   editable={editing} onChangeText={update('year')}   t={t} s={s} />
+          <FieldRow label="Ano"      value={profile.year}     editable={editing} onChangeText={update('year')}     t={t} s={s} />
           <View style={s.divider} />
-          <FieldRow label="Semestre"   value={String(profile.semester)}   editable={editing} onChangeText={update('semester')}   t={t} s={s} />
+          <FieldRow label="Semestre" value={profile.semester} editable={editing} onChangeText={update('semester')} t={t} s={s} />
         </View>
 
         {/* Appearance */}
@@ -168,7 +268,7 @@ export default function ProfileScreen() {
         {/* Danger zone */}
         <Text style={s.sectionLabel}>Conta</Text>
         <View style={s.card}>
-          <TouchableOpacity onPress={() => router.push('/auth')} style={s.dangerRow}>
+          <TouchableOpacity onPress={async () => { await supabase.auth.signOut(); router.replace('/auth'); }} style={s.dangerRow}>
             <Ionicons name="log-out-outline" size={18} color={t.error} />
             <Text style={[s.dangerText]}>Terminar sessão</Text>
           </TouchableOpacity>
@@ -348,6 +448,13 @@ function makeStyles(t: AppPalette) {
     },
     themeLabelActive: {
       color: t.accent,
+      fontWeight: '600',
+    },
+    errorText: {
+      color: t.error,
+      fontSize: 13,
+      textAlign: 'center',
+      marginBottom: 8,
       fontWeight: '600',
     },
   });

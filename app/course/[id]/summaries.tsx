@@ -27,7 +27,7 @@ export default function CourseSummariesScreen() {
       activeKey="summaries"
       onUpload={() => router.push('/upload')}
     >
-      <MaterialList items={items} emptyMessage="Sem resumos disponíveis." />
+      <MaterialList items={items} emptyMessage="Sem resumos disponíveis." courseCode={courseCode} />
     </CourseSectionShell>
   );
 }

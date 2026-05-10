@@ -40,14 +40,14 @@ function StarRating({ count, accent }: { count: number; accent: string }) {
 type Props = {
   items: Material[];
   emptyMessage?: string;
+  courseCode?: string;
 };
 
-export function MaterialList({ items, emptyMessage = 'Sem conteúdo disponível.' }: Props) {
+export function MaterialList({ items, emptyMessage = 'Sem conteúdo disponível.', courseCode }: Props) {
   const t = useAppTheme();
   const s = useMemo(() => makeStyles(t), [t]);
   const router = useRouter();
 
-  // --- State ---
   const [userId, setUserId] = useState<string | null>(null);
   const [collections, setCollections] = useState<BookmarkCollection[]>([]);
   const [isLoadingCollections, setIsLoadingCollections] = useState(false);
@@ -60,7 +60,6 @@ export function MaterialList({ items, emptyMessage = 'Sem conteúdo disponível.
   const [isBookmarking, setIsBookmarking] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // --- Logic: Fetch Collections (Matches Grouping in BookmarkScreen) ---
   const fetchCollections = useCallback(async (uid: string) => {
     try {
       setIsLoadingCollections(true);
@@ -71,7 +70,6 @@ export function MaterialList({ items, emptyMessage = 'Sem conteúdo disponível.
 
       if (fetchError) throw fetchError;
 
-      // Logic: Group unique collection names (Same as your group logic in BookmarkScreen)
       const grouped = (data || []).reduce((acc: BookmarkCollection[], curr) => {
         if (!curr.name) return acc;
         const existing = acc.find((c) => c.name === curr.name);
@@ -107,7 +105,6 @@ export function MaterialList({ items, emptyMessage = 'Sem conteúdo disponível.
     init();
   }, [fetchCollections]);
 
-  // --- Handlers ---
   const handleBookmarkPress = (material: Material) => {
     setError(null);
     setSelectedMaterial(material);
@@ -133,7 +130,6 @@ export function MaterialList({ items, emptyMessage = 'Sem conteúdo disponível.
   };
 
   const handleCreateAndBookmark = async () => {
-    // CRITICAL: Check that selectedMaterial exists
     if (!selectedMaterial || !userId || !newCollectionName.trim()) {
       setError('Selecione um material e dê um nome à coleção.');
       return;
@@ -143,7 +139,6 @@ export function MaterialList({ items, emptyMessage = 'Sem conteúdo disponível.
       setIsBookmarking(true);
       setError(null);
 
-      // We use the ID of the material row the user clicked on
       await addBookmark(userId, selectedMaterial.id, newCollectionName.trim(), selectedColor);
       
       await fetchCollections(userId);
@@ -159,12 +154,12 @@ export function MaterialList({ items, emptyMessage = 'Sem conteúdo disponível.
     }
   };
 
-  const openPDF = (pdf?: string) => {
+  const openPDF = (pdf?: string, title?: string) => {
     if (!pdf) return;
     if (Platform.OS === 'web') {
       Linking.openURL(pdf);
     } else {
-      router.push({ pathname: "/pdf-viewer" as any, params: { pdf } });
+      router.push({ pathname: "/pdf-viewer" as any, params: { pdf, title: title ?? 'PDF' } });
     }
   };
 
@@ -183,23 +178,66 @@ export function MaterialList({ items, emptyMessage = 'Sem conteúdo disponível.
         data={items}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <TouchableOpacity style={s.row} onPress={() => openPDF(item.pdf)}>
-            <View style={s.iconWrap}>
+          <TouchableOpacity
+            style={s.row}
+            onPress={() => openPDF(item.pdf, item.title)}
+            accessibilityLabel={item.title}
+          >
+            <View style={[
+              s.iconWrap,
+              t.isDark && Platform.select({
+                web: {
+                  boxShadow: `0px 0px 5px ${t.accentGlow}` as any,
+                },
+                default: {
+                  shadowColor: t.accentGlow,
+                  shadowOpacity: 0.45,
+                  shadowRadius: 5,
+                  shadowOffset: { width: 0, height: 0 },
+                }
+              }),
+            ]}>
               <Ionicons name="document-text-outline" size={18} color={t.accent} />
             </View>
             <View style={s.info}>
               <Text style={s.title}>{item.title}</Text>
-              {item.subtitle && <Text style={s.sub}>{item.subtitle}</Text>}
-              {item.rating != null && <StarRating count={item.rating} accent={t.accent} />}
+              {item.subtitle ? <Text style={s.sub}>{item.subtitle}</Text> : null}
+              {item.rating != null ? <StarRating count={item.rating} accent={t.accent} /> : null}
             </View>
             <View style={s.actions}>
               <TouchableOpacity style={s.actionBtn} onPress={() => handleBookmarkPress(item)}>
                 <Ionicons name="bookmark-outline" size={20} color={t.textSecondary} />
               </TouchableOpacity>
+              {item.pdf && (
+                <TouchableOpacity
+                  style={s.actionBtn}
+                  onPress={() => Linking.openURL(item.pdf!)}
+                  accessibilityLabel="Download"
+                >
+                  <Ionicons name="cloud-download-outline" size={18} color={t.textSecondary} />
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity
+                style={s.actionBtn}
+                accessibilityLabel="Avaliar material"
+                onPress={() =>
+                  router.push({
+                    pathname: '/ratings',
+                    params: {
+                      materialId: item.id,
+                      materialTitle: item.title,
+                      courseCode,
+                    },
+                  })
+                }
+              >
+                <Ionicons name="star-outline" size={18} color={t.textSecondary} />
+              </TouchableOpacity>
             </View>
           </TouchableOpacity>
         )}
         ItemSeparatorComponent={() => <View style={s.sep} />}
+        contentContainerStyle={{ paddingBottom: 20, paddingHorizontal: 16 }}
       />
 
       <Modal 
@@ -368,7 +406,7 @@ function makeStyles(t: AppPalette) {
       paddingHorizontal: 16,
       paddingVertical: 16,
       borderBottomWidth: 1,
-      borderBottomColor: t.border,
+      borderBottomColor: t.surfaceBorder,
     },
     collectionPickerTitle: {
       fontSize: 18,

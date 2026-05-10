@@ -1,0 +1,149 @@
+name: Sprint Automation
+
+on:
+  workflow_dispatch:
+    inputs:
+      sprint_number:
+        description: "Sprint number to close (e.g. 2)"
+        required: true
+        type: number
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  close-sprint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Find current sprint milestone
+        id: find-milestone
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          # Get all open milestones, find the one named "Sprint N" with earliest due date
+          MILESTONES=$(gh api repos/$REPO/milestones --jq '[.[] | select(.state=="open" and (.title | test("^Sprint [0-9]+$")))] | sort_by(.due_on) | .[0]')
+          if [ "$MILESTONES" = "null" ] || [ -z "$MILESTONES" ]; then
+            echo "No open Sprint milestone found. Exiting."
+            exit 0
+          fi
+          MILESTONE_NUMBER=$(echo $MILESTONES | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['number'])")
+          MILESTONE_TITLE=$(echo $MILESTONES | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['title'])")
+          SPRINT_NUM=$(echo $MILESTONE_TITLE | grep -oP '\d+')
+          echo "MILESTONE_NUMBER=$MILESTONE_NUMBER" >> $GITHUB_OUTPUT
+          echo "MILESTONE_TITLE=$MILESTONE_TITLE" >> $GITHUB_OUTPUT
+          echo "SPRINT_NUM=$SPRINT_NUM" >> $GITHUB_OUTPUT
+          echo "Found: $MILESTONE_TITLE (ID $MILESTONE_NUMBER)"
+
+      - name: Create next sprint milestone if missing
+        id: next-milestone
+        if: steps.find-milestone.outputs.MILESTONE_NUMBER != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          NEXT_NUM=$(( ${{ steps.find-milestone.outputs.SPRINT_NUM }} + 1 ))
+          NEXT_TITLE="Sprint $NEXT_NUM"
+          # Check if next milestone already exists
+          EXISTING=$(gh api repos/$REPO/milestones --jq ".[] | select(.title==\"$NEXT_TITLE\") | .number" 2>/dev/null || echo "")
+          if [ -z "$EXISTING" ]; then
+            DUE_DATE=$(date -d "+14 days" --utc +"%Y-%m-%dT00:00:00Z" 2>/dev/null || date -v+14d -u +"%Y-%m-%dT00:00:00Z")
+            RESULT=$(gh api repos/$REPO/milestones -X POST -f title="$NEXT_TITLE" -f due_on="$DUE_DATE")
+            NEXT_MILESTONE_NUM=$(echo $RESULT | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['number'])")
+            echo "Created $NEXT_TITLE (ID $NEXT_MILESTONE_NUM)"
+          else
+            NEXT_MILESTONE_NUM=$EXISTING
+            echo "$NEXT_TITLE already exists (ID $NEXT_MILESTONE_NUM)"
+          fi
+          echo "NEXT_MILESTONE_NUMBER=$NEXT_MILESTONE_NUM" >> $GITHUB_OUTPUT
+          echo "NEXT_TITLE=$NEXT_TITLE" >> $GITHUB_OUTPUT
+
+      - name: Move open issues to next sprint
+        id: move-issues
+        if: steps.find-milestone.outputs.MILESTONE_NUMBER != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          MILESTONE_NUMBER=${{ steps.find-milestone.outputs.MILESTONE_NUMBER }}
+          NEXT_MILESTONE_NUMBER=${{ steps.next-milestone.outputs.NEXT_MILESTONE_NUMBER }}
+          # Get all open issues in current milestone
+          OPEN_ISSUES=$(gh api repos/$REPO/issues --jq "[.[] | select(.milestone.number==$MILESTONE_NUMBER and .state==\"open\") | .number]")
+          COUNT=$(echo $OPEN_ISSUES | python3 -c "import sys,json; print(len(json.load(sys.stdin)))")
+          echo "Open issues to carry over: $COUNT"
+          echo $OPEN_ISSUES | python3 -c "
+          import sys, json, subprocess, os
+          issues = json.load(sys.stdin)
+          repo = os.environ['REPO']
+          token = os.environ['GH_TOKEN']
+          next_ms = os.environ['NEXT_MILESTONE_NUMBER']
+          for num in issues:
+              subprocess.run(['gh', 'api', f'repos/{repo}/issues/{num}', '-X', 'PATCH',
+                              '-f', f'milestone={next_ms}'], check=True)
+              subprocess.run(['gh', 'issue', 'edit', str(num), '--repo', repo,
+                              '--add-label', 'carried-over'], check=False)
+              print(f'  Moved issue #{num}')
+          "
+          echo "CARRIED_OVER_COUNT=$COUNT" >> $GITHUB_OUTPUT
+          echo "CARRIED_OVER_ISSUES<<EOF" >> $GITHUB_OUTPUT
+          echo $OPEN_ISSUES | python3 -c "import sys,json; issues=json.load(sys.stdin); [print(f'- #{n}') for n in issues]" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Collect closed issues for summary
+        id: closed-issues
+        if: steps.find-milestone.outputs.MILESTONE_NUMBER != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          MILESTONE_NUMBER=${{ steps.find-milestone.outputs.MILESTONE_NUMBER }}
+          CLOSED=$(gh api repos/$REPO/issues --jq "[.[] | select(.milestone.number==$MILESTONE_NUMBER and .state==\"closed\")]")
+          CLOSED_COUNT=$(echo $CLOSED | python3 -c "import sys,json; print(len(json.load(sys.stdin)))")
+          CLOSED_LIST=$(echo $CLOSED | python3 -c "import sys,json; issues=json.load(sys.stdin); [print(f'- #{i[\"number\"]} {i[\"title\"]}') for i in issues]")
+          echo "CLOSED_COUNT=$CLOSED_COUNT" >> $GITHUB_OUTPUT
+          echo "CLOSED_LIST<<EOF" >> $GITHUB_OUTPUT
+          echo "$CLOSED_LIST" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Close current sprint milestone
+        if: steps.find-milestone.outputs.MILESTONE_NUMBER != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          gh api repos/$REPO/milestones/${{ steps.find-milestone.outputs.MILESTONE_NUMBER }} \
+            -X PATCH -f state=closed
+          echo "Closed milestone: ${{ steps.find-milestone.outputs.MILESTONE_TITLE }}"
+
+      - name: Post retrospective summary issue
+        if: steps.find-milestone.outputs.MILESTONE_NUMBER != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          SPRINT_TITLE="${{ steps.find-milestone.outputs.MILESTONE_TITLE }}"
+          CLOSED_COUNT=${{ steps.closed-issues.outputs.CLOSED_COUNT }}
+          CARRIED_COUNT=${{ steps.move-issues.outputs.CARRIED_OVER_COUNT }}
+          TOTAL=$(( CLOSED_COUNT + CARRIED_COUNT ))
+          if [ $TOTAL -gt 0 ]; then
+            VELOCITY=$(python3 -c "print(f'{$CLOSED_COUNT/$TOTAL*100:.0f}%')")
+          else
+            VELOCITY="N/A"
+          fi
+          gh issue create \
+            --repo $REPO \
+            --title "$SPRINT_TITLE — Retrospective Summary" \
+            --body "## $SPRINT_TITLE — Sprint Summary
+
+          **Velocity:** $CLOSED_COUNT / $TOTAL issues closed ($VELOCITY)
+
+          ### Done ✅
+          ${{ steps.closed-issues.outputs.CLOSED_LIST }}
+
+          ### Carried over ➡️
+          ${{ steps.move-issues.outputs.CARRIED_OVER_ISSUES }}
+
+          ---
+          _Auto-generated by sprint.yml. Next sprint: ${{ steps.next-milestone.outputs.NEXT_TITLE }}_"

@@ -6,6 +6,7 @@ export function buildSupabaseMock() {
   
   chain.select = jest.fn().mockReturnValue(chain);
   chain.insert = jest.fn().mockReturnValue(chain);
+  chain.update = jest.fn().mockReturnValue(chain);
   chain.delete = jest.fn().mockReturnValue(chain);
   chain.eq = jest.fn().mockReturnValue(chain);
   chain.order = jest.fn().mockReturnValue(chain);
