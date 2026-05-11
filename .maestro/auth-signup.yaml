@@ -2,9 +2,6 @@ appId: com.anonymous.feupload
 ---
 - launchApp:
     clearState: true
-- extendedWaitUntil:
-    visible: FeUpload
-    timeout: 40000
 - assertVisible: Sign in to your account
 - tapOn: "Don't have an account? Sign Up"
 - assertVisible: Create a new account

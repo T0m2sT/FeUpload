@@ -56,6 +56,15 @@ export async function removeBookmark(bookmarkId: string) {
   if (error) throw error;
 }
 
+export async function removeBookmarksByName(userId: string, name: string) {
+  const { error } = await supabase
+    .from('bookmarks')
+    .delete()
+    .eq('user_id', userId)
+    .eq('name', name);
+  if (error) throw error;
+}
+
 export async function deleteCollection(collectionId: string) {
   const { error } = await supabase
     .from('bookmark_collections')

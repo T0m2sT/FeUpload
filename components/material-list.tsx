@@ -80,7 +80,7 @@ export function MaterialList({ items, emptyMessage = 'Sem conteúdo disponível.
             id: curr.name, 
             name: curr.name,
             color: curr.color || BOOKMARK_COLORS[0],
-            item_count: 1,
+            item_count: 0,
           });
         }
         return acc;
