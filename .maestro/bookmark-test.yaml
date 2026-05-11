@@ -1,0 +1,82 @@
+appId: com.anonymous.feupload
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible: FeUpload
+    timeout: 40000
+- inputText: test2@example.com
+- tapOn: Password
+- inputText: "test2"
+- tapOn: Sign In
+- tapOn: Marcadores
+- assertVisible: , Nova Coleção
+- tapOn: , Nova Coleção
+- assertVisible: NOME DA COLEÇÃO
+- tapOn: "Ex: Exames Recurso"
+- inputText: acceptanceTest
+- tapOn: Back
+- assertVisible: COR
+- tapOn:
+    point: 29%,82%
+- assertVisible: Criar
+- tapOn: Criar
+- assertVisible: acceptanceTest
+- scrollUntilVisible:
+    element:
+      text: acceptanceTest
+- tapOn: 0, acceptanceTest, 0 materiais, 
+- assertVisible: Nenhum material nesta coleção.
+- tapOn: 
+- tapOn: 
+- tapOn: Engenharia de Software
+- tapOn: Exames
+- scrollUntilVisible:
+    element:
+      text: Test 22/23
+- tapOn: 
+- scrollUntilVisible:
+    element:
+      text: acceptanceTest
+- tapOn: acceptanceTest, 0 materiais
+- tapOn: 
+- tapOn: 
+- tapOn: 
+- scrollUntilVisible:
+    element:
+      text: acceptanceTest
+- tapOn: 1, acceptanceTest, 1 materiais, 
+- assertVisible: Test 22/23
+- tapOn: Test 22/23, ES, EXAM
+- assertVisible: PDF
+- tapOn: 
+- tapOn: 
+- assertVisible: Remover Favorito
+- assertVisible: REMOVER
+- tapOn: REMOVER
+- assertVisible: Nenhum material nesta coleção.
+- tapOn: 
+- tapOn: 
+- tapOn: ELIMINAR
+- tapOn: 
+- tapOn: Engenharia de Software
+- tapOn: Exames
+- scrollUntilVisible:
+    element:
+      text: Test 22/23
+- tapOn: 
+- tapOn: , Criar Nova Coleção
+- tapOn: "Ex: Estudo de Exames"
+- inputText: acceptanceTest
+- doubleTapOn:
+    point: 24%,46%
+- tapOn: Criar e Guardar
+- tapOn: 
+- tapOn: 
+- tapOn: 
+- assertVisible: 1, acceptanceTest, 1 materiais, 
+- tapOn: 1, acceptanceTest, 1 materiais, 
+- assertVisible: Test 22/23, ES, EXAM
+- tapOn: 
+- tapOn: 
+- tapOn: ELIMINAR

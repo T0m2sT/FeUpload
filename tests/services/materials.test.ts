@@ -1,9 +1,9 @@
 import { Platform } from 'react-native';
-import { 
-  getMaterialsByCourse, 
-  getMaterialsByType, 
-  uploadMaterial, 
-  uploadMaterialFile 
+import {
+  getMaterialsByCourse,
+  getMaterialsByType,
+  uploadMaterial,
+  uploadMaterialFile
 } from '../../services/materials';
 import { buildSupabaseMock } from '../utils';
 
@@ -38,7 +38,7 @@ describe('materials service', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     // Database mock
     mockChain = buildSupabaseMock();
     getFrom().mockReturnValue(mockChain);
@@ -49,10 +49,10 @@ describe('materials service', () => {
       getPublicUrl: jest.fn().mockReturnValue({ data: { publicUrl: 'https://cdn.com/file.pdf' } }),
     };
     getStorageFrom().mockReturnValue(mockStorage);
-    
+
     // Default to android
     (Platform as any).OS = 'android';
-    
+
     // Global fetch mock for web tests
     global.fetch = jest.fn().mockResolvedValue({
       blob: jest.fn().mockResolvedValue(new Blob(['test'], { type: 'application/pdf' })),
@@ -136,19 +136,19 @@ describe('materials service', () => {
 
     it('uploads file using FormData on Native (Android/iOS)', async () => {
       (Platform as any).OS = 'android';
-      
+
       const url = await uploadMaterialFile(
-        fileParams.uri, 
-        fileParams.name, 
-        fileParams.type, 
-        fileParams.year, 
-        fileParams.semester, 
+        fileParams.uri,
+        fileParams.name,
+        fileParams.type,
+        fileParams.year,
+        fileParams.semester,
         fileParams.code
       );
 
       expect(getStorageFrom()).toHaveBeenCalledWith('LEIC');
       expect(mockStorage.upload).toHaveBeenCalledWith(
-        expect.stringContaining('Y1/S2/ES/'),
+        expect.stringContaining('ES/'),
         expect.any(FormData),
         expect.objectContaining({ contentType: 'application/pdf' })
       );
@@ -157,19 +157,19 @@ describe('materials service', () => {
 
     it('uploads file using Blob on Web', async () => {
       (Platform as any).OS = 'web';
-      
+
       const url = await uploadMaterialFile(
-        'blob:http://localhost/123', 
-        fileParams.name, 
-        fileParams.type, 
-        fileParams.year, 
-        fileParams.semester, 
+        'blob:http://localhost/123',
+        fileParams.name,
+        fileParams.type,
+        fileParams.year,
+        fileParams.semester,
         fileParams.code
       );
 
       expect(global.fetch).toHaveBeenCalledWith('blob:http://localhost/123');
       expect(mockStorage.upload).toHaveBeenCalledWith(
-        expect.stringContaining('Y1/S2/ES/'),
+        expect.stringContaining('ES/'),
         expect.any(Blob),
         expect.objectContaining({ contentType: 'application/pdf' })
       );
@@ -178,11 +178,11 @@ describe('materials service', () => {
 
     it('sanitizes filenames correctly', async () => {
       await uploadMaterialFile(
-        fileParams.uri, 
-        'Exame (Final)!.pdf', 
-        fileParams.type, 
-        fileParams.year, 
-        fileParams.semester, 
+        fileParams.uri,
+        'Exame (Final)!.pdf',
+        fileParams.type,
+        fileParams.year,
+        fileParams.semester,
         fileParams.code
       );
 
@@ -195,13 +195,13 @@ describe('materials service', () => {
 
     it('throws error when storage upload fails', async () => {
       mockStorage.upload.mockResolvedValue({ data: null, error: new Error('Storage error') });
-      
+
       await expect(uploadMaterialFile(
-        fileParams.uri, 
-        fileParams.name, 
-        fileParams.type, 
-        fileParams.year, 
-        fileParams.semester, 
+        fileParams.uri,
+        fileParams.name,
+        fileParams.type,
+        fileParams.year,
+        fileParams.semester,
         fileParams.code
       )).rejects.toThrow('Storage error');
     });

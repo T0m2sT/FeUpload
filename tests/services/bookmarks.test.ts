@@ -1,14 +1,28 @@
-import { getBookmarks, addBookmark, removeBookmark } from '../../services/bookmarks';
+import {
+  getUserBookmarks,
+  addBookmark,
+  removeBookmark,
+  removeBookmarksByName,
+  deleteCollection,
+  addItemToCollection,
+  removeItemFromCollection,
+  removeBookmarkLegacy,
+} from '../../services/bookmarks';
 import { buildSupabaseMock } from '../utils';
 
 jest.mock('../../lib/supabase', () => ({
   supabase: {
     from: jest.fn(),
+    rpc: jest.fn(),
   },
 }));
 
 function getFrom() {
   return jest.requireMock('../../lib/supabase').supabase.from as jest.Mock;
+}
+
+function getRpc() {
+  return jest.requireMock('../../lib/supabase').supabase.rpc as jest.Mock;
 }
 
 describe('bookmarks service', () => {
@@ -18,87 +32,125 @@ describe('bookmarks service', () => {
     jest.clearAllMocks();
     mockChain = buildSupabaseMock();
     getFrom().mockReturnValue(mockChain);
+    getRpc().mockResolvedValue({ error: null });
   });
 
-  describe('getBookmarks', () => {
-    it('fetches bookmarks for a user', async () => {
-      const mockData = [{ id: '1', material_id: 'm1' }];
+  describe('getUserBookmarks', () => {
+    it('fetches user bookmarks with materials', async () => {
+      const mockData = [
+        {
+          id: 'b1',
+          user_id: 'u1',
+          material_id: 'm1',
+          name: 'Collection 1',
+          color: '#FF6B6B',
+          materials: { id: 'm1', title: 'Exam 2022' },
+        },
+      ];
       mockChain._data = mockData;
 
-      const result = await getBookmarks('u1');
+      const result = await getUserBookmarks('u1');
 
       expect(getFrom()).toHaveBeenCalledWith('bookmarks');
-      expect(mockChain.select).toHaveBeenCalledWith('*, materials(title, type, courses(code, name))');
+      expect(mockChain.select).toHaveBeenCalledWith(
+        '*, materials(id, title, type, file_url, class_code, courses(code, name), reviews(rating))'
+      );
       expect(mockChain.eq).toHaveBeenCalledWith('user_id', 'u1');
       expect(mockChain.order).toHaveBeenCalledWith('created_at', { ascending: false });
       expect(result).toEqual(mockData);
     });
 
-    it('throws error on failure', async () => {
+    it('returns null when user has no bookmarks', async () => {
+      mockChain._data = null;
+      const result = await getUserBookmarks('u-empty');
+      expect(result).toBeNull();
+    });
+
+    it('throws error on database failure', async () => {
       mockChain._error = new Error('DB Error');
-      await expect(getBookmarks('u1')).rejects.toThrow('DB Error');
-    });
-
-    it('returns empty array when user has no bookmarks', async () => {
-      mockChain._data = [];
-      const result = await getBookmarks('u-empty');
-      expect(result).toEqual([]);
-    });
-
-    it('passes any userId to the eq filter', async () => {
-      mockChain._data = [];
-      await getBookmarks('user-xyz');
-      expect(mockChain.eq).toHaveBeenCalledWith('user_id', 'user-xyz');
+      await expect(getUserBookmarks('u1')).rejects.toThrow('DB Error');
     });
   });
 
   describe('addBookmark', () => {
-    it('inserts a bookmark with all fields', async () => {
-      const mockData = { id: 'b1', user_id: 'u1', material_id: 'm1' };
+    it('creates bookmark with all fields', async () => {
+      const mockData = { id: 'b1', user_id: 'u1', material_id: 'm1', name: 'Coll 1', color: '#FF6B6B' };
       mockChain._data = mockData;
 
-      const result = await addBookmark('u1', 'm1', 'My Bookmark', 'blue');
+      const result = await addBookmark('u1', 'm1', 'Coll 1', '#FF6B6B');
 
       expect(getFrom()).toHaveBeenCalledWith('bookmarks');
       expect(mockChain.insert).toHaveBeenCalledWith({
         user_id: 'u1',
         material_id: 'm1',
-        name: 'My Bookmark',
-        color: 'blue',
+        name: 'Coll 1',
+        color: '#FF6B6B',
       });
       expect(result).toEqual(mockData);
     });
 
-    it('inserts a bookmark without optional name and color', async () => {
-      mockChain._data = { id: 'b2' };
-      await addBookmark('u1', 'm1');
+    it('uses default color when not provided', async () => {
+      mockChain._data = { id: 'b1' };
+      await addBookmark('u1', 'm1', 'Name');
       expect(mockChain.insert).toHaveBeenCalledWith({
         user_id: 'u1',
         material_id: 'm1',
-        name: undefined,
-        color: undefined,
+        name: 'Name',
+        color: '#FF6B6B',
       });
     });
 
-    it('throws error when adding bookmark fails', async () => {
-      mockChain._error = new Error('Insert failed');
-      await expect(addBookmark('u1', 'm1')).rejects.toThrow('Insert failed');
+    it('allows null material_id', async () => {
+      mockChain._data = { id: 'b1' };
+      await addBookmark('u1', null, 'Name', '#FF6B6B');
+      expect(mockChain.insert).toHaveBeenCalledWith({
+        user_id: 'u1',
+        material_id: null,
+        name: 'Name',
+        color: '#FF6B6B',
+      });
     });
 
-    it('calls select and single after insert', async () => {
-      mockChain._data = {};
-      await addBookmark('u1', 'm1');
-      expect(mockChain.select).toHaveBeenCalled();
-      expect(mockChain.single).toHaveBeenCalled();
+    it('throws error on insertion failure', async () => {
+      mockChain._error = new Error('Insert failed');
+      await expect(addBookmark('u1', 'm1')).rejects.toThrow('Insert failed');
     });
   });
 
   describe('removeBookmark', () => {
-    it('deletes a bookmark', async () => {
-      mockChain._data = null;
-      mockChain._error = null;
+    it('removes bookmark by id', async () => {
+      await removeBookmark('b1');
 
-      await removeBookmark('u1', 'm1');
+      expect(getFrom()).toHaveBeenCalledWith('bookmarks');
+      expect(mockChain.delete).toHaveBeenCalled();
+      expect(mockChain.eq).toHaveBeenCalledWith('id', 'b1');
+    });
+
+    it('throws error on deletion failure', async () => {
+      mockChain._error = new Error('Delete failed');
+      await expect(removeBookmark('b1')).rejects.toThrow('Delete failed');
+    });
+  });
+
+  describe('removeBookmarksByName', () => {
+    it('removes all bookmarks with a specific name for a user', async () => {
+      await removeBookmarksByName('u1', 'Collection 1');
+
+      expect(getFrom()).toHaveBeenCalledWith('bookmarks');
+      expect(mockChain.delete).toHaveBeenCalled();
+      expect(mockChain.eq).toHaveBeenCalledWith('user_id', 'u1');
+      expect(mockChain.eq).toHaveBeenCalledWith('name', 'Collection 1');
+    });
+
+    it('throws error on database failure', async () => {
+      mockChain._error = new Error('Database Error');
+      await expect(removeBookmarksByName('u1', 'Col')).rejects.toThrow('Database Error');
+    });
+  });
+
+  describe('removeBookmarkLegacy', () => {
+    it('removes bookmark by user_id and material_id', async () => {
+      await removeBookmarkLegacy('u1', 'm1');
 
       expect(getFrom()).toHaveBeenCalledWith('bookmarks');
       expect(mockChain.delete).toHaveBeenCalled();
@@ -106,9 +158,63 @@ describe('bookmarks service', () => {
       expect(mockChain.eq).toHaveBeenCalledWith('material_id', 'm1');
     });
 
-    it('throws error when removing bookmark fails', async () => {
+    it('throws error on database failure', async () => {
+      mockChain._error = new Error('Legacy Delete failed');
+      await expect(removeBookmarkLegacy('u1', 'm1')).rejects.toThrow('Legacy Delete failed');
+    });
+  });
+
+  describe('deleteCollection', () => {
+    it('deletes collection by id', async () => {
+      await deleteCollection('coll1');
+
+      expect(getFrom()).toHaveBeenCalledWith('bookmark_collections');
+      expect(mockChain.delete).toHaveBeenCalled();
+      expect(mockChain.eq).toHaveBeenCalledWith('id', 'coll1');
+    });
+
+    it('throws error on deletion failure', async () => {
       mockChain._error = new Error('Delete failed');
-      await expect(removeBookmark('u1', 'm1')).rejects.toThrow('Delete failed');
+      await expect(deleteCollection('coll1')).rejects.toThrow('Delete failed');
+    });
+  });
+
+  describe('addItemToCollection', () => {
+    it('adds item to collection and increments count', async () => {
+      const mockData = { id: 'item1', collection_id: 'coll1', material_id: 'm1' };
+      mockChain._data = mockData;
+
+      const result = await addItemToCollection('coll1', 'm1');
+
+      expect(getFrom()).toHaveBeenCalledWith('bookmark_collection_items');
+      expect(mockChain.insert).toHaveBeenCalledWith({
+        collection_id: 'coll1',
+        material_id: 'm1',
+      });
+      expect(getRpc()).toHaveBeenCalledWith('increment_collection_count', { collection_id: 'coll1' });
+      expect(result).toEqual(mockData);
+    });
+
+    it('throws error on insertion failure', async () => {
+      mockChain._error = new Error('Insert failed');
+      await expect(addItemToCollection('coll1', 'm1')).rejects.toThrow('Insert failed');
+    });
+  });
+
+  describe('removeItemFromCollection', () => {
+    it('removes item from collection and decrements count', async () => {
+      await removeItemFromCollection('coll1', 'm1');
+
+      expect(getFrom()).toHaveBeenCalledWith('bookmark_collection_items');
+      expect(mockChain.delete).toHaveBeenCalled();
+      expect(mockChain.eq).toHaveBeenCalledWith('collection_id', 'coll1');
+      expect(mockChain.eq).toHaveBeenCalledWith('material_id', 'm1');
+      expect(getRpc()).toHaveBeenCalledWith('decrement_collection_count', { collection_id: 'coll1' });
+    });
+
+    it('throws error on deletion failure', async () => {
+      mockChain._error = new Error('Delete failed');
+      await expect(removeItemFromCollection('coll1', 'm1')).rejects.toThrow('Delete failed');
     });
   });
 });

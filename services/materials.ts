@@ -96,7 +96,8 @@ export async function uploadMaterialFile(
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-zA-Z0-9._-]/g, '_');
 
-  const path = `Y${courseYear}/S${courseSemester}/${classCode}/${Date.now()}_${safeName}`;
+  // e.g. (bucket: LEIC)  Y2/S1/ES/1714900000000_exam2024.pdf
+  const path = `${classCode}/${Date.now()}_${safeName}`;
 
   let body: any;
 

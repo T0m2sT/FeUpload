@@ -7,6 +7,18 @@ import { darkPalette } from '../../constants/theme';
 import { useAppTheme } from '../../hooks/use-app-theme';
 
 jest.mock('../../hooks/use-app-theme');
+jest.mock('../../lib/supabase', () => ({
+  supabase: {
+    auth: {
+      getSession: jest.fn(() => Promise.resolve({ data: { session: null }, error: null })),
+    },
+    from: jest.fn(() => ({
+      select: jest.fn(() => ({
+        eq: jest.fn(() => Promise.resolve({ data: [], error: null })),
+      })),
+    })),
+  },
+}));
 jest.mock('expo-router', () => ({
   useRouter: jest.fn(),
 }));
