@@ -65,22 +65,23 @@ export function MaterialList({ items, emptyMessage = 'Sem conteúdo disponível.
       setIsLoadingCollections(true);
       const { data, error: fetchError } = await supabase
         .from('bookmarks')
-        .select('name, color')
+        .select('name, color, material_id')
         .eq('user_id', uid);
 
       if (fetchError) throw fetchError;
 
       const grouped = (data || []).reduce((acc: BookmarkCollection[], curr) => {
         if (!curr.name) return acc;
+        const hasMaterial = curr.material_id != null;
         const existing = acc.find((c) => c.name === curr.name);
         if (existing) {
-          existing.item_count += 1;
+          if (hasMaterial) existing.item_count += 1;
         } else {
           acc.push({
             id: curr.name, 
             name: curr.name,
             color: curr.color || BOOKMARK_COLORS[0],
-            item_count: 0,
+            item_count: hasMaterial ? 1 : 0,
           });
         }
         return acc;
@@ -205,7 +206,11 @@ export function MaterialList({ items, emptyMessage = 'Sem conteúdo disponível.
               {item.rating != null ? <StarRating count={item.rating} accent={t.accent} /> : null}
             </View>
             <View style={s.actions}>
-              <TouchableOpacity style={s.actionBtn} onPress={() => handleBookmarkPress(item)}>
+              <TouchableOpacity 
+                style={s.actionBtn} 
+                onPress={() => handleBookmarkPress(item)}
+                accessibilityLabel="Bookmark"
+              >
                 <Ionicons name="bookmark-outline" size={20} color={t.textSecondary} />
               </TouchableOpacity>
               {item.pdf && (
