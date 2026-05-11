@@ -2,9 +2,11 @@ import {
   getUserBookmarks,
   addBookmark,
   removeBookmark,
+  removeBookmarksByName,
   deleteCollection,
   addItemToCollection,
   removeItemFromCollection,
+  removeBookmarkLegacy,
 } from '../../services/bookmarks';
 import { buildSupabaseMock } from '../utils';
 
@@ -127,6 +129,38 @@ describe('bookmarks service', () => {
     it('throws error on deletion failure', async () => {
       mockChain._error = new Error('Delete failed');
       await expect(removeBookmark('b1')).rejects.toThrow('Delete failed');
+    });
+  });
+
+  describe('removeBookmarksByName', () => {
+    it('removes all bookmarks with a specific name for a user', async () => {
+      await removeBookmarksByName('u1', 'Collection 1');
+
+      expect(getFrom()).toHaveBeenCalledWith('bookmarks');
+      expect(mockChain.delete).toHaveBeenCalled();
+      expect(mockChain.eq).toHaveBeenCalledWith('user_id', 'u1');
+      expect(mockChain.eq).toHaveBeenCalledWith('name', 'Collection 1');
+    });
+
+    it('throws error on database failure', async () => {
+      mockChain._error = new Error('Database Error');
+      await expect(removeBookmarksByName('u1', 'Col')).rejects.toThrow('Database Error');
+    });
+  });
+
+  describe('removeBookmarkLegacy', () => {
+    it('removes bookmark by user_id and material_id', async () => {
+      await removeBookmarkLegacy('u1', 'm1');
+
+      expect(getFrom()).toHaveBeenCalledWith('bookmarks');
+      expect(mockChain.delete).toHaveBeenCalled();
+      expect(mockChain.eq).toHaveBeenCalledWith('user_id', 'u1');
+      expect(mockChain.eq).toHaveBeenCalledWith('material_id', 'm1');
+    });
+
+    it('throws error on database failure', async () => {
+      mockChain._error = new Error('Legacy Delete failed');
+      await expect(removeBookmarkLegacy('u1', 'm1')).rejects.toThrow('Legacy Delete failed');
     });
   });
 

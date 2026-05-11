@@ -14,11 +14,12 @@ import {
   TouchableOpacity,
   View,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import type { AppPalette } from '@/constants/theme';
 import { BOOKMARK_COLORS } from '@/constants/bookmarks';
 import { supabase } from '@/lib/supabase';
-import { getUserBookmarks, addBookmark, type BookmarkWithMaterial } from '@/services/bookmarks';
+import { getUserBookmarks, addBookmark, removeBookmark, removeBookmarksByName, type BookmarkWithMaterial } from '@/services/bookmarks';
 
 export default function BookmarksScreen() {
   const router = useRouter();
@@ -85,9 +86,57 @@ export default function BookmarksScreen() {
   };
 
   // --- Handlers ---
+  const handleDeleteBookmark = (bookmarkId: string) => {
+    Alert.alert(
+      'Remover Favorito',
+      'Tem certeza que deseja remover este material dos favoritos?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Remover',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await removeBookmark(bookmarkId);
+              await fetchBookmarks();
+            } catch (err) {
+              setError('Falha ao remover favorito.');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleDeleteCollection = (collectionName: string) => {
+    Alert.alert(
+      'Eliminar Coleção',
+      `Tem certeza que deseja eliminar a coleção "${collectionName}" e todos os seus materiais?`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Eliminar',
+          style: 'destructive',
+          onPress: async () => {
+            if (!userId) return;
+            try {
+              await removeBookmarksByName(userId, collectionName);
+              await fetchBookmarks();
+              if (selectedGroupName === collectionName) {
+                setSelectedGroupName(null);
+              }
+            } catch (err) {
+              setError('Falha ao eliminar coleção.');
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const handleCreateCollection = async () => {
-    if (!newCollectionName.trim() || !userId || !selectedMaterialId) {
-      setError('Preencha o nome e selecione um material.');
+    if (!newCollectionName.trim() || !userId) {
+      setError('Preencha o nome da coleção.');
       return;
     }
 
@@ -128,7 +177,7 @@ export default function BookmarksScreen() {
       name,
       color: items[0]?.color || BOOKMARK_COLORS[0],
       items,
-      itemCount: items.length,
+      itemCount: items.filter(i => i.material_id != null).length,
     }));
   };
 
@@ -140,33 +189,49 @@ export default function BookmarksScreen() {
 
   // --- Render Helpers ---
   const renderGroupCard = ({ item }: { item: any }) => (
-    <TouchableOpacity
-      style={[s.collectionCard, { borderLeftColor: item.color }]}
-      onPress={() => setSelectedGroupName(item.name)}
-    >
-      <View style={[s.collectionColorBadge, { backgroundColor: item.color }]}>
-        <Text style={s.collectionItemCount}>{item.itemCount}</Text>
-      </View>
-      <View style={s.collectionContent}>
-        <Text style={s.collectionName}>{item.name}</Text>
-        <Text style={s.collectionMeta}>{item.itemCount} materiais</Text>
-      </View>
-      <Ionicons name="chevron-forward" size={20} color={t.textSecondary} />
-    </TouchableOpacity>
+    <View style={s.collectionCardContainer}>
+      <TouchableOpacity
+        style={[s.collectionCard, { borderLeftColor: item.color }]}
+        onPress={() => setSelectedGroupName(item.name)}
+      >
+        <View style={[s.collectionColorBadge, { backgroundColor: item.color }]}>
+          <Text style={s.collectionItemCount}>{item.itemCount}</Text>
+        </View>
+        <View style={s.collectionContent}>
+          <Text style={s.collectionName}>{item.name}</Text>
+          <Text style={s.collectionMeta}>{item.itemCount} materiais</Text>
+        </View>
+        <Ionicons name="chevron-forward" size={20} color={t.textSecondary} />
+      </TouchableOpacity>
+      <TouchableOpacity 
+        style={s.collectionDeleteButton} 
+        onPress={() => handleDeleteCollection(item.name)}
+      >
+        <Ionicons name="trash-outline" size={20} color={t.error} />
+      </TouchableOpacity>
+    </View>
   );
 
   const renderBookmarkItem = ({ item }: { item: BookmarkWithMaterial }) => (
-    <TouchableOpacity style={s.itemCard} onPress={() => openPDF(item.materials?.file_url)}>
-      <View style={s.itemHeader}>
-        <View style={s.itemTitleContainer}>
-          <Text style={s.itemTitle} numberOfLines={2}>{item.materials?.title}</Text>
-          <Text style={s.courseCode}>{item.materials?.class_code}</Text>
+    <View style={s.itemCardContainer}>
+      <TouchableOpacity style={s.itemCard} onPress={() => openPDF(item.materials?.file_url)}>
+        <View style={s.itemHeader}>
+          <View style={s.itemTitleContainer}>
+            <Text style={s.itemTitle} numberOfLines={2}>{item.materials?.title}</Text>
+            <Text style={s.courseCode}>{item.materials?.class_code}</Text>
+          </View>
+          <View style={[s.typeBadge, { backgroundColor: t.accentDim }]}>
+            <Text style={[s.typeBadgeText, { color: t.accent }]}>{item.materials?.type}</Text>
+          </View>
         </View>
-        <View style={[s.typeBadge, { backgroundColor: t.accentDim }]}>
-          <Text style={[s.typeBadgeText, { color: t.accent }]}>{item.materials?.type}</Text>
-        </View>
-      </View>
-    </TouchableOpacity>
+      </TouchableOpacity>
+      <TouchableOpacity 
+        style={s.itemDeleteButton} 
+        onPress={() => handleDeleteBookmark(item.id)}
+      >
+        <Ionicons name="trash-outline" size={20} color={t.error} />
+      </TouchableOpacity>
+    </View>
   );
 
   // --- View Logic ---
@@ -181,15 +246,20 @@ export default function BookmarksScreen() {
           <Text style={s.collectionHeaderTitle}>{selectedGroupName}</Text>
         </View>
         <FlatList
-          data={group?.items || []}
+          data={(group?.items || []).filter(i => i.material_id != null)}
           renderItem={renderBookmarkItem}
           contentContainerStyle={s.listContent}
+          ListEmptyComponent={
+            <View style={s.centerContainer}>
+              <Text style={s.collectionMeta}>Nenhum material nesta coleção.</Text>
+            </View>
+          }
         />
       </View>
     );
   }
 
-  const isButtonDisabled = !newCollectionName.trim() || !selectedMaterialId || isSubmitting || loadingMaterials;
+  const isButtonDisabled = !newCollectionName.trim() || isSubmitting || loadingMaterials;
 
   return (
     <View style={s.container}>
@@ -293,7 +363,9 @@ const makeStyles = (t: AppPalette) => StyleSheet.create({
   createButton: { flexDirection: 'row', alignItems: 'center', margin: 16, padding: 12, borderRadius: 12, backgroundColor: t.accent, gap: 8 },
   createButtonText: { fontSize: 14, fontWeight: '600', color: t.background },
   collectionsContent: { padding: 16, gap: 12 },
-  collectionCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: t.surface, borderRadius: 12, borderLeftWidth: 4, padding: 12, gap: 12, borderWidth: 1, borderColor: t.surfaceBorder },
+  collectionCardContainer: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  collectionCard: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: t.surface, borderRadius: 12, borderLeftWidth: 4, padding: 12, gap: 12, borderWidth: 1, borderColor: t.surfaceBorder },
+  collectionDeleteButton: { padding: 10, borderRadius: 12, backgroundColor: t.surface, borderWidth: 1, borderColor: t.surfaceBorder, justifyContent: 'center', alignItems: 'center' },
   collectionColorBadge: { width: 44, height: 44, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
   collectionItemCount: { fontWeight: 'bold', color: 'white' },
   collectionContent: { flex: 1 },
@@ -302,7 +374,9 @@ const makeStyles = (t: AppPalette) => StyleSheet.create({
   collectionHeaderSection: { flexDirection: 'row', alignItems: 'center', padding: 16, gap: 12, borderBottomWidth: 1, borderBottomColor: t.surfaceBorder },
   collectionHeaderTitle: { fontSize: 18, fontWeight: '600', color: t.textPrimary },
   listContent: { padding: 16, gap: 12 },
-  itemCard: { backgroundColor: t.surface, borderRadius: 12, padding: 12, borderWidth: 1, borderColor: t.surfaceBorder },
+  itemCardContainer: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  itemCard: { flex: 1, backgroundColor: t.surface, borderRadius: 12, padding: 12, borderWidth: 1, borderColor: t.surfaceBorder },
+  itemDeleteButton: { padding: 10, borderRadius: 12, backgroundColor: t.surface, borderWidth: 1, borderColor: t.surfaceBorder, justifyContent: 'center', alignItems: 'center' },
   itemHeader: { flexDirection: 'row', justifyContent: 'space-between' },
   itemTitleContainer: { flex: 1 },
   itemTitle: { fontSize: 14, fontWeight: '600', color: t.textPrimary },
