@@ -35,21 +35,35 @@ All notable changes to this project are documented in this file.
 ## [Sprint 2]
 
 ### End-user value
-- Students can view real material ratings and comments backed by Supabase data.
-- Students can submit ratings and optional comments using their authenticated account.
-- Students can edit or delete their own existing review directly from the ratings screen.
-- Account and profile forms now validate and normalize user input to prevent invalid data.
-- Updating course information in profile now immediately affects the classes shown on the home page.
+- Students can register and log into the platform using a database-backed authentication flow.
+- Students can complete and manage their academic profile information directly in the app.
+- Students can browse and rate materials with ratings persisted and synchronized through Supabase.
+- Students can access bookmarks, summaries, annotations, and uploaded materials in a more complete study workflow.
+- Students can use discussion forums with improved compatibility and in-app PDF support.
+- The application UI is now more consistent and polished across newly added screens and features.
+- Android build support and browser compatibility issues were fixed, improving cross-platform usability.
 
 ### Closed PBIs (implemented in this increment)
-- Material ratings list integrated with Supabase `reviews` and `profiles`.
-- Material evaluation submit flow integrated with Supabase and authenticated user identity.
-- In-place “Editar Avaliação” experience implemented (open-on-click editor, save/cancel/delete actions).
-- Material average rating refresh logic wired to keep `materials.rating` in sync with review changes.
-- Auth and profile validation layer added (email/name/password/student number/course/year/semester rules).
-- Profile save flow fixed for academic fields and improved error handling.
-- Home course query updated to react to edited profile course metadata.
+- Database-backed login flow implemented (PR #80).
+- User registration/account creation implemented (PR #80).
+- Profile Completion screen implemented (PR #81).
+- Material ratings screen integrated and improved (PR #70).
+- Material rating submission and visualization implemented (PR #90).
+- Register field validation and filtering added (PR #92).
+- Exercises visualization issues fixed (PR #68).
+- Browser compatibility fixes implemented (PR #67).
+- In-app PDF opening flow fixed/improved (PR #63).
+- Bookmarks feature implemented (PR #83).
+- Materials upload flow implemented (PR #93).
+- Access to summaries and annotations implemented (PR #96).
+- UI refactor and consistency improvements completed (PR #82).
+- General readability, correctness, and code quality refactor completed (PR #98).
+- GitHub Actions workflow improvements and CI enhancements implemented.
+- Android build issues fixed (PR #65).
+- Database connection/integration improvements completed (#51).
 
 ### Quality and delivery notes
-- Tests updated for changed review and navigation behavior.
-- Additional tests added/updated for auth validation, profile edit persistence, and Supabase-backed ratings flows.
+- Acceptance-test coverage expanded for login, registration, profile completion, ratings, forums, and bookmarks flows (PRs #85 and #97).
+- CI/CD workflows and GitHub Actions pipeline improved for better delivery reliability.
+- Refactoring work focused on improving maintainability, UI consistency, and overall code quality.
+- Additional validation and error-handling logic added across authentication and profile-related flows.
