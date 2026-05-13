@@ -2,11 +2,7 @@ import { Text, View, TouchableOpacity, StyleSheet, ScrollView } from 'react-nati
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppTheme } from '@/hooks/use-app-theme';
-// CourseNavBar kept but hidden — re-enable if needed by the team
-import { CourseNavBar } from '@/components/course-nav-bar';
 import type { AppPalette } from '@/constants/theme';
-
-const SHOW_NAV_BAR = false;
 
 type SectionKey = 'exams' | 'exercises' | 'summaries' | 'tips';
 
@@ -164,7 +160,6 @@ export default function CourseIndexScreen() {
         </View>
       </ScrollView>
 
-      {SHOW_NAV_BAR && <CourseNavBar courseId={courseCode} />}
     </View>
   );
 }

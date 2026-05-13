@@ -11,6 +11,20 @@ export async function getMaterialsByCourse(classCode: string) {
   return data;
 }
 
+export async function getMaterialsByClassCodeAndType(
+  classCode: string,
+  type: 'exam' | 'exercise' | 'notes' | 'summary',
+): Promise<{ id: string; title: string; file_url: string | null; academic_year: string | null; description: string | null; class_code: string; type: string }[]> {
+  const { data, error } = await supabase
+    .from('materials')
+    .select('id, title, file_url, academic_year, class_code, type, description')
+    .eq('class_code', classCode)
+    .eq('type', type)
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return data ?? [];
+}
+
 export async function getMaterialsByType(type: 'exam' | 'exercise' | 'notes' | 'summary') {
   const { data, error } = await supabase
     .from('materials')

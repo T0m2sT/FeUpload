@@ -2,8 +2,8 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { CourseSectionShell } from '@/components/course-section-shell';
 import { MaterialList } from '@/components/material-list';
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase';
 import type { Material } from '@/constants/courses';
+import { getMaterialsByClassCodeAndType } from '@/services/materials';
 import { ActivityIndicator, Text, View } from 'react-native';
 import { useAppTheme } from '@/hooks/use-app-theme';
 
@@ -15,7 +15,7 @@ export default function CourseExercisesScreen() {
   }>();
   const router = useRouter();
   const t = useAppTheme();
-  
+
   const courseCode = (id ?? '').toUpperCase();
   const courseNameParam = Array.isArray(name) ? name[0] : name;
   const courseDescription = Array.isArray(description) ? description[0] : description;
@@ -25,44 +25,31 @@ export default function CourseExercisesScreen() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
-    async function fetchExercises() {
-      setIsLoading(true);
-      setErrorMsg(null);
+    if (!courseCode) return;
 
-      try {
-        // Fetch the exercises using the class_code directly as per schema
-        const { data, error } = await supabase
-          .from('materials')
-          .select('*')
-          .eq('class_code', courseCode)
-          .eq('type', 'exercise');
+    let alive = true;
+    setIsLoading(true);
+    setErrorMsg(null);
 
-        if (error) {
-          setErrorMsg('Ocorreu um erro ao carregar as fichas.');
-          return;
-        }
+    getMaterialsByClassCodeAndType(courseCode, 'exercise')
+      .then((data) => {
+        if (!alive) return;
+        setItems(data.map((m) => ({
+          id: m.id,
+          title: m.title,
+          type: 'exercise' as const,
+          subtitle: m.description || m.academic_year || undefined,
+          pdf: m.file_url || undefined,
+        })));
+      })
+      .catch(() => {
+        if (alive) setErrorMsg('Ocorreu um erro ao carregar as fichas.');
+      })
+      .finally(() => {
+        if (alive) setIsLoading(false);
+      });
 
-        if (data) {
-          const mappedItems: Material[] = data.map((m: any) => ({
-            id: m.id,
-            title: m.title,
-            type: m.type as any,
-            subtitle: m.description || m.academic_year || undefined,
-            rating: m.rating,
-            pdf: m.file_url || undefined,
-          }));
-          setItems(mappedItems);
-        }
-      } catch (err) {
-        setErrorMsg('Erro inesperado ao carregar dados.');
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    if (courseCode) {
-      fetchExercises();
-    }
+    return () => { alive = false; };
   }, [courseCode]);
 
   return (
@@ -84,7 +71,7 @@ export default function CourseExercisesScreen() {
           <Text style={{ color: t.textPrimary, fontSize: 16 }}>{errorMsg}</Text>
         </View>
       ) : (
-        <MaterialList items={items} emptyMessage="Sem fichas disponíveis." courseCode={courseCode} />
+        <MaterialList items={items} emptyMessage="Sem fichas disponíveis." />
       )}
     </CourseSectionShell>
   );

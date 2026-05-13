@@ -1,11 +1,11 @@
 import { CourseSectionShell } from '@/components/course-section-shell';
 import { MaterialList } from '@/components/material-list';
-import { Material } from '@/constants/courses';
-import { supabase } from '@/lib/supabase';
+import type { Material } from '@/constants/courses';
+import { useAppTheme } from '@/hooks/use-app-theme';
+import { getMaterialsByClassCodeAndType } from '@/services/materials';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-
-
+import { ActivityIndicator, Text, View } from 'react-native';
 
 export default function CourseExamsScreen() {
   const { id, name, description } = useLocalSearchParams<{
@@ -14,45 +14,41 @@ export default function CourseExamsScreen() {
     description?: string | string[];
   }>();
   const router = useRouter();
-  const courseId = Array.isArray(id) ? id[0] : id;
-  const courseCode = (courseId ?? 'XX').toUpperCase();
+  const t = useAppTheme();
+
+  const courseCode = (Array.isArray(id) ? id[0] : id ?? 'XX').toUpperCase();
   const courseNameParam = Array.isArray(name) ? name[0] : name;
   const courseDescription = Array.isArray(description) ? description[0] : description;
-  
+
   const [exams, setExams] = useState<Material[]>([]);
-  
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
   useEffect(() => {
-      const fetchExams = async () => {
-        if (!courseId) {
-          setExams([]);
-          return;
-        }
+    let alive = true;
+    setIsLoading(true);
+    setErrorMsg(null);
 
-        const { data, error } = await supabase
-          .from('materials')
-          .select('id, title, file_url, academic_year, class_code, type')
-          .eq('type', 'exam')
-          .eq('class_code', courseCode);
-  
-        if (error) {
-          console.log(error);
-          setExams([]);
-          return;
-        }
+    getMaterialsByClassCodeAndType(courseCode, 'exam')
+      .then((data) => {
+        if (!alive) return;
+        setExams(data.map((m) => ({
+          id: m.id,
+          title: m.title,
+          type: 'exam' as const,
+          subtitle: m.academic_year ?? undefined,
+          pdf: m.file_url ?? undefined,
+        })));
+      })
+      .catch(() => {
+        if (alive) setErrorMsg('Ocorreu um erro ao carregar os exames.');
+      })
+      .finally(() => {
+        if (alive) setIsLoading(false);
+      });
 
-        const mappedExams: Material[] = (data ?? []).map((exam) => ({
-          id: exam.id,
-          title: exam.title,
-          type: 'exam',
-          subtitle: exam.academic_year ?? undefined,
-          pdf: exam.file_url ?? undefined,
-        }));
-
-        setExams(mappedExams);
-      };
-  
-      fetchExams();
-    }, [courseCode, courseId]);
+    return () => { alive = false; };
+  }, [courseCode]);
 
   return (
     <CourseSectionShell
@@ -63,7 +59,18 @@ export default function CourseExamsScreen() {
       activeKey="exams"
       onUpload={() => router.push('/upload')}
     >
-      <MaterialList items={exams} emptyMessage="Sem exames disponíveis." courseCode={courseCode} />
+      {isLoading ? (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingTop: 60 }}>
+          <ActivityIndicator size="large" color={t.accent} />
+          <Text style={{ marginTop: 12, color: t.textSecondary, fontSize: 14 }}>A carregar exames...</Text>
+        </View>
+      ) : errorMsg ? (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingTop: 60 }}>
+          <Text style={{ color: t.textPrimary, fontSize: 16 }}>{errorMsg}</Text>
+        </View>
+      ) : (
+        <MaterialList items={exams} emptyMessage="Sem exames disponíveis." />
+      )}
     </CourseSectionShell>
   );
 }

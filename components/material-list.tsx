@@ -336,8 +336,6 @@ export function MaterialList({ items, emptyMessage = 'Sem conteúdo disponível.
   );
 }
 
-// ... useStyles from your previous message remains the same
-
 function makeStyles(t: AppPalette) {
   return StyleSheet.create({
     empty: {

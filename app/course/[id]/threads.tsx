@@ -8,6 +8,7 @@ import {
     StyleSheet,
     Platform,
     ActivityIndicator,
+    Alert,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -15,6 +16,17 @@ import { CourseSectionShell } from '@/components/course-section-shell';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import type { AppPalette } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
+import { getThreadsByCourseCode, getCourseIdByCode, createThread } from '@/services/threads';
+
+type ThreadRow = {
+  id: string;
+  title: string;
+  body: string;
+  created_at: string;
+  course_id: string;
+  profiles?: { name: string } | null;
+  thread_replies?: { id: string }[];
+};
 
 export default function CourseThreadsScreen() {
   const { id, name, description } = useLocalSearchParams<{
@@ -27,54 +39,35 @@ export default function CourseThreadsScreen() {
   const t = useAppTheme();
   const s = makeStyles(t);
 
-  // UI Metadata
   const courseCode = (id ?? '').toUpperCase();
   const courseNameParam = Array.isArray(name) ? name[0] : name;
   const courseDescription = Array.isArray(description) ? description[0] : description;
 
-  // State
   const [loading, setLoading] = useState(true);
   const [composing, setComposing] = useState(false);
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
-  const [localThreads, setLocalThreads] = useState<any[]>([]);
+  const [localThreads, setLocalThreads] = useState<ThreadRow[]>([]);
   const [courseUuid, setCourseUuid] = useState<string | null>(null);
 
   useEffect(() => {
     fetchThreads();
-  }, [id]);
+  }, [courseCode]);
 
   const fetchThreads = async () => {
     try {
       setLoading(true);
+      const data = await getThreadsByCourseCode(courseCode) as ThreadRow[];
+      setLocalThreads(data);
 
-      const { data, error } = await supabase
-        .from('threads')
-        .select(`
-          *,
-          profiles (name),
-          thread_replies (id),
-          courses!inner (id, code)
-        `)
-        .eq('courses.code', courseCode)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setLocalThreads(data || []);
-
-      if (data && data.length > 0) {
+      if (data.length > 0) {
         setCourseUuid(data[0].course_id);
       } else {
-        const { data: courseData } = await supabase
-          .from('courses')
-          .select('id')
-          .eq('code', courseCode)
-          .single();
-
-        if (courseData) setCourseUuid(courseData.id);
+        const uuid = await getCourseIdByCode(courseCode);
+        if (uuid) setCourseUuid(uuid);
       }
     } catch (err) {
-      console.error("Error fetching threads:", err);
+      console.error('Error fetching threads:', err);
     } finally {
       setLoading(false);
     }
@@ -88,24 +81,22 @@ export default function CourseThreadsScreen() {
       const { data: { user }, error: authError } = await supabase.auth.getUser();
 
       if (authError || !user) {
-        throw new Error("Não estás autenticado. Faz login novamente.");
+        throw new Error('Não estás autenticado. Faz login novamente.');
       }
 
-      const { error } = await supabase.from('threads').insert({
+      await createThread({
         title: title.trim(),
         body: body.trim(),
         course_id: courseUuid,
         user_id: user.id,
       });
 
-      if (error) throw error;
-
       setTitle('');
       setBody('');
       setComposing(false);
       fetchThreads();
     } catch (err: any) {
-      alert(err.message);
+      Alert.alert('Erro', err.message);
     } finally {
       setLoading(false);
     }
@@ -181,7 +172,7 @@ export default function CourseThreadsScreen() {
             </View>
           ) : (
             localThreads.map((thread) => {
-              const replyCount = thread.thread_replies?.length || 0;
+              const replyCount = thread.thread_replies?.length ?? 0;
               return (
                 <TouchableOpacity
                   key={thread.id}
@@ -209,7 +200,7 @@ export default function CourseThreadsScreen() {
                   <Text style={s.cardBody} numberOfLines={2}>{thread.body}</Text>
                   <View style={s.cardMeta}>
                     <Ionicons name="person-circle-outline" size={13} color={t.textMuted} />
-                    <Text style={s.cardMetaText}>{thread.profiles?.name || 'Utilizador'}</Text>
+                    <Text style={s.cardMetaText}>{thread.profiles?.name ?? 'Utilizador'}</Text>
                     <Text style={s.cardMetaDot}>·</Text>
                     <Text style={s.cardMetaText}>{new Date(thread.created_at).toLocaleDateString()}</Text>
                     <View style={{ flex: 1 }} />
