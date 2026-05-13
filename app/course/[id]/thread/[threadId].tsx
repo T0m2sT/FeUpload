@@ -1,16 +1,31 @@
 import React, { useState, useEffect } from 'react';
 import {
-  View, Text, TouchableOpacity, ScrollView, TextInput, StyleSheet, Platform, ActivityIndicator,
+  View, Text, TouchableOpacity, ScrollView, TextInput, StyleSheet, Platform, ActivityIndicator, Alert,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppTheme } from '@/hooks/use-app-theme';
-import { COURSES, type ThreadReply } from '@/constants/courses';
 import type { AppPalette } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
+import { getThreadWithReplies, createReply } from '@/services/threads';
+
+type ThreadRow = {
+  id: string;
+  title: string;
+  body: string;
+  created_at: string;
+  profiles?: { name: string } | null;
+};
+
+type ReplyRow = {
+  id: string;
+  body: string;
+  created_at: string;
+  profiles?: { name: string } | null;
+};
 
 export default function ThreadDetailScreen() {
-  const { id, threadId, name } = useLocalSearchParams<{
+  const { threadId } = useLocalSearchParams<{
     id: string;
     threadId: string;
     name?: string | string[];
@@ -19,11 +34,9 @@ export default function ThreadDetailScreen() {
   const t = useAppTheme();
   const s = makeStyles(t);
 
-
-  const [thread, setThread] = useState<any>(null);
-  const [replies, setReplies] = useState<any[]>([]);
+  const [thread, setThread] = useState<ThreadRow | null>(null);
+  const [replies, setReplies] = useState<ReplyRow[]>([]);
   const [loading, setLoading] = useState(true);
-
   const [replyText, setReplyText] = useState('');
   const [sending, setSending] = useState(false);
 
@@ -34,24 +47,11 @@ export default function ThreadDetailScreen() {
   const fetchThreadAndReplies = async () => {
     try {
       setLoading(true);
-      const threadRes = await supabase
-        .from('threads')
-        .select('*, profiles(name)')
-        .eq('id', threadId)
-        .single();
-
-      const repliesRes = await supabase
-        .from('thread_replies')
-        .select('*, profiles(name)')
-        .eq('thread_id', threadId)
-        .order('created_at', { ascending: true });
-
-      if (threadRes.error) throw threadRes.error;
-
-      setThread(threadRes.data);
-      setReplies(repliesRes.data || []);
+      const { thread: t, replies: r } = await getThreadWithReplies(threadId);
+      setThread(t as ThreadRow);
+      setReplies(r as ReplyRow[]);
     } catch (err) {
-      console.error("Erro ao carregar thread:", err);
+      console.error('Erro ao carregar thread:', err);
     } finally {
       setLoading(false);
     }
@@ -63,20 +63,21 @@ export default function ThreadDetailScreen() {
     setSending(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return alert("Precisas de estar logado!");
+      if (!user) {
+        Alert.alert('Erro', 'Precisas de estar logado!');
+        return;
+      }
 
-      const { error } = await supabase.from('thread_replies').insert({
+      await createReply({
         thread_id: threadId,
         user_id: user.id,
         body: replyText.trim(),
       });
 
-      if (error) throw error;
-
       setReplyText('');
       fetchThreadAndReplies();
     } catch (err: any) {
-      alert(err.message);
+      Alert.alert('Erro', err.message);
     } finally {
       setSending(false);
     }
@@ -118,7 +119,7 @@ export default function ThreadDetailScreen() {
           <Text style={s.opTitle}>{thread.title}</Text>
           <View style={s.opMeta}>
             <Ionicons name="person-circle-outline" size={14} color={t.textMuted} />
-            <Text style={s.opMetaText}>{thread.profiles?.name || 'Utilizador'}</Text>
+            <Text style={s.opMetaText}>{thread.profiles?.name ?? 'Utilizador'}</Text>
             <Text style={s.opMetaDot}>•</Text>
             <Text style={s.opMetaText}>
               {new Date(thread.created_at).toLocaleDateString()}
@@ -134,11 +135,11 @@ export default function ThreadDetailScreen() {
             <View style={s.replyAuthorRow}>
               <View style={s.replyAvatar}>
                 <Text style={s.replyAvatarText}>
-                  {(reply.profiles?.name || 'U').charAt(0).toUpperCase()}
+                  {(reply.profiles?.name ?? 'U').charAt(0).toUpperCase()}
                 </Text>
               </View>
               <View>
-                <Text style={s.replyAuthor}>{reply.profiles?.name || 'Utilizador'}</Text>
+                <Text style={s.replyAuthor}>{reply.profiles?.name ?? 'Utilizador'}</Text>
                 <Text style={s.replyDate}>{new Date(reply.created_at).toLocaleDateString()}</Text>
               </View>
             </View>
