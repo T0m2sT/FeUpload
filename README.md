@@ -422,17 +422,15 @@ A Product Backlog Item is considered ready for Sprint Planning only if:
 </p>
 <h4>Sprint Retrospective</h4>
 
-TODO
-<!-- - [Sprint retrospective details](https://github.com/LEIC-ES-2025-26-2LEIC13/T2/blob/main/misc/scrum/sprint-retrospective.md#sprint-1-retrospective) -->
+- [Sprint retrospective details](https://github.com/LEIC-ES-2025-26-2LEIC13/T2/blob/main/misc/scrum/sprint-retrospective.md#sprint-1-retrospective)
 <h4>Sprint review</h4>
 
-TODO
-<!-- - [Sprint Review details](https://github.com/LEIC-ES-2025-26-2LEIC13/T2/blob/main/misc/scrum/sprint-review.md#sprint-1-review) -->
+- [Sprint Review details](https://github.com/LEIC-ES-2025-26-2LEIC13/T2/blob/main/misc/scrum/sprint-review.md#sprint-1-review)
 
-<!-- <h4>Happiness Meters</h4>
+<h4>Happiness Meters</h4>
 <p align="center" justify="center">
-  <img src="./misc/sprints/sprint1-happiness.png"/>
-</p> -->
+  <img src="./misc/sprints/sprint2-happiness.png"/>
+</p>
 
 <h4>Tests can be found in this directories:</h4>
 
@@ -441,6 +439,14 @@ TODO
 
 
 ### Sprint 3
+<h4>Sprint 3 Planning</h4>
+
+<p align="center" justify="center">
+  <img src="./misc/sprints/sprint3-planning.png"/>
+</p>
+<h4>Sprint Retrospective</h4>
+
+
 
 ### Sprint 4
 

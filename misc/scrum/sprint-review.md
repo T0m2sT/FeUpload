@@ -44,3 +44,22 @@ This file records Sprint Reviews and the resulting backlog adaptation decisions.
 - Add explicit DoR and planning rules to documentation.
 - Add Sprint Review and Sprint Retrospective logs with action tracking.
 - Continue hardening test coverage and stabilize CI checks.
+
+## Sprint 2 Review
+
+### Demonstrated increment
+- Integrated the database to support material uploads.
+- Added several quality-of-life features, such as bookmarks, ratings, and a download button.
+- Implemented the login and registration system.
+
+### Stakeholders present
+- Team members.
+- Teacher (reviewed increment and repository artifacts).
+
+### Feedback received
+- Continue improving the user experience.
+
+### Product Backlog adaptation
+- Prioritize additional user experience improvements based on feedback received.
+- Add new backlog items related to usability and interface enhancements.
+- Refine and update existing backlog items according to sprint outcomes.

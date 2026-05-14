@@ -47,3 +47,22 @@ This file records sprint retrospectives with verifiable action points.
 | Use Yesterday’s Weather for sprint scope               | Whole team         | Planned points do not exceed previous sprint delivered points |
 | Assign Sprint Backlog items only when started          | Whole team         | Board shows assignee added at `In Progress`                   |
 | Keep WiP low (no paused queues)                        | Whole team         | Board has minimal paused items and fast cycle time            |
+
+## Sprint 2 Retrospective
+
+### What went well
+
+- We did a very good progress on our APP
+- Improvement in our communication
+- Better organization in our scrum board
+
+### Do differently 
+
+- We underestimated the effort points for the issues defined during sprint planning because we did not take the academic week into account. The effort points we initially assigned were significantly lower than the actual effort required to complete the work. In future sprints, we should better evaluate team availability and workload before planning and estimating tasks.
+
+### Puzzles
+
+- We don't understand why the github actions for maestro is always failing.
+
+### Improvements compared to last sprint
+- We significantly improved our use of the Scrum board. As mentioned previously, we assigned issues to team members and moved them to In Progress when work started. This led to faster communication regarding ongoing tasks and provided a better understanding of the current status of the project.
