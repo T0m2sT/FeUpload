@@ -422,10 +422,10 @@ A Product Backlog Item is considered ready for Sprint Planning only if:
 </p>
 <h4>Sprint Retrospective</h4>
 
-- [Sprint retrospective details](https://github.com/LEIC-ES-2025-26-2LEIC13/T2/blob/main/misc/scrum/sprint-retrospective.md#sprint-1-retrospective)
+- [Sprint retrospective details](https://github.com/LEIC-ES-2025-26-2LEIC13/T2/blob/main/misc/scrum/sprint-retrospective.md#sprint-2-retrospective)
 <h4>Sprint review</h4>
 
-- [Sprint Review details](https://github.com/LEIC-ES-2025-26-2LEIC13/T2/blob/main/misc/scrum/sprint-review.md#sprint-1-review)
+- [Sprint Review details](https://github.com/LEIC-ES-2025-26-2LEIC13/T2/blob/main/misc/scrum/sprint-retrospective.md#sprint-2-retrospective)
 
 <h4>Happiness Meters</h4>
 <p align="center" justify="center">
