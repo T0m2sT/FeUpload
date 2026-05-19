@@ -387,7 +387,7 @@ A Product Backlog Item is considered ready for Sprint Planning only if:
 ### Happiness Meter
 
 <p align="center" justify="center">
-  <img src="./misc/sprints/sprint1-happiness.png"/>
+  <img src="./misc/sprints/sprint0-happiness.png"/>
 </p>
 
 ### Sprint 1
@@ -445,9 +445,5 @@ A Product Backlog Item is considered ready for Sprint Planning only if:
   <img src="./misc/sprints/sprint3-planning.png"/>
 </p>
 <h4>Sprint Retrospective</h4>
-
-
-
-### Sprint 4
 
 ### Final Release

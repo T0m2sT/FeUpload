@@ -2,7 +2,7 @@
 
 All notable changes to this project are documented in this file.
 
-## [Sprint 0] - Initial Increment
+## Sprint 0 - Initial Increment
 
 ### End-user value
 - First usable app navigation with Home, Exercises, Exams, and Upload screens.
@@ -14,7 +14,7 @@ All notable changes to this project are documented in this file.
 - File opening flow from app content.
 - Initial upload form and screen.
 
-## [Sprint 1]
+## Sprint 1
 
 ### End-user value
 - Students can browse course-specific content with a clearer navigation flow (course page + sections).
@@ -32,7 +32,7 @@ All notable changes to this project are documented in this file.
 ### Quality and delivery notes
 - CI workflow added to run lint and tests on pull requests and pushes to `main`.
 
-## [Sprint 2]
+## Sprint 2
 
 ### End-user value
 - Students can register and log into the platform using a database-backed authentication flow.
@@ -67,3 +67,5 @@ All notable changes to this project are documented in this file.
 - CI/CD workflows and GitHub Actions pipeline improved for better delivery reliability.
 - Refactoring work focused on improving maintainability, UI consistency, and overall code quality.
 - Additional validation and error-handling logic added across authentication and profile-related flows.
+
+## Sprint 3 
