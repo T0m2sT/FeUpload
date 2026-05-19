@@ -1,0 +1,20 @@
+appId: com.anonymous.feupload
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible: FeUpload
+    timeout: 40000
+- tapOn: Email
+- inputText: test123456789@gmail.com
+- tapOn: Password
+- inputText: "123456789"
+- tapOn: Sign In
+- tapOn: Teoria da Computação
+- tapOn: Exames
+- scrollUntilVisible:
+    element:
+      text: Teste LC
+- tapOn: Teste LC
+- assertVisible: Sem Resoluções
+- assertVisible: Com Resoluções
