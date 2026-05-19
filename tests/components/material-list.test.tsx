@@ -93,7 +93,30 @@ describe('MaterialList', () => {
 
       expect(pushMock).toHaveBeenCalledWith({
         pathname: '/pdf-viewer',
-        params: { pdf: 'https://example.com/exame.pdf', title: 'Exame 2022' },
+        params: { pdf: 'https://example.com/exame.pdf', pdf_solved: '', title: 'Exame 2022' },
+      });
+      expect(Linking.openURL).not.toHaveBeenCalled();
+    });
+
+    it('navigates to pdf-viewer with both pdf and pdf_solved when a dual-version material row is pressed on native', () => {
+      const pushMock = jest.fn();
+      (useRouter as jest.Mock).mockReturnValue({ push: pushMock });
+
+      const items = [
+        { id: '4', title: 'Exame Resolvido', type: 'exam', pdf: 'https://example.com/exame_unsolved.pdf', pdf_solved: 'https://example.com/exame_solved.pdf' }
+      ];
+
+      const { getByLabelText } = render(<MaterialList items={items as any} />);
+
+      fireEvent.press(getByLabelText('Exame Resolvido'));
+
+      expect(pushMock).toHaveBeenCalledWith({
+        pathname: '/pdf-viewer',
+        params: {
+          pdf: 'https://example.com/exame_unsolved.pdf',
+          pdf_solved: 'https://example.com/exame_solved.pdf',
+          title: 'Exame Resolvido',
+        },
       });
       expect(Linking.openURL).not.toHaveBeenCalled();
     });
@@ -114,6 +137,50 @@ describe('MaterialList', () => {
       expect(pushMock).not.toHaveBeenCalled();
 
       Platform.OS = originalOS;
+    });
+
+    it('opens solved URL directly when a material row with only solved PDF is pressed on web', () => {
+      const pushMock = jest.fn();
+      (useRouter as jest.Mock).mockReturnValue({ push: pushMock });
+
+      const originalOS = Platform.OS;
+      Platform.OS = 'web';
+
+      const items = [
+        { id: '5', title: 'Apenas Resolvido', type: 'exam', pdf_solved: 'https://example.com/exame_solved.pdf' }
+      ];
+
+      const { getByLabelText } = render(<MaterialList items={items as any} />);
+
+      fireEvent.press(getByLabelText('Apenas Resolvido'));
+
+      expect(Linking.openURL).toHaveBeenCalledWith('https://example.com/exame_solved.pdf');
+      expect(pushMock).not.toHaveBeenCalled();
+
+      Platform.OS = originalOS;
+    });
+
+    it('navigates to pdf-viewer with only pdf_solved when a solved-only material is pressed on native', () => {
+      const pushMock = jest.fn();
+      (useRouter as jest.Mock).mockReturnValue({ push: pushMock });
+
+      const items = [
+        { id: '6', title: 'Apenas Resolvido Native', type: 'exam', pdf_solved: 'https://example.com/exame_solved.pdf' }
+      ];
+
+      const { getByLabelText } = render(<MaterialList items={items as any} />);
+
+      fireEvent.press(getByLabelText('Apenas Resolvido Native'));
+
+      expect(pushMock).toHaveBeenCalledWith({
+        pathname: '/pdf-viewer',
+        params: {
+          pdf: '',
+          pdf_solved: 'https://example.com/exame_solved.pdf',
+          title: 'Apenas Resolvido Native',
+        },
+      });
+      expect(Linking.openURL).not.toHaveBeenCalled();
     });
 
     it('does nothing when a material row without PDF is pressed', () => {
