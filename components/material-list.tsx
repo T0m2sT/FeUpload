@@ -155,12 +155,19 @@ export function MaterialList({ items, emptyMessage = 'Sem conteúdo disponível.
     }
   };
 
-  const openPDF = (pdf?: string, title?: string) => {
-    if (!pdf) return;
+  const openPDF = (item: Material) => {
+    if (!item.pdf && !item.pdf_solved) return;
     if (Platform.OS === 'web') {
-      Linking.openURL(pdf);
+      Linking.openURL(item.pdf || item.pdf_solved!);
     } else {
-      router.push({ pathname: "/pdf-viewer" as any, params: { pdf, title: title ?? 'PDF' } });
+      router.push({
+        pathname: "/pdf-viewer" as any,
+        params: {
+          pdf: item.pdf ?? '',
+          pdf_solved: item.pdf_solved ?? '',
+          title: item.title ?? 'PDF',
+        },
+      });
     }
   };
 
@@ -181,7 +188,7 @@ export function MaterialList({ items, emptyMessage = 'Sem conteúdo disponível.
         renderItem={({ item }) => (
           <TouchableOpacity
             style={s.row}
-            onPress={() => openPDF(item.pdf, item.title)}
+            onPress={() => openPDF(item)}
             accessibilityLabel={item.title}
           >
             <View style={[

@@ -38,6 +38,8 @@ export default function CourseExamsScreen() {
           type: 'exam' as const,
           subtitle: m.academic_year ?? undefined,
           pdf: m.file_url ?? undefined,
+          pdf_solved: m.file_url_solved ?? undefined,
+          is_solved: m.is_solved ?? false,
         })));
       })
       .catch(() => {
