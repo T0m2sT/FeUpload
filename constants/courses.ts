@@ -4,6 +4,7 @@ export type Material = {
   type: 'exam' | 'exercise' | 'summary' | 'notes';
   subtitle?: string;
   rating?: number;
+  ratingCount?: number;
   pdf?: string;
   pdf_solved?: string;
   is_solved?: boolean;
