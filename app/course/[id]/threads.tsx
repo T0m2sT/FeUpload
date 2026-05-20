@@ -299,7 +299,7 @@ function makeStyles(t: AppPalette) {
       color: t.textPrimary,
       marginBottom: 16,
     },
-    inputMulti: { minHeight: 120, paddingTop: 12 },
+    inputMulti: { minHeight: 120, paddingTop: 12, textAlignVertical: 'top' },
     submitBtn: {
       flexDirection: 'row',
       alignItems: 'center',
