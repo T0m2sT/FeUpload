@@ -357,7 +357,7 @@ export default function BookmarksScreen() {
 
 const makeStyles = (t: AppPalette) => StyleSheet.create({
   container: { flex: 1, backgroundColor: t.background },
-  headerSection: { padding: 16, paddingTop: 12 },
+  headerSection: { padding: 16, paddingTop: 48 },
   headerTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   screenTitle: { fontSize: 28, fontWeight: 'bold', color: t.textPrimary },
   createButton: { flexDirection: 'row', alignItems: 'center', margin: 16, padding: 12, borderRadius: 12, backgroundColor: t.accent, gap: 8 },
