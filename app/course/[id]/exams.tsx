@@ -75,7 +75,7 @@ export default function CourseExamsScreen() {
       courseName={courseNameParam ?? 'Undefined'}
       courseDescription={courseDescription}
       activeKey="exams"
-      onUpload={() => router.push('/upload')}
+      onUpload={() => router.push({ pathname: '/upload', params: { preselect: courseCode } })}
     >
       <View style={s.toolbar}>
         <Text style={s.toolbarLabel}>Ordenar por:</Text>
