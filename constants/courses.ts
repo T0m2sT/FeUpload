@@ -7,6 +7,7 @@ export type Material = {
   pdf?: string;
   pdf_solved?: string;
   is_solved?: boolean;
+  created_at?: string;
 };
 
 export type ThreadReply = {

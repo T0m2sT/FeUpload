@@ -5,7 +5,8 @@ import { useAppTheme } from '@/hooks/use-app-theme';
 import { getMaterialsByClassCodeAndType } from '@/services/materials';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Text, View } from 'react-native';
+import { ActivityIndicator, Text, View, TouchableOpacity, StyleSheet } from 'react-native';
+import type { AppPalette } from '@/constants/theme';
 
 export default function CourseExamsScreen() {
   const { id, name, description } = useLocalSearchParams<{
@@ -15,6 +16,7 @@ export default function CourseExamsScreen() {
   }>();
   const router = useRouter();
   const t = useAppTheme();
+  const s = makeStyles(t);
 
   const courseCode = (Array.isArray(id) ? id[0] : id ?? 'XX').toUpperCase();
   const courseNameParam = Array.isArray(name) ? name[0] : name;
@@ -23,6 +25,7 @@ export default function CourseExamsScreen() {
   const [exams, setExams] = useState<Material[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<'rating' | 'date'>('rating');
 
   useEffect(() => {
     let alive = true;
@@ -40,6 +43,8 @@ export default function CourseExamsScreen() {
           pdf: m.file_url ?? undefined,
           pdf_solved: m.file_url_solved ?? undefined,
           is_solved: m.is_solved ?? false,
+          rating: m.rating ?? undefined,
+          created_at: m.created_at,
         })));
       })
       .catch(() => {
@@ -52,6 +57,17 @@ export default function CourseExamsScreen() {
     return () => { alive = false; };
   }, [courseCode]);
 
+  const sortedExams = [...exams].sort((a, b) => {
+    if (sortBy === 'rating') {
+      const ratingA = a.rating ?? 0;
+      const ratingB = b.rating ?? 0;
+      if (ratingB !== ratingA) return ratingB - ratingA;
+      return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+    } else {
+      return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+    }
+  });
+
   return (
     <CourseSectionShell
       courseId={courseCode}
@@ -61,6 +77,22 @@ export default function CourseExamsScreen() {
       activeKey="exams"
       onUpload={() => router.push('/upload')}
     >
+      <View style={s.toolbar}>
+        <Text style={s.toolbarLabel}>Ordenar por:</Text>
+        <TouchableOpacity
+          style={[s.sortBtn, sortBy === 'rating' && s.sortBtnActive]}
+          onPress={() => setSortBy('rating')}
+        >
+          <Text style={[s.sortBtnText, sortBy === 'rating' && s.sortBtnTextActive]}>Avaliação</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[s.sortBtn, sortBy === 'date' && s.sortBtnActive]}
+          onPress={() => setSortBy('date')}
+        >
+          <Text style={[s.sortBtnText, sortBy === 'date' && s.sortBtnTextActive]}>Data</Text>
+        </TouchableOpacity>
+      </View>
+
       {isLoading ? (
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingTop: 60 }}>
           <ActivityIndicator size="large" color={t.accent} />
@@ -71,8 +103,44 @@ export default function CourseExamsScreen() {
           <Text style={{ color: t.textPrimary, fontSize: 16 }}>{errorMsg}</Text>
         </View>
       ) : (
-        <MaterialList items={exams} emptyMessage="Sem exames disponíveis." />
+        <MaterialList items={sortedExams} emptyMessage="Sem exames disponíveis." />
       )}
     </CourseSectionShell>
   );
+}
+
+function makeStyles(t: AppPalette) {
+  return StyleSheet.create({
+    toolbar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      paddingHorizontal: 20,
+      paddingVertical: 12,
+    },
+    toolbarLabel: {
+      fontSize: 12,
+      color: t.textSecondary,
+      marginRight: 4,
+    },
+    sortBtn: {
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: t.surfaceBorder,
+    },
+    sortBtnActive: {
+      borderColor: t.accentBorder,
+      backgroundColor: t.accentDim,
+    },
+    sortBtnText: {
+      fontSize: 12,
+      color: t.textSecondary,
+    },
+    sortBtnTextActive: {
+      color: t.accent,
+      fontWeight: '700',
+    },
+  });
 }

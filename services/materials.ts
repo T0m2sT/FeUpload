@@ -14,10 +14,10 @@ export async function getMaterialsByCourse(classCode: string) {
 export async function getMaterialsByClassCodeAndType(
   classCode: string,
   type: 'exam' | 'exercise' | 'notes' | 'summary',
-): Promise<{ id: string; title: string; file_url: string | null; file_url_solved: string | null; is_solved: boolean; academic_year: string | null; description: string | null; class_code: string; type: string }[]> {
+): Promise<{ id: string; title: string; file_url: string | null; file_url_solved: string | null; is_solved: boolean; academic_year: string | null; description: string | null; class_code: string; type: string; rating: number | null; created_at: string }[]> {
   const { data, error } = await supabase
     .from('materials')
-    .select('id, title, file_url, file_url_solved, is_solved, academic_year, class_code, type, description')
+    .select('id, title, file_url, file_url_solved, is_solved, academic_year, class_code, type, description, rating, created_at')
     .eq('class_code', classCode)
     .eq('type', type)
     .order('created_at', { ascending: false });
