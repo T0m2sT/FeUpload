@@ -57,6 +57,7 @@ function RootLayoutInner() {
         <Stack.Screen name="profile" options={{ headerShown: false }} />
         <Stack.Screen name="ratings" options={{ headerShown: false }} />
         <Stack.Screen name="material-evaluation" options={{ headerShown: false }} />
+        <Stack.Screen name="material/[id]" options={{ headerShown: false }} />
         <Stack.Screen name="upload" options={{ headerShown: false }} />
         <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
         <Stack.Screen name="pdf-viewer" options={{ headerBackVisible: false }} />
