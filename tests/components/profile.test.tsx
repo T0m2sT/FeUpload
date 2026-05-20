@@ -50,7 +50,7 @@ describe('ProfileScreen', () => {
             user_metadata: {
               name: 'Tomás Teixeira',
               studentId: 'up202300001',
-              course: 'LEIC',
+              course: '',
               year: '2',
               semester: '2',
             },
@@ -72,7 +72,7 @@ describe('ProfileScreen', () => {
         user: {
           user_metadata: {
             studentId: 'up202300001',
-            course: 'MEIC',
+            course: 'LEIC',
             year: '2',
             semester: '2',
           },
@@ -104,19 +104,19 @@ describe('ProfileScreen', () => {
   });
 
   it('updates course when saving profile edits', async () => {
-    const { getByText, getByDisplayValue } = render(<ProfileScreen />);
+    const { getByText } = render(<ProfileScreen />);
 
     await waitFor(() => expect(getByText('Perfil')).toBeDefined());
 
     fireEvent.press(getByText('Editar'));
-    fireEvent.changeText(getByDisplayValue('LEIC'), 'MEIC');
+    fireEvent.press(getByText('LEIC'));
     fireEvent.press(getByText('Guardar'));
 
     await waitFor(() => {
       expect(getSupabase().auth.updateUser).toHaveBeenCalledWith({
-        data: expect.objectContaining({ course: 'MEIC' }),
+        data: expect.objectContaining({ course: 'LEIC' }),
       });
-      expect(getByText('MEIC')).toBeDefined();
+      expect(getByText('LEIC')).toBeDefined();
     });
   });
 });

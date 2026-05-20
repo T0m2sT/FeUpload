@@ -1,6 +1,7 @@
 import type { AppPalette } from '@/constants/theme';
 import { useThemeContext, type ThemePreference } from '@/contexts/theme-context';
 import { useAppTheme } from '@/hooks/use-app-theme';
+import { COURSE_OPTIONS, SEMESTER_OPTIONS, YEAR_OPTIONS } from '@/constants/academics';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
@@ -91,10 +92,10 @@ export default function ProfileScreen() {
         setProfile({
           name: p?.name ?? meta.name ?? u.email?.split('@')[0] ?? '',
           email: p?.email ?? u.email ?? '',
-          studentId: meta.studentId ?? '',
-          course: meta.course ?? '',
-          year: meta.year ?? '',
-          semester: meta.semester ?? '',
+          studentId: meta.studentId != null ? String(meta.studentId) : '',
+          course: meta.course != null ? String(meta.course) : '',
+          year: meta.year != null ? String(meta.year) : '',
+          semester: meta.semester != null ? String(meta.semester) : '',
         });
       } catch (err) {
         console.error(err);
@@ -107,6 +108,8 @@ export default function ProfileScreen() {
 
   const update = (key: keyof Profile) => (value: string) =>
     setProfile((prev) => ({ ...prev, [key]: value }));
+
+  const courseOptions = COURSE_OPTIONS;
 
   const handleSave = async () => {
     setSaveError('');
@@ -220,11 +223,100 @@ export default function ProfileScreen() {
         {/* Academic info */}
         <Text style={s.sectionLabel}>Informação Académica</Text>
         <View style={s.card}>
-          <FieldRow label="Curso"    value={profile.course}   editable={editing} onChangeText={update('course')}   t={t} s={s} />
-          <View style={s.divider} />
-          <FieldRow label="Ano"      value={profile.year}     editable={editing} onChangeText={update('year')}     t={t} s={s} />
-          <View style={s.divider} />
-          <FieldRow label="Semestre" value={profile.semester} editable={editing} onChangeText={update('semester')} t={t} s={s} />
+          {editing ? (
+            <>
+              <View style={s.fieldGroup}>
+                <Text style={s.groupLabel}>Curso</Text>
+                <View style={s.optionRow}>
+                  {courseOptions.map((course) => {
+                    const active = profile.course === course;
+                    return (
+                      <TouchableOpacity
+                        key={course}
+                        style={[
+                          s.optionButton,
+                          {
+                            backgroundColor: active ? t.accent : t.surface,
+                            borderColor: active ? t.accent : t.surfaceBorder,
+                          },
+                        ]}
+                        onPress={() => update('course')(course)}
+                        accessibilityLabel={`Curso ${course}`}
+                      >
+                        <Text style={[s.optionText, { color: active ? (t.isDark ? '#000' : '#fff') : t.textSecondary }]}>
+                          {course}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+              <View style={s.divider} />
+              <View style={s.fieldGroup}>
+                <Text style={s.groupLabel}>Ano</Text>
+                <View style={s.optionRow}>
+                  {YEAR_OPTIONS.map((year) => {
+                    const key = String(year);
+                    const active = profile.year === key;
+                    return (
+                      <TouchableOpacity
+                        key={year}
+                        style={[
+                          s.optionButton,
+                          {
+                            backgroundColor: active ? t.accent : t.surface,
+                            borderColor: active ? t.accent : t.surfaceBorder,
+                          },
+                        ]}
+                        onPress={() => update('year')(key)}
+                        accessibilityLabel={`Ano ${year}`}
+                      >
+                        <Text style={[s.optionText, { color: active ? (t.isDark ? '#000' : '#fff') : t.textSecondary }]}>
+                          {year}º
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+              <View style={s.divider} />
+              <View style={s.fieldGroup}>
+                <Text style={s.groupLabel}>Semestre</Text>
+                <View style={s.optionRow}>
+                  {SEMESTER_OPTIONS.map((semester) => {
+                    const key = String(semester);
+                    const active = profile.semester === key;
+                    return (
+                      <TouchableOpacity
+                        key={semester}
+                        style={[
+                          s.optionButton,
+                          {
+                            backgroundColor: active ? t.accent : t.surface,
+                            borderColor: active ? t.accent : t.surfaceBorder,
+                          },
+                        ]}
+                        onPress={() => update('semester')(key)}
+                        accessibilityLabel={`Semestre ${semester}`}
+                      >
+                        <Text style={[s.optionText, { color: active ? (t.isDark ? '#000' : '#fff') : t.textSecondary }]}>
+                          {semester}º
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+            </>
+          ) : (
+            <>
+              <FieldRow label="Curso"    value={profile.course}   editable={false} t={t} s={s} />
+              <View style={s.divider} />
+              <FieldRow label="Ano"      value={profile.year}     editable={false} t={t} s={s} />
+              <View style={s.divider} />
+              <FieldRow label="Semestre" value={profile.semester} editable={false} t={t} s={s} />
+            </>
+          )}
         </View>
 
         {/* Appearance */}
@@ -409,6 +501,31 @@ function makeStyles(t: AppPalette) {
       height: 1,
       backgroundColor: t.surfaceBorder,
       marginHorizontal: 16,
+    },
+    fieldGroup: {
+      paddingVertical: 14,
+      paddingHorizontal: 16,
+    },
+    groupLabel: {
+      fontSize: 15,
+      color: t.textPrimary,
+      fontWeight: '500',
+      marginBottom: 10,
+    },
+    optionRow: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 8,
+    },
+    optionButton: {
+      borderWidth: 1,
+      borderRadius: 16,
+      paddingVertical: 6,
+      paddingHorizontal: 12,
+    },
+    optionText: {
+      fontSize: 13,
+      fontWeight: '600',
     },
     toggleRow: {
       flexDirection: 'row',
