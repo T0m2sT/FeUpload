@@ -58,6 +58,17 @@ describe('threads service', () => {
       expect(result).toEqual({ id: 't1', ...newThread });
     });
 
+    it('creates a thread with a label', async () => {
+      const newThread = { title: 'T', body: 'B', course_id: 'c1', user_id: 'u1', label: 'Question' };
+      mockChain._data = { id: 't1', ...newThread };
+
+      const result = await createThread(newThread);
+
+      expect(getFrom()).toHaveBeenCalledWith('threads');
+      expect(mockChain.insert).toHaveBeenCalledWith(newThread);
+      expect(result.label).toEqual('Question');
+    });
+
     it('throws error when creation fails', async () => {
       mockChain._error = new Error('Insert failed');
       await expect(
@@ -70,6 +81,22 @@ describe('threads service', () => {
       mockChain._data = {};
       await createThread(newThread);
       expect(mockChain.insert).toHaveBeenCalledWith(newThread);
+    });
+
+    it('supports all label types', async () => {
+      const labels = ['Question', 'Project', 'Advice', 'Other'];
+      
+      for (const label of labels) {
+        mockChain._data = {};
+        jest.clearAllMocks();
+        getFrom().mockReturnValue(mockChain);
+        
+        const newThread = { title: 'T', body: 'B', course_id: 'c1', user_id: 'u1', label };
+        mockChain._data = { id: `t-${label}`, ...newThread };
+        
+        const result = await createThread(newThread);
+        expect(result.label).toEqual(label);
+      }
     });
   });
 

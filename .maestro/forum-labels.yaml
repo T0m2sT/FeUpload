@@ -1,0 +1,59 @@
+appId: com.anonymous.feupload
+---
+# Forum Label Feature Acceptance Test
+# Tests creating posts with labels, viewing labels, and filtering by labels
+
+- launchApp:
+    clearState: true
+
+# Login
+- tapOn: Email
+- inputText: test2@example.com
+- tapOn: Password
+- inputText: "test2"
+- tapOn: Sign In
+
+- extendedWaitUntil:
+    visible: "Bem-vindo, "
+    timeout: 40000
+- extendedWaitUntil:
+    visible: Engenharia de Software
+    timeout: 20000
+- tapOn: Engenharia de Software
+- tapOn: Fórum de discussão
+
+- tapOn: Nova publicação
+- tapOn: Sobre o que queres falar?
+- inputText: How Do I Debug The App?
+- tapOn: Escreve aqui a tua dúvida ou comentário...
+- inputText: I Need Help With Debugging The React component
+- tapOn: Etiqueta
+- tapOn: Question
+- assertVisible: Question
+- tapOn: Publicar no Fórum
+- extendedWaitUntil:
+    visible: How Do I Debug The App?
+    timeout: 10000
+- scrollUntilVisible:
+    element:
+      text: How Do I Debug The App?
+- assertVisible: Question
+
+- tapOn: Nova publicação
+- tapOn: Sobre o que queres falar?
+- inputText: Final Project Submission Guidelines
+- tapOn: Escreve aqui a tua dúvida ou comentário...
+- inputText: Please Submit Your Projects By Friday
+- tapOn: Etiqueta
+- tapOn: Project
+- assertVisible: Project
+- tapOn: Publicar no Fórum
+- extendedWaitUntil:
+    visible: Final Project Submission Guidelines
+    timeout: 10000
+- scrollUntilVisible:
+    element:
+      text: Final Project Submission Guidelines
+- assertVisible: Project
+
+

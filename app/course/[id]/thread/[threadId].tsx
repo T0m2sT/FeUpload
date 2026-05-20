@@ -9,10 +9,18 @@ import type { AppPalette } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
 import { getThreadWithReplies, createReply } from '@/services/threads';
 
+const LABELS = [
+  { name: 'Question', color: '#FF6B6B' },
+  { name: 'Project', color: '#4ECDC4' },
+  { name: 'Advice', color: '#FFE66D' },
+  { name: 'Other', color: '#95E1D3' },
+];
+
 type ThreadRow = {
   id: string;
   title: string;
   body: string;
+  label: string;
   created_at: string;
   profiles?: { name: string } | null;
 };
@@ -116,7 +124,25 @@ export default function ThreadDetailScreen() {
 
       <ScrollView style={s.scroll} contentContainerStyle={s.container}>
         <View style={s.op}>
-          <Text style={s.opTitle}>{thread.title}</Text>
+          <View style={{ gap: 10 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10 }}>
+              <Text style={[s.opTitle, { flex: 1 }]}>{thread.title}</Text>
+              {thread.label && (
+                <View
+                  style={{
+                    backgroundColor: LABELS.find(l => l.name === thread.label)?.color,
+                    paddingHorizontal: 10,
+                    paddingVertical: 4,
+                    borderRadius: 10,
+                  }}
+                >
+                  <Text style={{ fontSize: 11, fontWeight: '600', color: '#333' }}>
+                    {thread.label}
+                  </Text>
+                </View>
+              )}
+            </View>
+          </View>
           <View style={s.opMeta}>
             <Ionicons name="person-circle-outline" size={14} color={t.textMuted} />
             <Text style={s.opMetaText}>{thread.profiles?.name ?? 'Utilizador'}</Text>
