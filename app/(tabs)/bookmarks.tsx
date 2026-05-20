@@ -244,10 +244,6 @@ export default function BookmarksScreen() {
             <Ionicons name="chevron-back" size={24} color={t.accent} />
           </TouchableOpacity>
           <Text style={s.collectionHeaderTitle}>{selectedGroupName}</Text>
-          <View style={{ flex: 1 }} />
-          <TouchableOpacity onPress={() => handleDeleteCollection(selectedGroupName)} style={s.backButton}>
-            <Ionicons name="trash-outline" size={22} color={t.error} />
-          </TouchableOpacity>
         </View>
         <FlatList
           data={(group?.items || []).filter(i => i.material_id != null)}
