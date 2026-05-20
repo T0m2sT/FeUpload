@@ -1,4 +1,5 @@
 import { useThemeContext } from '@/contexts/theme-context';
+import { COURSE_OPTIONS, SEMESTER_OPTIONS, YEAR_OPTIONS } from '@/constants/academics';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
@@ -22,22 +23,6 @@ import {
   parseOptionalInteger,
 } from '../lib/validation';
 
-type Field = {
-  key: string;
-  label: string;
-  placeholder: string;
-  keyboardType?: 'default' | 'numeric' | 'email-address';
-  autoCapitalize?: 'none' | 'words' | 'sentences';
-};
-
-const FIELDS: Field[] = [
-  { key: 'name',      label: 'Full name',      placeholder: 'e.g. Rafael Silva',  autoCapitalize: 'words' },
-  { key: 'studentId', label: 'Student number', placeholder: 'e.g. up202312345',   autoCapitalize: 'none' },
-  { key: 'course',    label: 'Course',         placeholder: 'e.g. LEIC',          autoCapitalize: 'words' },
-  { key: 'year',      label: 'Year',           placeholder: 'e.g. 2',             keyboardType: 'numeric' },
-  { key: 'semester',  label: 'Semester',       placeholder: 'e.g. 2',             keyboardType: 'numeric' },
-];
-
 export default function CompleteProfileScreen() {
   const { palette: t } = useThemeContext();
   const router = useRouter();
@@ -51,11 +36,19 @@ export default function CompleteProfileScreen() {
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       const meta = data.user?.user_metadata;
-      if (meta?.name) setValues((v) => ({ ...v, name: meta.name }));
+      setValues((v) => ({
+        ...v,
+        name: meta?.name ?? v.name,
+        course: meta?.course != null ? String(meta.course) : v.course,
+        year: meta?.year != null ? String(meta.year) : v.year,
+        semester: meta?.semester != null ? String(meta.semester) : v.semester,
+      }));
     });
   }, []);
 
   const set = (key: string) => (val: string) => setValues((v) => ({ ...v, [key]: val }));
+
+  const courseOptions = COURSE_OPTIONS;
 
   const handleSave = async () => {
     const normalizedName = normalizeSpaces(values.name);
@@ -82,8 +75,8 @@ export default function CompleteProfileScreen() {
       setError('Please enter a valid course.');
       return;
     }
-    if (!Number.isNaN(parsedYear) && parsedYear !== null && (parsedYear < 1 || parsedYear > 6)) {
-      setError('Year must be between 1 and 6.');
+    if (!Number.isNaN(parsedYear) && parsedYear !== null && (parsedYear < 1 || parsedYear > 3)) {
+      setError('Year must be 1, 2, or 3.');
       return;
     }
     if (!Number.isNaN(parsedSemester) && parsedSemester !== null && (parsedSemester < 1 || parsedSemester > 2)) {
@@ -140,21 +133,114 @@ export default function CompleteProfileScreen() {
 
         {error ? <Text style={[styles.error, { color: t.error }]}>{error}</Text> : null}
 
-        {FIELDS.map((f) => (
-          <View key={f.key} style={styles.fieldWrap}>
-            <Text style={[styles.label, { color: t.textSecondary }]}>{f.label}</Text>
-            <TextInput
-              style={[styles.input, { backgroundColor: t.surface, borderColor: t.surfaceBorder, color: t.textPrimary }]}
-              placeholder={f.placeholder}
-              placeholderTextColor={t.textMuted}
-              value={values[f.key]}
-              onChangeText={set(f.key)}
-              keyboardType={f.keyboardType ?? 'default'}
-              autoCapitalize={f.autoCapitalize ?? 'sentences'}
-              selectionColor={t.accent}
-            />
+        <View style={styles.fieldWrap}>
+          <Text style={[styles.label, { color: t.textSecondary }]}>Full name</Text>
+          <TextInput
+            style={[styles.input, { backgroundColor: t.surface, borderColor: t.surfaceBorder, color: t.textPrimary }]}
+            placeholder="e.g. Rafael Silva"
+            placeholderTextColor={t.textMuted}
+            value={values.name}
+            onChangeText={set('name')}
+            autoCapitalize="words"
+            selectionColor={t.accent}
+          />
+        </View>
+
+        <View style={styles.fieldWrap}>
+          <Text style={[styles.label, { color: t.textSecondary }]}>Student number</Text>
+          <TextInput
+            style={[styles.input, { backgroundColor: t.surface, borderColor: t.surfaceBorder, color: t.textPrimary }]}
+            placeholder="e.g. up202312345"
+            placeholderTextColor={t.textMuted}
+            value={values.studentId}
+            onChangeText={set('studentId')}
+            autoCapitalize="none"
+            selectionColor={t.accent}
+          />
+        </View>
+
+        <View style={styles.fieldWrap}>
+          <Text style={[styles.label, { color: t.textSecondary }]}>Course</Text>
+          <View style={styles.optionRow}>
+            {courseOptions.map((course) => {
+              const active = values.course === course;
+              return (
+                <TouchableOpacity
+                  key={course}
+                  style={[
+                    styles.optionButton,
+                    {
+                      backgroundColor: active ? t.accent : t.surface,
+                      borderColor: active ? t.accent : t.surfaceBorder,
+                    },
+                  ]}
+                  onPress={() => set('course')(course)}
+                  accessibilityLabel={`Course ${course}`}
+                >
+                  <Text style={[styles.optionText, { color: active ? (t.isDark ? '#000' : '#fff') : t.textSecondary }]}>
+                    {course}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
-        ))}
+        </View>
+
+        <View style={styles.fieldWrap}>
+          <Text style={[styles.label, { color: t.textSecondary }]}>Year</Text>
+          <View style={styles.optionRow}>
+            {YEAR_OPTIONS.map((year) => {
+              const key = String(year);
+              const active = values.year === key;
+              return (
+                <TouchableOpacity
+                  key={year}
+                  style={[
+                    styles.optionButton,
+                    {
+                      backgroundColor: active ? t.accent : t.surface,
+                      borderColor: active ? t.accent : t.surfaceBorder,
+                    },
+                  ]}
+                  onPress={() => set('year')(key)}
+                  accessibilityLabel={`Year ${year}`}
+                >
+                  <Text style={[styles.optionText, { color: active ? (t.isDark ? '#000' : '#fff') : t.textSecondary }]}>
+                    {year}º
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+
+        <View style={styles.fieldWrap}>
+          <Text style={[styles.label, { color: t.textSecondary }]}>Semester</Text>
+          <View style={styles.optionRow}>
+            {SEMESTER_OPTIONS.map((semester) => {
+              const key = String(semester);
+              const active = values.semester === key;
+              return (
+                <TouchableOpacity
+                  key={semester}
+                  style={[
+                    styles.optionButton,
+                    {
+                      backgroundColor: active ? t.accent : t.surface,
+                      borderColor: active ? t.accent : t.surfaceBorder,
+                    },
+                  ]}
+                  onPress={() => set('semester')(key)}
+                  accessibilityLabel={`Semester ${semester}`}
+                >
+                  <Text style={[styles.optionText, { color: active ? (t.isDark ? '#000' : '#fff') : t.textSecondary }]}>
+                    {semester}º
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
 
         <TouchableOpacity
           style={[styles.button, { backgroundColor: t.accent }, loading && { opacity: 0.6 }]}
@@ -202,6 +288,22 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 14,
     fontSize: 16,
+  },
+  optionRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 8,
+  },
+  optionButton: {
+    borderWidth: 1,
+    borderRadius: 16,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+  },
+  optionText: {
+    fontSize: 14,
+    fontWeight: '600',
   },
   button: {
     borderRadius: 10,

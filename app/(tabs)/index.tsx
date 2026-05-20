@@ -1,6 +1,7 @@
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { supabase } from '@/lib/supabase';
 import { normalizeCourse } from '@/lib/validation';
+import { GENERIC_PROGRAM_CODES } from '@/constants/academics';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from 'expo-router';
@@ -24,7 +25,6 @@ type Course = {
   description: string;
 };
 
-const GENERIC_PROGRAM_CODES = new Set(['LEIC', 'MIEIC', 'MEIC']);
 
 export default function HomeScreen() {
   const router = useRouter();
