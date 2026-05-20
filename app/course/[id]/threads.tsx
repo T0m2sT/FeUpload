@@ -18,12 +18,20 @@ import type { AppPalette } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
 import { getThreadsByCourseCode, getCourseIdByCode, createThread } from '@/services/threads';
 
+const LABELS = [
+  { name: 'Question', color: '#FF6B6B' },
+  { name: 'Project', color: '#4ECDC4' },
+  { name: 'Advice', color: '#FFE66D' },
+  { name: 'Other', color: '#95E1D3' },
+];
+
 type ThreadRow = {
   id: string;
   title: string;
   body: string;
   created_at: string;
   course_id: string;
+  label: string;
   profiles?: { name: string } | null;
   thread_replies?: { id: string }[];
 };
@@ -47,8 +55,12 @@ export default function CourseThreadsScreen() {
   const [composing, setComposing] = useState(false);
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
+  const [selectedLabel, setSelectedLabel] = useState(LABELS[0].name);
+  const [showLabelSelector, setShowLabelSelector] = useState(false);
   const [localThreads, setLocalThreads] = useState<ThreadRow[]>([]);
   const [courseUuid, setCourseUuid] = useState<string | null>(null);
+  const [selectedFilters, setSelectedFilters] = useState<Set<string>>(new Set(LABELS.map(l => l.name)));
+  const [showFilterDropdown, setShowFilterDropdown] = useState(false);
 
   useEffect(() => {
     fetchThreads();
@@ -73,6 +85,18 @@ export default function CourseThreadsScreen() {
     }
   };
 
+  const toggleFilter = (labelName: string) => {
+    const newFilters = new Set(selectedFilters);
+    if (newFilters.has(labelName)) {
+      newFilters.delete(labelName);
+    } else {
+      newFilters.add(labelName);
+    }
+    setSelectedFilters(newFilters);
+  };
+
+  const filteredThreads = localThreads.filter(thread => selectedFilters.has(thread.label));
+
   const submitThread = async () => {
     if (!title.trim() || !body.trim() || !courseUuid) return;
 
@@ -89,10 +113,12 @@ export default function CourseThreadsScreen() {
         body: body.trim(),
         course_id: courseUuid,
         user_id: user.id,
+        label: selectedLabel,
       });
 
       setTitle('');
       setBody('');
+      setSelectedLabel(LABELS[0].name);
       setComposing(false);
       fetchThreads();
     } catch (err: any) {
@@ -144,6 +170,53 @@ export default function CourseThreadsScreen() {
             onChangeText={setBody}
           />
 
+          <Text style={s.inputLabel}>Etiqueta</Text>
+          <TouchableOpacity
+            style={s.labelSelector}
+            onPress={() => setShowLabelSelector(!showLabelSelector)}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+              <View
+                style={{
+                  width: 12,
+                  height: 12,
+                  borderRadius: 6,
+                  backgroundColor: LABELS.find(l => l.name === selectedLabel)?.color,
+                }}
+              />
+              <Text style={s.labelSelectorText}>{selectedLabel}</Text>
+            </View>
+            <Ionicons name="chevron-down" size={20} color={t.textMuted} />
+          </TouchableOpacity>
+
+          {showLabelSelector && (
+            <View style={s.labelDropdown}>
+              {LABELS.map((label) => (
+                <TouchableOpacity
+                  key={label.name}
+                  style={s.labelOption}
+                  onPress={() => {
+                    setSelectedLabel(label.name);
+                    setShowLabelSelector(false);
+                  }}
+                >
+                  <View
+                    style={{
+                      width: 12,
+                      height: 12,
+                      borderRadius: 6,
+                      backgroundColor: label.color,
+                    }}
+                  />
+                  <Text style={s.labelOptionText}>{label.name}</Text>
+                  {selectedLabel === label.name && (
+                    <Ionicons name="checkmark" size={18} color={t.accent} style={{ marginLeft: 'auto' }} />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+
           <TouchableOpacity
             style={[s.submitBtn, (!title.trim() || !body.trim() || loading) && s.submitBtnDisabled]}
             onPress={submitThread}
@@ -161,17 +234,66 @@ export default function CourseThreadsScreen() {
         </ScrollView>
       ) : (
         <ScrollView style={s.scroll} contentContainerStyle={s.listContainer}>
-          <TouchableOpacity style={s.newBtn} onPress={() => setComposing(true)}>
-             <Ionicons name="add-circle-outline" size={20} color={t.accent} />
-             <Text style={s.newBtnText}>Nova publicação</Text>
-          </TouchableOpacity>
+          <View style={s.buttonRow}>
+            <TouchableOpacity style={s.newBtn} onPress={() => setComposing(true)}>
+              <Ionicons name="add-circle-outline" size={20} color={t.accent} />
+              <Text style={s.newBtnText}>Nova publicação</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={s.filterBtn} onPress={() => setShowFilterDropdown(!showFilterDropdown)}>
+              <Ionicons name="filter" size={18} color={t.accent} />
+              <Text style={s.filterBtnText}>Filtro</Text>
+            </TouchableOpacity>
+          </View>
+
+          {showFilterDropdown && (
+            <View style={s.filterDropdown}>
+              {LABELS.map((label) => (
+                <TouchableOpacity
+                  key={label.name}
+                  style={s.filterOption}
+                  onPress={() => toggleFilter(label.name)}
+                >
+                  <View
+                    style={{
+                      width: 18,
+                      height: 18,
+                      borderRadius: 4,
+                      borderWidth: 2,
+                      borderColor: label.color,
+                      backgroundColor: selectedFilters.has(label.name) ? label.color : 'transparent',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                    }}
+                  >
+                    {selectedFilters.has(label.name) && (
+                      <Ionicons name="checkmark" size={12} color="#fff" />
+                    )}
+                  </View>
+                  <View
+                    style={{
+                      width: 12,
+                      height: 12,
+                      borderRadius: 6,
+                      backgroundColor: label.color,
+                    }}
+                  />
+                  <Text style={s.filterOptionText}>{label.name}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
 
           {localThreads.length === 0 ? (
             <View style={s.empty}>
               <Text style={s.emptyText}>Ainda não há publicações nesta cadeira.</Text>
             </View>
+          ) : filteredThreads.length === 0 ? (
+            <View style={s.empty}>
+              <Text style={s.emptyText}>Nenhuma publicação corresponde aos filtros selecionados.</Text>
+            </View>
           ) : (
-            localThreads.map((thread) => {
+            filteredThreads.map((thread) => {
               const replyCount = thread.thread_replies?.length ?? 0;
               return (
                 <TouchableOpacity
@@ -191,11 +313,27 @@ export default function CourseThreadsScreen() {
                 >
                   <View style={s.cardTop}>
                     <Text style={s.cardTitle} numberOfLines={2}>{thread.title}</Text>
-                    {replyCount > 0 && (
-                      <View style={s.replyBadge}>
-                        <Text style={s.replyBadgeText}>{replyCount}</Text>
-                      </View>
-                    )}
+                    <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
+                      {thread.label && (
+                        <View
+                          style={{
+                            backgroundColor: LABELS.find(l => l.name === thread.label)?.color,
+                            paddingHorizontal: 10,
+                            paddingVertical: 4,
+                            borderRadius: 10,
+                          }}
+                        >
+                          <Text style={{ fontSize: 11, fontWeight: '600', color: '#333' }}>
+                            {thread.label}
+                          </Text>
+                        </View>
+                      )}
+                      {replyCount > 0 && (
+                        <View style={s.replyBadge}>
+                          <Text style={s.replyBadgeText}>{replyCount}</Text>
+                        </View>
+                      )}
+                    </View>
                   </View>
                   <Text style={s.cardBody} numberOfLines={2}>{thread.body}</Text>
                   <View style={s.cardMeta}>
@@ -232,10 +370,44 @@ function makeStyles(t: AppPalette) {
       borderRadius: 12,
       paddingHorizontal: 14,
       paddingVertical: 10,
-      marginBottom: 16,
-      alignSelf: 'flex-start',
     },
     newBtnText: { fontSize: 14, fontWeight: '600', color: t.accent },
+    buttonRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 16,
+    },
+    filterBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      backgroundColor: t.accentDim,
+      borderWidth: 1,
+      borderColor: t.accentBorder,
+      borderRadius: 12,
+      paddingHorizontal: 14,
+      paddingVertical: 10,
+    },
+    filterBtnText: { fontSize: 14, fontWeight: '600', color: t.accent },
+    filterDropdown: {
+      backgroundColor: t.surface,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: t.surfaceBorder,
+      marginBottom: 16,
+      overflow: 'hidden',
+    },
+    filterOption: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      paddingHorizontal: 14,
+      paddingVertical: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: t.surfaceBorder,
+    },
+    filterOptionText: { fontSize: 14, color: t.textPrimary, fontWeight: '500' },
     empty: { alignItems: 'center', marginTop: 60, gap: 12 },
     emptyText: { fontSize: 14, color: t.textMuted },
     card: {
@@ -264,6 +436,37 @@ function makeStyles(t: AppPalette) {
       borderColor: t.accentBorder,
     },
     replyBadgeText: { fontSize: 11, fontWeight: '700', color: t.accent },
+    labelSelector: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      backgroundColor: t.surface,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: t.surfaceBorder,
+      paddingHorizontal: 14,
+      paddingVertical: Platform.OS === 'ios' ? 12 : 10,
+      marginBottom: 16,
+    },
+    labelSelectorText: { fontSize: 14, color: t.textPrimary, fontWeight: '500' },
+    labelDropdown: {
+      backgroundColor: t.surface,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: t.surfaceBorder,
+      marginBottom: 16,
+      overflow: 'hidden',
+    },
+    labelOption: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      paddingHorizontal: 14,
+      paddingVertical: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: t.surfaceBorder,
+    },
+    labelOptionText: { fontSize: 14, color: t.textPrimary, fontWeight: '500' },
     cardBody: { fontSize: 13, color: t.textSecondary, lineHeight: 18 },
     cardMeta: {
       flexDirection: 'row',

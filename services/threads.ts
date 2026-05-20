@@ -43,6 +43,7 @@ export async function createThread(thread: {
   body: string;
   course_id: string;
   user_id: string;
+  label?: string;
 }) {
   const { data, error } = await supabase
     .from('threads')
