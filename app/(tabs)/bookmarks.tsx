@@ -244,6 +244,10 @@ export default function BookmarksScreen() {
             <Ionicons name="chevron-back" size={24} color={t.accent} />
           </TouchableOpacity>
           <Text style={s.collectionHeaderTitle}>{selectedGroupName}</Text>
+          <View style={{ flex: 1 }} />
+          <TouchableOpacity onPress={() => handleDeleteCollection(selectedGroupName)} style={s.backButton}>
+            <Ionicons name="trash-outline" size={22} color={t.error} />
+          </TouchableOpacity>
         </View>
         <FlatList
           data={(group?.items || []).filter(i => i.material_id != null)}
@@ -371,7 +375,7 @@ const makeStyles = (t: AppPalette) => StyleSheet.create({
   collectionContent: { flex: 1 },
   collectionName: { fontSize: 15, fontWeight: '600', color: t.textPrimary },
   collectionMeta: { fontSize: 12, color: t.textSecondary },
-  collectionHeaderSection: { flexDirection: 'row', alignItems: 'center', padding: 16, gap: 12, borderBottomWidth: 1, borderBottomColor: t.surfaceBorder },
+  collectionHeaderSection: { flexDirection: 'row', alignItems: 'center', padding: 16, paddingTop: 48, gap: 12, borderBottomWidth: 1, borderBottomColor: t.surfaceBorder },
   collectionHeaderTitle: { fontSize: 18, fontWeight: '600', color: t.textPrimary },
   listContent: { padding: 16, gap: 12 },
   itemCardContainer: { flexDirection: 'row', alignItems: 'center', gap: 8 },
