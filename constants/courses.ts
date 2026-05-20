@@ -5,6 +5,8 @@ export type Material = {
   subtitle?: string;
   rating?: number;
   pdf?: string;
+  pdf_solved?: string;
+  is_solved?: boolean;
 };
 
 export type ThreadReply = {

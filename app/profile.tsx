@@ -74,11 +74,20 @@ export default function ProfileScreen() {
   const [saveError, setSaveError] = useState('');
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      const u = data.user;
-      if (!u) { setLoading(false); return; }
-      const meta = u.user_metadata ?? {};
-      supabase.from('profiles').select('name, email').eq('id', u.id).single().then(({ data: p }) => {
+    async function loadProfile() {
+      try {
+        const { data: { user: u } } = await supabase.auth.getUser();
+        if (!u) {
+          setLoading(false);
+          return;
+        }
+        const meta = u.user_metadata ?? {};
+        const { data: p } = await supabase
+          .from('profiles')
+          .select('name, email')
+          .eq('id', u.id)
+          .single();
+
         setProfile({
           name: p?.name ?? meta.name ?? u.email?.split('@')[0] ?? '',
           email: p?.email ?? u.email ?? '',
@@ -87,9 +96,13 @@ export default function ProfileScreen() {
           year: meta.year ?? '',
           semester: meta.semester ?? '',
         });
+      } catch (err) {
+        console.error(err);
+      } finally {
         setLoading(false);
-      }).catch(() => setLoading(false));
-    }).catch(() => setLoading(false));
+      }
+    }
+    loadProfile();
   }, []);
 
   const update = (key: keyof Profile) => (value: string) =>

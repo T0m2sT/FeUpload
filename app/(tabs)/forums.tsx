@@ -8,13 +8,17 @@ const POSTS = [
 
 const FORUMS = ["DA", "ES", "ME"]
 
+type Post = {
+  title: string;
+  body: string;
+  page: string;
+};
+
 export default function SimpleForum() {
   const [view, setView] = useState("feed");
   const [activeForum, setActiveForum] = useState(FORUMS[0]);
   const [showForumList, setShowForumList] = useState(false);
-  const [posts, setPosts] = useState([
-
-  ]);
+  const [posts, setPosts] = useState<Post[]>([]);
   const [inputTitle, setInputTitle] = useState("");
   const [inputBody, setInputBody] = useState("");
   const [inputForum, setInputForum] = useState(FORUMS[0]);

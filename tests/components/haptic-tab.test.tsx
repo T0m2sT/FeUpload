@@ -17,7 +17,7 @@ describe('HapticTab', () => {
     const mockOnPressIn = jest.fn();
     const { getByTestId } = render(
       <NavigationContainer>
-        <HapticTab onPressIn={mockOnPressIn} testID="tab" />
+        <HapticTab onPressIn={mockOnPressIn} testID="tab" children={null} />
       </NavigationContainer>
     );
 

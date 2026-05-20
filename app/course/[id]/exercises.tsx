@@ -40,6 +40,8 @@ export default function CourseExercisesScreen() {
           type: 'exercise' as const,
           subtitle: m.description || m.academic_year || undefined,
           pdf: m.file_url || undefined,
+          pdf_solved: m.file_url_solved ?? undefined,
+          is_solved: m.is_solved ?? false,
         })));
       })
       .catch(() => {

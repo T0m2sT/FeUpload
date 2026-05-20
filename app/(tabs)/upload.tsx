@@ -68,6 +68,7 @@ export default function UploadScreen() {
   const [year, setYear] = useState('2024/2025');
   const [materialType, setMaterialType] = useState<MaterialType | null>(null);
   const [pickedFile, setPickedFile] = useState<PickedFile | null>(null);
+  const [pickedFileSolved, setPickedFileSolved] = useState<PickedFile | null>(null);
   const [courseYear, setCourseYear] = useState<number | null>(null);
   const [courseSemester, setCourseSemester] = useState<number | null>(null);
   const [open, setOpen] = useState<DropdownKey>(null);
@@ -107,7 +108,7 @@ export default function UploadScreen() {
   const toggle = (key: DropdownKey) =>
     setOpen((prev) => (prev === key ? null : key));
 
-  const pickFile = async () => {
+  const pickFile = async (version: 'unsolved' | 'solved') => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
         type: [
@@ -120,12 +121,17 @@ export default function UploadScreen() {
       });
       if (!result.canceled && result.assets.length > 0) {
         const asset = result.assets[0];
-        setPickedFile({
+        const picked = {
           uri: asset.uri,
           name: asset.name,
           mimeType: asset.mimeType ?? 'application/octet-stream',
           size: asset.size ?? undefined,
-        });
+        };
+        if (version === 'unsolved') {
+          setPickedFile(picked);
+        } else {
+          setPickedFileSolved(picked);
+        }
       }
     } catch {
       setError('Não foi possível aceder ao ficheiro.');
@@ -152,18 +158,41 @@ export default function UploadScreen() {
 
     setUploading(true);
     try {
-      // 1. Upload file to Supabase Storage
+      // 1. Upload files to Supabase Storage
       let fileUrl: string | undefined;
+      let fileUrlSolved: string | undefined;
+
+      const uploadPromises = [];
       if (pickedFile) {
-        fileUrl = await uploadMaterialFile(
-          pickedFile.uri,
-          pickedFile.name,
-          pickedFile.mimeType,
-          course!.year,
-          course!.semester,
-          course!.code,
+        uploadPromises.push(
+          uploadMaterialFile(
+            pickedFile.uri,
+            pickedFile.name,
+            pickedFile.mimeType,
+            course!.year,
+            course!.semester,
+            course!.code,
+          ).then((url) => {
+            fileUrl = url;
+          })
         );
       }
+      if (pickedFileSolved) {
+        uploadPromises.push(
+          uploadMaterialFile(
+            pickedFileSolved.uri,
+            pickedFileSolved.name,
+            pickedFileSolved.mimeType,
+            course!.year,
+            course!.semester,
+            course!.code,
+          ).then((url) => {
+            fileUrlSolved = url;
+          })
+        );
+      }
+
+      await Promise.all(uploadPromises);
 
       // 2. Insert the material record
       await uploadMaterial({
@@ -174,6 +203,7 @@ export default function UploadScreen() {
         user_id: user.id,
         academic_year: year,
         file_url: fileUrl,
+        file_url_solved: fileUrlSolved,
         is_solved: false,
       });
 
@@ -195,6 +225,7 @@ export default function UploadScreen() {
     setYear('');
     setMaterialType(null);
     setPickedFile(null);
+    setPickedFileSolved(null);
     setError('');
     setDone(false);
     setOpen(null);
@@ -224,7 +255,8 @@ export default function UploadScreen() {
             ['Ano',      year],
             ['Tipo',     TYPE_OPTIONS.find((o) => o.value === materialType)?.label ?? ''],
             ['Ficheiro', pickedFile?.name ?? ''],
-          ] as [string, string][]).map(([label, value]) => (
+            pickedFileSolved ? ['Resolução', pickedFileSolved.name] : null,
+          ].filter(Boolean) as [string, string][]).map(([label, value]) => (
             <View key={label} style={s.detailRow}>
               <Text style={s.detailLabel}>{label}</Text>
               <Text style={s.detailValue} numberOfLines={1}>{value}</Text>
@@ -530,11 +562,12 @@ export default function UploadScreen() {
         </View>
 
         {/* ── File picker ── */}
+        <Text style={s.sectionLabel}>Ficheiro Principal (Sem Resolução) *</Text>
         <TouchableOpacity
           style={[s.filePicker, pickedFile && s.filePickerActive]}
-          onPress={pickFile}
+          onPress={() => pickFile('unsolved')}
           accessibilityRole="button"
-          accessibilityLabel="Escolher ficheiro"
+          accessibilityLabel="Escolher ficheiro principal"
         >
           <View style={[s.fileIconWrap, pickedFile && s.fileIconWrapActive]}>
             <Ionicons
@@ -562,7 +595,48 @@ export default function UploadScreen() {
             <TouchableOpacity
               onPress={(e) => { e.stopPropagation?.(); setPickedFile(null); }}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              accessibilityLabel="Remover ficheiro"
+              accessibilityLabel="Remover ficheiro principal"
+            >
+              <Ionicons name="close-circle" size={20} color={t.textSecondary} />
+            </TouchableOpacity>
+          )}
+        </TouchableOpacity>
+
+        {/* ── Solved File picker ── */}
+        <Text style={s.sectionLabel}>Resolução / Soluções (Opcional)</Text>
+        <TouchableOpacity
+          style={[s.filePicker, pickedFileSolved && s.filePickerActive]}
+          onPress={() => pickFile('solved')}
+          accessibilityRole="button"
+          accessibilityLabel="Escolher resolução"
+        >
+          <View style={[s.fileIconWrap, pickedFileSolved && s.fileIconWrapActive]}>
+            <Ionicons
+              name={pickedFileSolved ? 'document-attach' : 'checkmark-circle-outline'}
+              size={24}
+              color={pickedFileSolved ? t.accent : t.textSecondary}
+            />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text
+              style={[s.filePickerLabel, pickedFileSolved && { color: t.accent }]}
+              numberOfLines={1}
+            >
+              {pickedFileSolved ? pickedFileSolved.name : 'Escolher resolução'}
+            </Text>
+            <Text style={s.filePickerSub}>
+              {pickedFileSolved
+                ? pickedFileSolved.size
+                  ? `${(pickedFileSolved.size / 1024).toFixed(1)} KB  ·  Toca para substituir`
+                  : 'Toca para substituir'
+                : 'PDF da resolução ou gabarito'}
+            </Text>
+          </View>
+          {pickedFileSolved && (
+            <TouchableOpacity
+              onPress={(e) => { e.stopPropagation?.(); setPickedFileSolved(null); }}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              accessibilityLabel="Remover resolução"
             >
               <Ionicons name="close-circle" size={20} color={t.textSecondary} />
             </TouchableOpacity>

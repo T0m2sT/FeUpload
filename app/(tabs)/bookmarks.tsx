@@ -401,4 +401,5 @@ const makeStyles = (t: AppPalette) => StyleSheet.create({
   createModalButtonText: { color: t.background, fontWeight: 'bold', fontSize: 16 },
   errorBanner: { backgroundColor: '#FFE5E5', padding: 10, borderRadius: 8, marginBottom: 10 },
   errorText: { color: '#D32F2F', fontSize: 13, fontWeight: '500' },
+  backButton: { padding: 2, marginRight: 12 },
 });
