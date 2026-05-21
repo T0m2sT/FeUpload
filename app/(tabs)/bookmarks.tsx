@@ -357,7 +357,7 @@ export default function BookmarksScreen() {
 
 const makeStyles = (t: AppPalette) => StyleSheet.create({
   container: { flex: 1, backgroundColor: t.background },
-  headerSection: { padding: 16, paddingTop: 12 },
+  headerSection: { padding: 16, paddingTop: 48 },
   headerTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   screenTitle: { fontSize: 28, fontWeight: 'bold', color: t.textPrimary },
   createButton: { flexDirection: 'row', alignItems: 'center', margin: 16, padding: 12, borderRadius: 12, backgroundColor: t.accent, gap: 8 },
@@ -371,7 +371,7 @@ const makeStyles = (t: AppPalette) => StyleSheet.create({
   collectionContent: { flex: 1 },
   collectionName: { fontSize: 15, fontWeight: '600', color: t.textPrimary },
   collectionMeta: { fontSize: 12, color: t.textSecondary },
-  collectionHeaderSection: { flexDirection: 'row', alignItems: 'center', padding: 16, gap: 12, borderBottomWidth: 1, borderBottomColor: t.surfaceBorder },
+  collectionHeaderSection: { flexDirection: 'row', alignItems: 'center', padding: 16, paddingTop: 48, gap: 12, borderBottomWidth: 1, borderBottomColor: t.surfaceBorder },
   collectionHeaderTitle: { fontSize: 18, fontWeight: '600', color: t.textPrimary },
   listContent: { padding: 16, gap: 12 },
   itemCardContainer: { flexDirection: 'row', alignItems: 'center', gap: 8 },

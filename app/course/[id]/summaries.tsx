@@ -78,7 +78,7 @@ export default function CourseSummariesScreen() {
       courseName={courseNameParam ?? courseCode}
       courseDescription={courseDescription}
       activeKey="summaries"
-      onUpload={() => router.push('/upload')}
+      onUpload={() => router.push({ pathname: '/upload', params: { preselect: courseCode } })}
     >
       <View style={s.toolbar}>
         <Text style={s.toolbarLabel}>Ordenar por:</Text>

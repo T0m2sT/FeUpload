@@ -61,7 +61,7 @@ export default function CourseTipsScreen() {
       courseName={courseNameParam ?? courseCode}
       courseDescription={courseDescription}
       activeKey="tips"
-      onUpload={() => router.push('/upload')}
+      onUpload={() => router.push({ pathname: '/upload', params: { preselect: courseCode } })}
     >
       {isLoading ? (
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingTop: 60 }}>

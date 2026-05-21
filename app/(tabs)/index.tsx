@@ -196,7 +196,7 @@ export default function HomeScreen() {
           <Text style={s.greetingName}>{userName}</Text>
         </TouchableOpacity>
         <View style={{ flex: 1 }} />
-        <TouchableOpacity onPress={() => router.push('/bookmarks')} accessibilityLabel="Marcadores">
+        <TouchableOpacity onPress={() => router.push('/(tabs)/bookmarks' as any)} accessibilityLabel="Marcadores">
           <View style={s.avatarCircle}>
             <Ionicons name="bookmark-outline" size={18} color={t.accent} />
           </View>
@@ -338,6 +338,7 @@ function makeStyles(t: ReturnType<typeof useAppTheme>) {
       flexDirection: 'row',
       alignItems: 'center',
       marginBottom: 20,
+      gap: 8,
     },
     greetingStatic: {
       fontSize: 24,

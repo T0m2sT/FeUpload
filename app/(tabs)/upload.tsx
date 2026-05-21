@@ -10,7 +10,7 @@ import {
   View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import * as DocumentPicker from 'expo-document-picker';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import type { AppPalette } from '@/constants/theme';
@@ -60,6 +60,7 @@ export default function UploadScreen() {
   const t = useAppTheme();
   const router = useRouter();
   const s = makeStyles(t);
+  const { preselect } = useLocalSearchParams<{ preselect?: string }>();
 
   // Form state
   const [title, setTitle] = useState('');
@@ -92,7 +93,18 @@ export default function UploadScreen() {
             .select('id, code, name, year, semester')
             .order('name');
           if (err) throw err;
-          if (active) setCourses(data ?? []);
+          if (active) {
+            const loaded = data ?? [];
+            setCourses(loaded);
+            if (preselect) {
+              const match = loaded.find((c) => c.code === preselect.toUpperCase());
+              if (match) {
+                setCourse(match);
+                setCourseYear(match.year);
+                setCourseSemester(match.semester);
+              }
+            }
+          }
         } catch {
           // Silently fall back – user sees an empty list
         } finally {
@@ -101,7 +113,7 @@ export default function UploadScreen() {
       };
       load();
       return () => { active = false; };
-    }, []),
+    }, [preselect]),
   );
 
   // ── Helpers ─────────────────────────────────────────────────────────────────
