@@ -152,4 +152,62 @@ describe('threads service', () => {
       ).rejects.toThrow('Reply insert failed');
     });
   });
+
+  describe('deleteThread', () => {
+    it('deletes a thread by ID', async () => {
+      const { deleteThread } = await import('../../services/threads');
+      mockChain._error = null;
+
+      await deleteThread('t1');
+
+      expect(getFrom()).toHaveBeenCalledWith('threads');
+      expect(mockChain.delete).toHaveBeenCalled();
+      expect(mockChain.eq).toHaveBeenCalledWith('id', 't1');
+    });
+
+    it('throws error when deletion fails', async () => {
+      const { deleteThread } = await import('../../services/threads');
+      mockChain._error = new Error('Delete failed');
+
+      await expect(deleteThread('t1')).rejects.toThrow('Delete failed');
+    });
+
+    it('deletes the correct thread when multiple exist', async () => {
+      const { deleteThread } = await import('../../services/threads');
+      mockChain._error = null;
+
+      await deleteThread('t-specific');
+
+      expect(mockChain.eq).toHaveBeenCalledWith('id', 't-specific');
+    });
+  });
+
+  describe('deleteReply', () => {
+    it('deletes a reply by ID', async () => {
+      const { deleteReply } = await import('../../services/threads');
+      mockChain._error = null;
+
+      await deleteReply('r1');
+
+      expect(getFrom()).toHaveBeenCalledWith('thread_replies');
+      expect(mockChain.delete).toHaveBeenCalled();
+      expect(mockChain.eq).toHaveBeenCalledWith('id', 'r1');
+    });
+
+    it('throws error when deletion fails', async () => {
+      const { deleteReply } = await import('../../services/threads');
+      mockChain._error = new Error('Delete reply failed');
+
+      await expect(deleteReply('r1')).rejects.toThrow('Delete reply failed');
+    });
+
+    it('deletes the correct reply when multiple exist', async () => {
+      const { deleteReply } = await import('../../services/threads');
+      mockChain._error = null;
+
+      await deleteReply('r-specific');
+
+      expect(mockChain.eq).toHaveBeenCalledWith('id', 'r-specific');
+    });
+  });
 });

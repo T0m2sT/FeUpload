@@ -31,8 +31,8 @@ export async function getCourseIdByCode(courseCode: string): Promise<string | nu
 
 export async function getThreadWithReplies(threadId: string) {
   const [threadRes, repliesRes] = await Promise.all([
-    supabase.from('threads').select('*, profiles(name)').eq('id', threadId).single(),
-    supabase.from('thread_replies').select('*, profiles(name)').eq('thread_id', threadId).order('created_at', { ascending: true }),
+    supabase.from('threads').select('*, profiles(name), user_id').eq('id', threadId).single(),
+    supabase.from('thread_replies').select('*, profiles(name), user_id').eq('thread_id', threadId).order('created_at', { ascending: true }),
   ]);
   if (threadRes.error) throw threadRes.error;
   return { thread: threadRes.data, replies: repliesRes.data ?? [] };
@@ -76,4 +76,20 @@ export async function createReply(reply: {
     .single();
   if (error) throw error;
   return data;
+}
+
+export async function deleteThread(threadId: string) {
+  const { error } = await supabase
+    .from('threads')
+    .delete()
+    .eq('id', threadId);
+  if (error) throw error;
+}
+
+export async function deleteReply(replyId: string) {
+  const { error } = await supabase
+    .from('thread_replies')
+    .delete()
+    .eq('id', replyId);
+  if (error) throw error;
 }
