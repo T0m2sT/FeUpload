@@ -277,7 +277,7 @@ describe('Thread Detail - Acceptance Tests', () => {
       (threadsService.deleteThread as jest.Mock).mockResolvedValue(undefined);
 
       // Cleanup in reverse order: replies first, then thread
-      for (const replyId of createdData.replyIds.reverse()) {
+      for (const replyId of [...createdData.replyIds].reverse()) {
         await threadsService.deleteReply(replyId);
       }
       await threadsService.deleteThread(createdData.threadId);
@@ -286,9 +286,12 @@ describe('Thread Detail - Acceptance Tests', () => {
       expect(threadsService.deleteReply).toHaveBeenNthCalledWith(1, 'reply-3');
       expect(threadsService.deleteReply).toHaveBeenNthCalledWith(2, 'reply-2');
       expect(threadsService.deleteReply).toHaveBeenNthCalledWith(3, 'reply-1');
-      expect(threadsService.deleteThread).toHaveBeenCalledAfter(
-        threadsService.deleteReply as jest.Mock
-      );
+
+      // Verify that deleteThread execution order is strictly after the replies
+      const replyLastCallOrder = (threadsService.deleteReply as jest.Mock).mock.invocationCallOrder[2];
+      const threadCallOrder = (threadsService.deleteThread as jest.Mock).mock.invocationCallOrder[0];
+      
+      expect(threadCallOrder).toBeGreaterThan(replyLastCallOrder);
     });
   });
 });

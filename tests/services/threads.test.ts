@@ -1,4 +1,11 @@
-import { getThreadsByCourse, createThread, getReplies, createReply } from '../../services/threads';
+import { 
+  getThreadsByCourse, 
+  createThread, 
+  getReplies, 
+  createReply,
+  deleteThread,
+  deleteReply 
+} from '../../services/threads';
 import { buildSupabaseMock } from '../utils';
 
 jest.mock('../../lib/supabase', () => ({
@@ -128,7 +135,6 @@ describe('threads service', () => {
     it('orders replies chronologically (ascending)', async () => {
       mockChain._data = [];
       await getReplies('t1');
-      // getReplies uses order('created_at') without ascending:false, meaning ascending
       expect(mockChain.order).toHaveBeenCalledWith('created_at');
     });
   });
@@ -155,7 +161,6 @@ describe('threads service', () => {
 
   describe('deleteThread', () => {
     it('deletes a thread by ID', async () => {
-      const { deleteThread } = await import('../../services/threads');
       mockChain._error = null;
 
       await deleteThread('t1');
@@ -166,14 +171,12 @@ describe('threads service', () => {
     });
 
     it('throws error when deletion fails', async () => {
-      const { deleteThread } = await import('../../services/threads');
       mockChain._error = new Error('Delete failed');
 
       await expect(deleteThread('t1')).rejects.toThrow('Delete failed');
     });
 
     it('deletes the correct thread when multiple exist', async () => {
-      const { deleteThread } = await import('../../services/threads');
       mockChain._error = null;
 
       await deleteThread('t-specific');
@@ -184,7 +187,6 @@ describe('threads service', () => {
 
   describe('deleteReply', () => {
     it('deletes a reply by ID', async () => {
-      const { deleteReply } = await import('../../services/threads');
       mockChain._error = null;
 
       await deleteReply('r1');
@@ -195,14 +197,12 @@ describe('threads service', () => {
     });
 
     it('throws error when deletion fails', async () => {
-      const { deleteReply } = await import('../../services/threads');
       mockChain._error = new Error('Delete reply failed');
 
       await expect(deleteReply('r1')).rejects.toThrow('Delete reply failed');
     });
 
     it('deletes the correct reply when multiple exist', async () => {
-      const { deleteReply } = await import('../../services/threads');
       mockChain._error = null;
 
       await deleteReply('r-specific');
