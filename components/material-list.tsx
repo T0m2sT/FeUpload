@@ -208,7 +208,17 @@ export function MaterialList({ items, emptyMessage = 'Sem conteúdo disponível.
               <Ionicons name="document-text-outline" size={18} color={t.accent} />
             </View>
             <View style={s.info}>
-              <Text style={s.title}>{item.title}</Text>
+              <View style={s.titleRow}>
+                <Text style={s.title}>{item.title}</Text>
+                {item.is_solved && item.pdf_solved ? (
+                  <Ionicons
+                    name="checkmark-circle"
+                    size={14}
+                    color={t.accent}
+                    accessibilityLabel="Material resolvido"
+                  />
+                ) : null}
+              </View>
               {item.subtitle ? <Text style={s.sub}>{item.subtitle}</Text> : null}
               <View style={s.ratingRow}>
                 {(() => {
@@ -387,10 +397,16 @@ function makeStyles(t: AppPalette) {
     info: {
       flex: 1,
     },
+    titleRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+    },
     title: {
       fontSize: 14,
       fontWeight: '600',
       color: t.textPrimary,
+      flexShrink: 1,
     },
     sub: {
       fontSize: 12,

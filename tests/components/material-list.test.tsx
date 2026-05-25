@@ -81,6 +81,16 @@ describe('MaterialList', () => {
     expect(getAllByLabelText('Detalhes do material')).toHaveLength(mockItems.length);
   });
 
+  it('renders solved indicator only for items with is_solved AND pdf_solved', () => {
+    const items = [
+      { id: 's1', title: 'Resolvido', type: 'exam', pdf: 'a.pdf', pdf_solved: 'b.pdf', is_solved: true },
+      { id: 'u1', title: 'Não resolvido', type: 'exam', pdf: 'a.pdf', is_solved: false },
+      { id: 'f1', title: 'Flag sem ficheiro', type: 'exam', pdf: 'a.pdf', is_solved: true },
+    ];
+    const { queryAllByTestId } = render(<MaterialList items={items as any} />);
+    expect(queryAllByTestId('checkmark-circle')).toHaveLength(1);
+  });
+
   describe('openPDF', () => {
     it('navigates to pdf-viewer when a material row is pressed on native', () => {
       //Opening with native library
