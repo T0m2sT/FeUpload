@@ -151,4 +151,26 @@ describe('CourseExercisesScreen Sorting & Filters', () => {
     expect(rowElements[1].props.accessibilityLabel).toBe('Ficha Prática 3'); // ex3
     expect(rowElements[2].props.accessibilityLabel).toBe('Ficha Prática 1'); // ex1
   });
+
+  it('filters by solved/unsolved via SolvedToggle', async () => {
+    const mixedData = [
+      { id: 'u1', title: 'Ficha Por Resolver', academic_year: '2024/25', file_url: 'https://e/u1.pdf', is_solved: false, rating: 3, created_at: '2026-01-01T00:00:00Z' },
+      { id: 's1', title: 'Ficha Resolvida', academic_year: '2024/25', file_url: 'https://e/s1.pdf', file_url_solved: 'https://e/s1_s.pdf', is_solved: true, rating: 3, created_at: '2026-01-02T00:00:00Z' },
+    ];
+    (getMaterialsByClassCodeAndType as jest.Mock).mockResolvedValue(mixedData);
+
+    const { getByText, queryByText, getByLabelText } = render(<CourseExercisesScreen />);
+
+    await waitFor(() => {
+      expect(getByText('Ficha Por Resolver')).toBeDefined();
+    });
+    expect(queryByText('Ficha Resolvida')).toBeNull();
+
+    fireEvent.press(getByLabelText('Ver materiais resolvidos'));
+
+    await waitFor(() => {
+      expect(getByText('Ficha Resolvida')).toBeDefined();
+    });
+    expect(queryByText('Ficha Por Resolver')).toBeNull();
+  });
 });
