@@ -14,6 +14,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import type { AppPalette } from '@/constants/theme';
 import { getMaterialById } from '@/services/materials';
+import { supabase } from '@/lib/supabase';
+import { getCachedSummary, setCachedSummary } from '@/lib/ai-summary-cache';
+import Markdown from 'react-native-markdown-display';
 
 type MaterialDetail = {
   id: string;
@@ -66,6 +69,9 @@ export default function MaterialDetailScreen() {
   const [material, setMaterial] = useState<MaterialDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [aiSummary, setAiSummary] = useState<string | null>(() => getCachedSummary(materialId ?? '') ?? null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -86,12 +92,38 @@ export default function MaterialDetailScreen() {
     };
   }, [materialId]);
 
-  const openFile = (url: string | null) => {
+  const generateAiSummary = async () => {
+    if (!material?.file_url) return;
+    setAiLoading(true);
+    setAiError(null);
+    try {
+      const { data, error: fnError } = await supabase.functions.invoke('summarize-pdf', {
+        body: { fileUrl: material.file_url, title: material.title },
+      });
+      if (fnError) throw fnError;
+      setAiSummary(data.summary);
+      if (materialId) setCachedSummary(materialId, data.summary);
+    } catch (e: any) {
+      setAiError(e?.message ?? 'Não foi possível gerar o resumo. Tenta novamente.');
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const openFile = (url: string | null, startSolved = false) => {
     if (!url) return;
     if (Platform.OS === 'web') {
       Linking.openURL(url);
     } else {
-      router.push({ pathname: '/pdf-viewer' as any, params: { pdf: url, title: material?.title ?? 'PDF' } });
+      router.push({
+        pathname: '/pdf-viewer' as any,
+        params: {
+          pdf: startSolved ? (material?.file_url ?? url) : url,
+          pdf_solved: material?.file_url_solved ?? '',
+          title: material?.title ?? 'PDF',
+          ...(startSolved && { initialSolved: '1' }),
+        },
+      });
     }
   };
 
@@ -119,7 +151,14 @@ export default function MaterialDetailScreen() {
       ) : (
         <ScrollView contentContainerStyle={s.container}>
           {material.class_code ? <Text style={s.code}>{material.class_code}</Text> : null}
-          <Text style={s.title}>{material.title}</Text>
+          <View style={s.titleRow}>
+            <Text style={s.title}>{material.title}</Text>
+            {material.file_url ? (
+              <TouchableOpacity onPress={() => openFile(material.file_url)} accessibilityLabel="Abrir ficheiro" style={s.titleFileBtn}>
+                <Ionicons name="document-outline" size={20} color={t.accent} />
+              </TouchableOpacity>
+            ) : null}
+          </View>
 
           <View style={s.metaRow}>
             <Ionicons name="person-outline" size={14} color={t.textSecondary} />
@@ -129,17 +168,8 @@ export default function MaterialDetailScreen() {
             <Text style={s.metaText}>{formatDate(material.created_at)}</Text>
           </View>
 
-          <View style={s.ratingRow}>
-            <Stars rating={material.avgRating} size={16} color={t.accent} muted={t.textMuted} />
-            <Text style={s.ratingText}>
-              {material.ratingCount > 0
-                ? `${material.avgRating.toFixed(1)} (${material.ratingCount} avaliações)`
-                : 'Sem avaliações'}
-            </Text>
-          </View>
-
           <TouchableOpacity
-            style={s.ratingsButton}
+            style={s.ratingRow}
             onPress={() =>
               router.push({
                 pathname: '/ratings',
@@ -152,8 +182,14 @@ export default function MaterialDetailScreen() {
             }
             accessibilityLabel="Ver avaliações"
           >
-            <Ionicons name="star-outline" size={16} color={t.accent} />
-            <Text style={s.ratingsText}>Ver avaliações</Text>
+            <Stars rating={material.avgRating} size={16} color={t.accent} muted={t.textMuted} />
+            {material.ratingCount > 0 ? (
+              <Text style={s.ratingText}>
+                {material.avgRating.toFixed(1)} <Text style={s.ratingAccent}>(</Text><Text style={s.ratingLink}>{`${material.ratingCount} avaliações)`}</Text>
+              </Text>
+            ) : (
+              <Text style={s.ratingText}>Sem avaliações</Text>
+            )}
           </TouchableOpacity>
 
           <View style={s.divider} />
@@ -164,20 +200,44 @@ export default function MaterialDetailScreen() {
             <Text style={s.bodyMuted}>Sem descrição. Abra o ficheiro abaixo para ver o conteúdo.</Text>
           )}
 
+          <View style={s.divider} />
+
           <View style={s.actionsRow}>
-            {material.file_url ? (
-              <TouchableOpacity style={s.fileBtn} onPress={() => openFile(material.file_url)}>
-                <Ionicons name="document-outline" size={18} color={t.accent} />
-                <Text style={s.fileBtnText}>Abrir material</Text>
-              </TouchableOpacity>
-            ) : null}
             {material.file_url_solved ? (
-              <TouchableOpacity style={s.fileBtn} onPress={() => openFile(material.file_url_solved)}>
+              <TouchableOpacity style={s.fileBtn} onPress={() => openFile(material.file_url_solved, true)}>
                 <Ionicons name="checkmark-circle-outline" size={18} color={t.accent} />
                 <Text style={s.fileBtnText}>Abrir resolução</Text>
               </TouchableOpacity>
             ) : null}
+            {!aiSummary && !aiLoading && material.file_url ? (
+              <TouchableOpacity style={s.aiBtn} onPress={generateAiSummary}>
+                <Ionicons name="sparkles-outline" size={16} color={t.accent} />
+                <Text style={s.aiBtnText}>Gerar resumo com IA</Text>
+              </TouchableOpacity>
+            ) : null}
           </View>
+
+          {aiLoading ? (
+            <View style={s.aiBox}>
+              <ActivityIndicator size="small" color={t.accent} style={{ marginBottom: 8 }} />
+              <Text style={s.aiBoxMuted}>A gerar resumo...</Text>
+            </View>
+          ) : aiError ? (
+            <View style={s.aiBox}>
+              <Text style={s.aiErrorText}>{aiError}</Text>
+              <TouchableOpacity onPress={generateAiSummary} style={{ marginTop: 8 }}>
+                <Text style={s.aiBtnText}>Tentar novamente</Text>
+              </TouchableOpacity>
+            </View>
+          ) : aiSummary ? (
+            <View style={s.aiBox}>
+              <View style={s.aiHeader}>
+                <Ionicons name="sparkles-outline" size={14} color={t.accent} />
+                <Text style={s.aiLabel}>Resumo gerado por IA</Text>
+              </View>
+              <Markdown style={{ body: s.aiText, bullet_list_icon: s.aiText, bullet_list_content: s.aiText, strong: { color: s.aiText.color, fontWeight: '700' } }}>{aiSummary}</Markdown>
+            </View>
+          ) : null}
         </ScrollView>
       )}
     </View>
@@ -217,11 +277,20 @@ function makeStyles(t: AppPalette) {
       letterSpacing: 1.5,
       marginBottom: 6,
     },
+    titleRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      marginBottom: 12,
+    },
+    titleFileBtn: {
+      padding: 4,
+    },
     title: {
+      flex: 1,
       fontSize: 22,
       fontWeight: 'bold',
       color: t.textPrimary,
-      marginBottom: 12,
     },
     metaRow: {
       flexDirection: 'row',
@@ -239,24 +308,13 @@ function makeStyles(t: AppPalette) {
       marginBottom: 10,
     },
     ratingText: { fontSize: 12, color: t.textMuted, marginLeft: 4 },
-    ratingsButton: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 6,
-      alignSelf: 'flex-start',
-      paddingHorizontal: 12,
-      paddingVertical: 8,
-      borderRadius: 10,
-      backgroundColor: t.accentDim,
-      borderWidth: 1,
-      borderColor: t.accentBorder,
-      marginBottom: 12,
-    },
-    ratingsText: { color: t.accent, fontWeight: '600', fontSize: 13 },
+    ratingLink: { fontSize: 12, color: t.accent, textDecorationLine: 'underline' },
+    ratingAccent: { fontSize: 12, color: t.accent },
     divider: {
       height: 1,
       backgroundColor: t.surfaceBorder,
       marginVertical: 16,
+      marginBottom: 8,
     },
     body: {
       fontSize: 15,
@@ -272,7 +330,7 @@ function makeStyles(t: AppPalette) {
       flexDirection: 'row',
       flexWrap: 'wrap',
       gap: 12,
-      marginTop: 24,
+      marginTop: 8,
     },
     fileBtn: {
       flexDirection: 'row',
@@ -286,5 +344,36 @@ function makeStyles(t: AppPalette) {
       borderColor: t.accentBorder,
     },
     fileBtnText: { color: t.accent, fontWeight: '600', fontSize: 14 },
+    aiBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      alignSelf: 'flex-start',
+      paddingHorizontal: 14,
+      paddingVertical: 10,
+      borderRadius: 10,
+      backgroundColor: t.accentDim,
+      borderWidth: 1,
+      borderColor: t.accentBorder,
+    },
+    aiBtnText: { color: t.accent, fontWeight: '600', fontSize: 14 },
+    aiBox: {
+      backgroundColor: t.surface,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: t.accentBorder,
+      padding: 14,
+      marginTop: 4,
+    },
+    aiHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      marginBottom: 10,
+    },
+    aiLabel: { fontSize: 11, fontWeight: '700', color: t.accent, textTransform: 'uppercase', letterSpacing: 0.6 },
+    aiText: { fontSize: 14, lineHeight: 22, color: t.textPrimary },
+    aiBoxMuted: { fontSize: 13, color: t.textMuted, textAlign: 'center' },
+    aiErrorText: { fontSize: 13, color: t.error },
   });
 }
