@@ -63,10 +63,11 @@ export default function CourseExamsScreen() {
       const ratingA = a.rating ?? 0;
       const ratingB = b.rating ?? 0;
       if (ratingB !== ratingA) return ratingB - ratingA;
-      return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
-    } else {
-      return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
     }
+    const yearA = a.subtitle ?? '';
+    const yearB = b.subtitle ?? '';
+    if (yearB !== yearA) return yearB.localeCompare(yearA);
+    return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
   });
 
   return (
