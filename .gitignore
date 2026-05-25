@@ -49,6 +49,9 @@ app-example
 /android
 
 
+# Supabase
+supabase/.temp/
+
 # local config
 
 .vscode/

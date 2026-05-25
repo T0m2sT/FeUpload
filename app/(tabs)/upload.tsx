@@ -10,16 +10,15 @@ import {
   View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as DocumentPicker from 'expo-document-picker';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import type { AppPalette } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
 import { uploadMaterial, uploadMaterialFile } from '@/services/materials';
+import { suggestTagsFromFilename, type MaterialType } from '@/lib/tag-suggestions';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
-
-type MaterialType = 'exam' | 'exercise' | 'notes' | 'summary';
 type DropdownKey = 'course' | 'year' | 'type' | 'courseYear' | 'courseSemester' | null;
 
 type Course = {
@@ -82,39 +81,39 @@ export default function UploadScreen() {
   const [done, setDone] = useState(false);
 
   // ── Load courses ────────────────────────────────────────────────────────────
-  useFocusEffect(
-    useCallback(() => {
-      let active = true;
-      const load = async () => {
-        setLoadingCourses(true);
-        try {
-          const { data, error: err } = await supabase
-            .from('courses')
-            .select('id, code, name, year, semester')
-            .order('name');
-          if (err) throw err;
-          if (active) {
-            const loaded = data ?? [];
-            setCourses(loaded);
-            if (preselect) {
-              const match = loaded.find((c) => c.code === preselect.toUpperCase());
-              if (match) {
-                setCourse(match);
-                setCourseYear(match.year);
-                setCourseSemester(match.semester);
-              }
+  const preselectCode = Array.isArray(preselect) ? preselect[0] : preselect;
+
+  useEffect(() => {
+    let active = true;
+    const load = async () => {
+      setLoadingCourses(true);
+      try {
+        const { data, error: err } = await supabase
+          .from('courses')
+          .select('id, code, name, year, semester')
+          .order('name');
+        if (err) throw err;
+        if (active) {
+          const loaded = data ?? [];
+          setCourses(loaded);
+          if (preselectCode) {
+            const match = loaded.find((c) => c.code === preselectCode.toUpperCase());
+            if (match) {
+              setCourse(match);
+              setCourseYear(match.year);
+              setCourseSemester(match.semester);
             }
           }
-        } catch {
-          // Silently fall back – user sees an empty list
-        } finally {
-          if (active) setLoadingCourses(false);
         }
-      };
-      load();
-      return () => { active = false; };
-    }, [preselect]),
-  );
+      } catch {
+        // Silently fall back – user sees an empty list
+      } finally {
+        if (active) setLoadingCourses(false);
+      }
+    };
+    load();
+    return () => { active = false; };
+  }, [preselectCode]);
 
   // ── Helpers ─────────────────────────────────────────────────────────────────
   const toggle = (key: DropdownKey) =>
@@ -141,6 +140,10 @@ export default function UploadScreen() {
         };
         if (version === 'unsolved') {
           setPickedFile(picked);
+          const tags = suggestTagsFromFilename(asset.name);
+          if (!title && tags.title) setTitle(tags.title);
+          if (!materialType && tags.type) setMaterialType(tags.type);
+          if (tags.year) setYear(tags.year);
         } else {
           setPickedFileSolved(picked);
         }

@@ -68,4 +68,32 @@ All notable changes to this project are documented in this file.
 - Refactoring work focused on improving maintainability, UI consistency, and overall code quality.
 - Additional validation and error-handling logic added across authentication and profile-related flows.
 
-## Sprint 3 
+## Sprint 3
+
+### End-user value
+- Students can filter and sort course materials by rating or academic year, with exams correctly ordered by year.
+- Students can toggle between a material and its resolution directly inside the PDF viewer.
+- Students can get an AI-generated summary of any PDF material with a single tap, powered by Gemini.
+- The upload form auto-suggests title, type, and academic year based on the uploaded filename, reducing manual input.
+- Forum posts can be labelled and filtered, making it easier to find relevant discussions.
+- The bookmarks section has improved spacing and collection management.
+- Material detail screens show cleaner metadata with a clickable rating count linking to reviews.
+
+### Closed PBIs (implemented in this increment)
+- Forum post labels and filtering implemented (PR #114).
+- Material widget refactored for consistency (PR #113).
+- Upload form course pre-selection from course section navigation (PR #112).
+- Selector refactor for year, semester, and course pickers (PR #111).
+- Material filtering by rating and date added to exams and exercises (PR #108).
+- Dual PDF buffer (file + resolution) with in-viewer toggle implemented (PR #107).
+- Bug fixes: bookmarks header padding, forum placeholder alignment, collection view top padding (PR #116).
+- AI PDF summarization via Gemini edge function added to material and summary screens.
+- Rule-based filename tag suggestions added to the upload form.
+- Session-level AI summary cache added to avoid redundant API calls.
+- Exams date sort fixed to use academic year instead of upload date.
+- Pre-existing TypeScript compilation errors resolved across multiple screens.
+
+### Quality and delivery notes
+- Supabase edge function deployed for AI summarization (Gemini 2.5 Flash Lite).
+- Markdown rendering added to AI summary output via react-native-markdown-display.
+- Deno-based edge functions excluded from the TypeScript project to prevent compiler errors.

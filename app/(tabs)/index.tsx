@@ -62,8 +62,8 @@ export default function HomeScreen() {
       query = query.eq('year', Number(meta.year));
       query = query.eq('semester', Number(meta.semester));
 
-      if (courseToken && !GENERIC_PROGRAM_CODES.has(courseToken)) {
-        query = query.eq('code', courseToken);
+      if (courseToken && !GENERIC_PROGRAM_CODES.has(courseToken as 'LEIC')) {
+        query = query.eq('code', courseToken as 'LEIC');
       }
 
       const { data: coursesData, error } = await query;
@@ -121,7 +121,7 @@ export default function HomeScreen() {
       const byId = new Map((data ?? []).map((course) => [course.id, course]));
       const ordered = pinnedIds
         .map((id) => byId.get(id))
-        .filter((course): course is Course => Boolean(course));
+        .filter((course): course is NonNullable<typeof course> => Boolean(course)) as Course[];
       setPinnedCourses(ordered);
     };
     loadPinnedCourses();
