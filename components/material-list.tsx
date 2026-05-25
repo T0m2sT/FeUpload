@@ -236,6 +236,15 @@ export function MaterialList({ items, emptyMessage = 'Sem conteúdo disponível.
               >
                 <Ionicons name="bookmark-outline" size={20} color={t.textSecondary} />
               </TouchableOpacity>
+              {item.pdf && (
+                <TouchableOpacity
+                  style={s.actionBtn}
+                  onPress={() => Linking.openURL(item.pdf!)}
+                  accessibilityLabel="Download"
+                >
+                  <Ionicons name="cloud-download-outline" size={18} color={t.textSecondary} />
+                </TouchableOpacity>
+              )}
               <TouchableOpacity
                 style={s.actionBtn}
                 accessibilityLabel="Detalhes do material"
@@ -248,15 +257,6 @@ export function MaterialList({ items, emptyMessage = 'Sem conteúdo disponível.
               >
                 <Ionicons name="information-circle-outline" size={18} color={t.textSecondary} />
               </TouchableOpacity>
-              {item.pdf && (
-                <TouchableOpacity
-                  style={s.actionBtn}
-                  onPress={() => Linking.openURL(item.pdf!)}
-                  accessibilityLabel="Download"
-                >
-                  <Ionicons name="cloud-download-outline" size={18} color={t.textSecondary} />
-                </TouchableOpacity>
-              )}
             </View>
           </TouchableOpacity>
         )}
