@@ -140,16 +140,7 @@ export default function MaterialEvaluationScreen() {
         content: comment.trim() || undefined,
       });
       await refreshMaterialRating(selectedMaterialId);
-
-      router.replace({
-        pathname: '/ratings',
-        params: {
-          materialId: selectedMaterialId,
-          materialTitle: selectedMaterialTitle,
-          courseCode: selectedCourseCode,
-          refreshKey: String(Date.now()),
-        },
-      });
+      router.back();
     } catch {
       setErrorMsg('Não foi possível publicar a avaliação.');
     } finally {
