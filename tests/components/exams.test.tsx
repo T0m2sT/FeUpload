@@ -49,8 +49,7 @@ const mockExamsData = [
     title: 'Exame 2022',
     academic_year: '2021/2022',
     file_url: 'https://example.com/e1.pdf',
-    file_url_solved: 'https://example.com/e1_solved.pdf',
-    is_solved: true,
+    is_solved: false,
     rating: 4,
     created_at: '2026-05-18T10:00:00.000Z',
   },
@@ -152,5 +151,38 @@ describe('CourseExamsScreen Sorting & Filters', () => {
     expect(examRows[0].props.accessibilityLabel).toBe('Exame 2023'); // e2
     expect(examRows[1].props.accessibilityLabel).toBe('Exame 2024'); // e3
     expect(examRows[2].props.accessibilityLabel).toBe('Exame 2022'); // e1
+  });
+
+  it('filters by solved/unsolved via SolvedToggle', async () => {
+    const mixedData = [
+      { id: 'u1', title: 'Exame Por Resolver', academic_year: '2024/25', file_url: 'https://e/u1.pdf', is_solved: false, rating: 3, created_at: '2026-01-01T00:00:00Z' },
+      { id: 's1', title: 'Exame Resolvido', academic_year: '2024/25', file_url: 'https://e/s1.pdf', file_url_solved: 'https://e/s1_s.pdf', is_solved: true, rating: 3, created_at: '2026-01-02T00:00:00Z' },
+    ];
+    (getMaterialsByClassCodeAndType as jest.Mock).mockResolvedValue(mixedData);
+
+    const { getByText, queryByText, getByLabelText } = render(<CourseExamsScreen />);
+
+    await waitFor(() => {
+      expect(getByText('Exame Por Resolver')).toBeDefined();
+    });
+    expect(queryByText('Exame Resolvido')).toBeNull();
+
+    fireEvent.press(getByLabelText('Ver materiais resolvidos'));
+
+    await waitFor(() => {
+      expect(getByText('Exame Resolvido')).toBeDefined();
+    });
+    expect(queryByText('Exame Por Resolver')).toBeNull();
+  });
+
+  it('shows the solved empty-state when no solved exams match', async () => {
+    const { getByText, getByLabelText } = render(<CourseExamsScreen />);
+    await waitFor(() => {
+      expect(getByText('Exame 2022')).toBeDefined();
+    });
+    fireEvent.press(getByLabelText('Ver materiais resolvidos'));
+    await waitFor(() => {
+      expect(getByText('Sem exames resolvidos disponíveis.')).toBeDefined();
+    });
   });
 });
