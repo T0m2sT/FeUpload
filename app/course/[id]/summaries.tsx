@@ -41,7 +41,7 @@ export default function CourseSummariesScreen() {
           id: m.id,
           title: m.title,
           type: 'summary' as const,
-          subtitle: m.description || m.academic_year || undefined,
+          subtitle: m.academic_year ?? undefined,
           pdf: m.file_url || undefined,
           pdf_solved: m.file_url_solved ?? undefined,
           is_solved: m.is_solved ?? false,
@@ -66,8 +66,10 @@ export default function CourseSummariesScreen() {
       const ratingA = a.rating ?? 0;
       const ratingB = b.rating ?? 0;
       if (ratingB !== ratingA) return ratingB - ratingA;
-      return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
     }
+    const yearA = a.subtitle ?? '';
+    const yearB = b.subtitle ?? '';
+    if (yearB !== yearA) return yearB.localeCompare(yearA);
     return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
   });
 
