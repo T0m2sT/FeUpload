@@ -16,10 +16,9 @@ import { useAppTheme } from '@/hooks/use-app-theme';
 import type { AppPalette } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
 import { uploadMaterial, uploadMaterialFile } from '@/services/materials';
+import { suggestTagsFromFilename, type MaterialType } from '@/lib/tag-suggestions';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
-
-type MaterialType = 'exam' | 'exercise' | 'notes' | 'summary';
 type DropdownKey = 'course' | 'year' | 'type' | 'courseYear' | 'courseSemester' | null;
 
 type Course = {
@@ -141,6 +140,10 @@ export default function UploadScreen() {
         };
         if (version === 'unsolved') {
           setPickedFile(picked);
+          const tags = suggestTagsFromFilename(asset.name);
+          if (!title && tags.title) setTitle(tags.title);
+          if (!materialType && tags.type) setMaterialType(tags.type);
+          if (tags.year) setYear(tags.year);
         } else {
           setPickedFileSolved(picked);
         }
