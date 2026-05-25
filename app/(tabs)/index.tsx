@@ -191,11 +191,19 @@ export default function HomeScreen() {
     <ScrollView style={s.scroll} contentContainerStyle={s.container}>
       {/* Header */}
       <View style={s.header}>
-        <Text style={s.greetingStatic}>Bem-vindo, </Text>
-        <TouchableOpacity onPress={() => router.push('/profile')} accessibilityLabel="Ir para perfil">
-          <Text style={s.greetingName}>{userName}</Text>
-        </TouchableOpacity>
-        <View style={{ flex: 1 }} />
+        <View style={s.greetingContainer}>
+          <Text style={s.greetingStatic} numberOfLines={1}>Bem-vindo, </Text>
+          <TouchableOpacity 
+            style={s.greetingNameTouch}
+            onPress={() => router.push('/profile')} 
+            accessibilityLabel="Ir para perfil"
+          >
+            <Text style={s.greetingName} numberOfLines={1} ellipsizeMode="tail">
+              {userName}
+            </Text>
+          </TouchableOpacity>
+        </View>
+
         <TouchableOpacity onPress={() => router.push('/(tabs)/bookmarks' as any)} accessibilityLabel="Marcadores">
           <View style={s.avatarCircle}>
             <Ionicons name="bookmark-outline" size={18} color={t.accent} />
@@ -340,10 +348,19 @@ function makeStyles(t: ReturnType<typeof useAppTheme>) {
       marginBottom: 20,
       gap: 8,
     },
+    greetingContainer: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginRight: 4,
+    },
     greetingStatic: {
       fontSize: 24,
       fontWeight: 'bold',
       color: t.textPrimary,
+    },
+    greetingNameTouch: {
+      flex: 1,
     },
     greetingName: {
       fontSize: 24,
@@ -464,7 +481,6 @@ function makeStyles(t: ReturnType<typeof useAppTheme>) {
       borderWidth: 1,
       borderColor: t.surfaceBorder,
       minHeight: 88,
-      // subtle accent glow on dark
       ...(t.isDark ? {
         shadowColor: t.accent,
         shadowOpacity: 0.06,
