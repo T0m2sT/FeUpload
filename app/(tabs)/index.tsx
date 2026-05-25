@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { GENERIC_PROGRAM_CODES } from '@/constants/academics';
 import { useAppTheme } from '@/hooks/use-app-theme';
+import { useOfflineIndex } from '@/services/offline';
 import { supabase } from '@/lib/supabase';
 import { normalizeCourse } from '@/lib/validation';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,7 +18,6 @@ import {
 } from 'react-native';
 
 
-const OFFLINE_COUNT = 4;
 const PINNED_STORAGE_KEY = '@feupload/pinned-courses';
 
 type Course = {
@@ -45,6 +45,8 @@ export default function HomeScreen() {
   const [pinnedCourses, setPinnedCourses] = useState<Course[]>([]);
   const [pinnedError, setPinnedError] = useState('');
   const searchRequestId = useRef(0);
+  const offlineIndex = useOfflineIndex();
+  const offlineCount = Object.keys(offlineIndex).length;
 
   useFocusEffect(useCallback(() => {
     const init = async () => {
@@ -313,9 +315,13 @@ export default function HomeScreen() {
       {/* Offline section */}
       <View style={s.offlineSection}>
         <Text style={s.offlineTitle}>Materiais Offline</Text>
-        <TouchableOpacity style={s.offlineRow}>
+        <TouchableOpacity
+          style={s.offlineRow}
+          onPress={() => router.push('/documents' as any)}
+          accessibilityLabel="Abrir os meus documentos offline"
+        >
           <Ionicons name="cloud-offline-outline" size={18} color={t.textSecondary} />
-          <Text style={s.offlineText}>{OFFLINE_COUNT} disponíveis offline</Text>
+          <Text style={s.offlineText}>{offlineCount} disponíveis offline</Text>
           <Ionicons name="chevron-forward" size={16} color={t.textMuted} />
         </TouchableOpacity>
       </View>

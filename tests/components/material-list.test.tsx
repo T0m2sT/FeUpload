@@ -23,6 +23,18 @@ jest.mock('expo-router', () => ({
   useRouter: jest.fn(),
 }));
 
+const mockDownloadMaterial = jest.fn();
+jest.mock('../../services/offline', () => ({
+  downloadMaterial: (...args: any[]) => mockDownloadMaterial(...args),
+  removeOfflineMaterial: jest.fn(),
+  useOfflineIndex: () => ({}),
+  offlineSupported: true,
+}));
+
+jest.mock('../../hooks/use-is-online', () => ({
+  useIsOnline: () => true,
+}));
+
 const mockItems = [
   { id: '1', title: 'Exame 2022', type: 'Exame', pdf: 'https://example.com/exame.pdf', rating: 4 },
   { id: '2', title: 'Resumo Cap 1', type: 'Resumo', subtitle: 'Versão final' },
@@ -60,19 +72,22 @@ describe('MaterialList', () => {
     expect(queryByText('undefined')).toBeNull();
   });
 
-  it('opens URL when clicking download button', () => {
-    const { getAllByLabelText } = render(<MaterialList items={mockItems as any} />);
+  it('triggers offline download when the cloud button is pressed', () => {
+    const { getAllByLabelText } = render(
+      <MaterialList items={mockItems as any} courseCode="ES" />,
+    );
 
-    const downloadBtns = getAllByLabelText('Download');
+    const downloadBtns = getAllByLabelText('Descarregar para offline');
     fireEvent.press(downloadBtns[0]);
-    expect(Linking.openURL).toHaveBeenCalledWith('https://example.com/exame.pdf');
+    expect(mockDownloadMaterial).toHaveBeenCalledWith(
+      expect.objectContaining({ id: '1', file_url: 'https://example.com/exame.pdf' }),
+    );
   });
 
-  it('renders download button only for items with PDF', () => {
+  it('renders the offline download button only for items with PDF', () => {
     const { getAllByLabelText } = render(<MaterialList items={mockItems as any} />);
 
-    // Only items with PDF have a Download button - mockItems has 1 PDF item
-    const downloadBtns = getAllByLabelText('Download');
+    const downloadBtns = getAllByLabelText('Descarregar para offline');
     expect(downloadBtns).toHaveLength(1);
   });
 
@@ -93,7 +108,13 @@ describe('MaterialList', () => {
 
       expect(pushMock).toHaveBeenCalledWith({
         pathname: '/pdf-viewer',
-        params: { pdf: 'https://example.com/exame.pdf', pdf_solved: '', title: 'Exame 2022' },
+        params: {
+          pdf: 'https://example.com/exame.pdf',
+          pdf_solved: '',
+          local_pdf: '',
+          local_pdf_solved: '',
+          title: 'Exame 2022',
+        },
       });
       expect(Linking.openURL).not.toHaveBeenCalled();
     });
@@ -115,6 +136,8 @@ describe('MaterialList', () => {
         params: {
           pdf: 'https://example.com/exame_unsolved.pdf',
           pdf_solved: 'https://example.com/exame_solved.pdf',
+          local_pdf: '',
+          local_pdf_solved: '',
           title: 'Exame Resolvido',
         },
       });
@@ -177,6 +200,8 @@ describe('MaterialList', () => {
         params: {
           pdf: '',
           pdf_solved: 'https://example.com/exame_solved.pdf',
+          local_pdf: '',
+          local_pdf_solved: '',
           title: 'Apenas Resolvido Native',
         },
       });

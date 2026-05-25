@@ -1,5 +1,6 @@
 import { PdfViewerComponent } from '@/components/PdfViewerComponent';
 import { useAppTheme } from '@/hooks/use-app-theme';
+import { useIsOnline } from '@/hooks/use-is-online';
 import { Ionicons } from '@expo/vector-icons';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
@@ -7,16 +8,30 @@ import { Dimensions, StyleSheet, TouchableOpacity, View, Text } from 'react-nati
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function PdfViewer() {
-    const { pdf, pdf_solved, title } = useLocalSearchParams<{ pdf: string; pdf_solved?: string; title: string }>();
+    const { pdf, pdf_solved, local_pdf, local_pdf_solved, title } = useLocalSearchParams<{
+        pdf?: string;
+        pdf_solved?: string;
+        local_pdf?: string;
+        local_pdf_solved?: string;
+        title: string;
+    }>();
     const router = useRouter();
     const t = useAppTheme();
     const insets = useSafeAreaInsets();
+    const isOnline = useIsOnline();
 
-    const hasBoth = !!pdf && !!pdf_solved;
-    const [showSolved, setShowSolved] = useState(!pdf && !!pdf_solved);
+    // Prefer local files when available — they work offline and load faster.
+    const mainUri = local_pdf || pdf || '';
+    const solvedUri = local_pdf_solved || pdf_solved || '';
 
-    const activePdfUri = showSolved ? pdf_solved : pdf;
-    const pdfSource = { uri: activePdfUri as string, cache: true };
+    const hasBoth = !!mainUri && !!solvedUri;
+    const [showSolved, setShowSolved] = useState(!mainUri && !!solvedUri);
+
+    const activePdfUri = showSolved ? solvedUri : mainUri;
+    const activeIsLocal = activePdfUri.startsWith('file://');
+    const pdfSource = { uri: activePdfUri, cache: true };
+
+    const showOfflineError = !activeIsLocal && !isOnline;
 
     return (
         <View style={[styles.container, { backgroundColor: t.background }]}>
@@ -85,11 +100,21 @@ export default function PdfViewer() {
                     </TouchableOpacity>
                 </View>
             )}
-            <PdfViewerComponent
-                key={activePdfUri}
-                source={pdfSource}
-                trustAllCerts={false}
-                style={styles.pdf} />
+            {showOfflineError ? (
+                <View style={styles.offlineBox}>
+                    <Ionicons name="cloud-offline-outline" size={48} color={t.textMuted} />
+                    <Text style={[styles.offlineTitle, { color: t.textPrimary }]}>Sem ligação</Text>
+                    <Text style={[styles.offlineText, { color: t.textSecondary }]}>
+                        Este ficheiro não está disponível offline. Liga-te à internet para o descarregar primeiro.
+                    </Text>
+                </View>
+            ) : (
+                <PdfViewerComponent
+                    key={activePdfUri}
+                    source={pdfSource}
+                    trustAllCerts={false}
+                    style={styles.pdf} />
+            )}
         </View>
     );
 }
@@ -138,5 +163,21 @@ const styles = StyleSheet.create({
     tabText: {
         fontSize: 13,
         fontWeight: '600',
+    },
+    offlineBox: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingHorizontal: 32,
+        gap: 12,
+    },
+    offlineTitle: {
+        fontSize: 18,
+        fontWeight: '600',
+    },
+    offlineText: {
+        fontSize: 14,
+        textAlign: 'center',
+        lineHeight: 20,
     },
 });
