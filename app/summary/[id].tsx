@@ -14,6 +14,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import type { AppPalette } from '@/constants/theme';
 import { getSummaryById } from '@/services/materials';
+import { supabase } from '@/lib/supabase';
+import { getCachedSummary, setCachedSummary } from '@/lib/ai-summary-cache';
+import Markdown from 'react-native-markdown-display';
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('pt-PT', {
@@ -32,6 +35,9 @@ export default function SummaryDetailScreen() {
   const [summary, setSummary] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [aiSummary, setAiSummary] = useState<string | null>(() => getCachedSummary(id ?? '') ?? null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -51,6 +57,24 @@ export default function SummaryDetailScreen() {
       alive = false;
     };
   }, [id]);
+
+  const generateAiSummary = async () => {
+    if (!summary?.file_url) return;
+    setAiLoading(true);
+    setAiError(null);
+    try {
+      const { data, error: fnError } = await supabase.functions.invoke('summarize-pdf', {
+        body: { fileUrl: summary.file_url, title: summary.title },
+      });
+      if (fnError) throw fnError;
+      setAiSummary(data.summary);
+      if (id) setCachedSummary(id, data.summary);
+    } catch (e: any) {
+      setAiError(e?.message ?? 'Não foi possível gerar o resumo. Tenta novamente.');
+    } finally {
+      setAiLoading(false);
+    }
+  };
 
   const openFile = (url: string) => {
     if (Platform.OS === 'web') {
@@ -125,6 +149,38 @@ export default function SummaryDetailScreen() {
               <Ionicons name="document-outline" size={18} color={t.accent} />
               <Text style={s.fileBtnText}>Abrir ficheiro</Text>
             </TouchableOpacity>
+          ) : null}
+
+          <View style={s.divider} />
+
+          {/* AI Summary */}
+          {!aiSummary && !aiLoading && summary.file_url ? (
+            <TouchableOpacity style={s.aiBtn} onPress={generateAiSummary}>
+              <Ionicons name="sparkles-outline" size={16} color={t.accent} />
+              <Text style={s.aiBtnText}>Gerar resumo com IA</Text>
+            </TouchableOpacity>
+          ) : null}
+
+          {aiLoading ? (
+            <View style={s.aiBox}>
+              <ActivityIndicator size="small" color={t.accent} style={{ marginBottom: 8 }} />
+              <Text style={s.aiBoxMuted}>A gerar resumo...</Text>
+            </View>
+          ) : aiError ? (
+            <View style={s.aiBox}>
+              <Text style={s.aiErrorText}>{aiError}</Text>
+              <TouchableOpacity onPress={generateAiSummary} style={{ marginTop: 8 }}>
+                <Text style={s.aiBtnText}>Tentar novamente</Text>
+              </TouchableOpacity>
+            </View>
+          ) : aiSummary ? (
+            <View style={s.aiBox}>
+              <View style={s.aiHeader}>
+                <Ionicons name="sparkles-outline" size={14} color={t.accent} />
+                <Text style={s.aiLabel}>Resumo gerado por IA</Text>
+              </View>
+              <Markdown style={{ body: s.aiText, bullet_list_icon: s.aiText, bullet_list_content: s.aiText, strong: { color: s.aiText.color, fontWeight: '700' } }}>{aiSummary}</Markdown>
+            </View>
           ) : null}
         </ScrollView>
       )}
@@ -205,5 +261,36 @@ function makeStyles(t: AppPalette) {
       borderColor: t.accentBorder,
     },
     fileBtnText: { color: t.accent, fontWeight: '600', fontSize: 14 },
+    aiBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      alignSelf: 'flex-start',
+      paddingHorizontal: 14,
+      paddingVertical: 10,
+      borderRadius: 10,
+      backgroundColor: t.accentDim,
+      borderWidth: 1,
+      borderColor: t.accentBorder,
+    },
+    aiBtnText: { color: t.accent, fontWeight: '600', fontSize: 14 },
+    aiBox: {
+      backgroundColor: t.surface,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: t.accentBorder,
+      padding: 14,
+      marginTop: 4,
+    },
+    aiHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      marginBottom: 10,
+    },
+    aiLabel: { fontSize: 11, fontWeight: '700', color: t.accent, textTransform: 'uppercase', letterSpacing: 0.6 },
+    aiText: { fontSize: 14, lineHeight: 22, color: t.textPrimary },
+    aiBoxMuted: { fontSize: 13, color: t.textMuted, textAlign: 'center' },
+    aiErrorText: { fontSize: 13, color: t.error },
   });
 }
