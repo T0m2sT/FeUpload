@@ -29,9 +29,11 @@ export default function PdfViewer() {
                         </TouchableOpacity>
                     ),
                     headerStyle: {
-                        backgroundColor: t.surface,
+                        backgroundColor: t.background,
                     },
                     headerTintColor: t.textPrimary,
+                    headerShadowVisible: false,
+                    headerBackVisible: false,
                 }}
             />
             {hasBoth && (
