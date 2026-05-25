@@ -17,6 +17,7 @@ import { getSummaryById } from '@/services/materials';
 import { supabase } from '@/lib/supabase';
 import { getCachedSummary, setCachedSummary } from '@/lib/ai-summary-cache';
 import Markdown from 'react-native-markdown-display';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('pt-PT', {
@@ -85,7 +86,7 @@ export default function SummaryDetailScreen() {
   };
 
   return (
-    <View style={s.root}>
+    <SafeAreaView style={s.root}>
       <View style={s.chrome}>
         <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={20} color={t.accent} />
@@ -184,7 +185,7 @@ export default function SummaryDetailScreen() {
           ) : null}
         </ScrollView>
       )}
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -192,11 +193,11 @@ function makeStyles(t: AppPalette) {
   return StyleSheet.create({
     root: { flex: 1, backgroundColor: t.background },
     chrome: {
-      paddingTop: Platform.OS === 'ios' ? 56 : 44,
       paddingHorizontal: 20,
-      paddingBottom: 12,
+      paddingVertical: 12,
       borderBottomWidth: 1,
       borderBottomColor: t.surfaceBorder,
+      backgroundColor: t.background,
     },
     backBtn: { flexDirection: 'row', alignItems: 'center', gap: 6 },
     backText: { color: t.accent, fontSize: 15, fontWeight: '600' },

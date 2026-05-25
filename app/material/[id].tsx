@@ -17,6 +17,7 @@ import { getMaterialById } from '@/services/materials';
 import { supabase } from '@/lib/supabase';
 import { getCachedSummary, setCachedSummary } from '@/lib/ai-summary-cache';
 import Markdown from 'react-native-markdown-display';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 type MaterialDetail = {
   id: string;
@@ -128,7 +129,7 @@ export default function MaterialDetailScreen() {
   };
 
   return (
-    <View style={s.root}>
+    <SafeAreaView style={s.root}>
       <View style={s.chrome}>
         <TouchableOpacity style={s.backBtn} onPress={() => router.back()} accessibilityLabel="Voltar">
           <Ionicons name="arrow-back" size={20} color={t.accent} />
@@ -151,14 +152,13 @@ export default function MaterialDetailScreen() {
       ) : (
         <ScrollView contentContainerStyle={s.container}>
           {material.class_code ? <Text style={s.code}>{material.class_code}</Text> : null}
-          <View style={s.titleRow}>
+          {material.file_url ? (
+            <TouchableOpacity onPress={() => openFile(material.file_url)} accessibilityLabel="Abrir ficheiro">
+              <Text style={s.title}>{material.title}</Text>
+            </TouchableOpacity>
+          ) : (
             <Text style={s.title}>{material.title}</Text>
-            {material.file_url ? (
-              <TouchableOpacity onPress={() => openFile(material.file_url)} accessibilityLabel="Abrir ficheiro" style={s.titleFileBtn}>
-                <Ionicons name="document-outline" size={20} color={t.accent} />
-              </TouchableOpacity>
-            ) : null}
-          </View>
+          )}
 
           <View style={s.metaRow}>
             <Ionicons name="person-outline" size={14} color={t.textSecondary} />
@@ -185,10 +185,10 @@ export default function MaterialDetailScreen() {
             <Stars rating={material.avgRating} size={16} color={t.accent} muted={t.textMuted} />
             {material.ratingCount > 0 ? (
               <Text style={s.ratingText}>
-                {material.avgRating.toFixed(1)} <Text style={s.ratingAccent}>(</Text><Text style={s.ratingLink}>{`${material.ratingCount} avaliações)`}</Text>
+                <Text style={s.ratingAccent}>{material.avgRating.toFixed(1)} (</Text><Text style={s.ratingLink}>{`${material.ratingCount} ${material.ratingCount === 1 ? 'avaliação' : 'avaliações'})`}</Text>
               </Text>
             ) : (
-              <Text style={s.ratingText}>Sem avaliações</Text>
+              <Text style={s.ratingLink}>Sem avaliações</Text>
             )}
           </TouchableOpacity>
 
@@ -240,7 +240,7 @@ export default function MaterialDetailScreen() {
           ) : null}
         </ScrollView>
       )}
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -259,11 +259,11 @@ function makeStyles(t: AppPalette) {
   return StyleSheet.create({
     root: { flex: 1, backgroundColor: t.background },
     chrome: {
-      paddingTop: Platform.OS === 'ios' ? 56 : 44,
       paddingHorizontal: 20,
-      paddingBottom: 12,
+      paddingVertical: 12,
       borderBottomWidth: 1,
       borderBottomColor: t.surfaceBorder,
+      backgroundColor: t.background,
     },
     backBtn: { flexDirection: 'row', alignItems: 'center', gap: 6 },
     backText: { color: t.accent, fontSize: 15, fontWeight: '600' },
@@ -277,20 +277,11 @@ function makeStyles(t: AppPalette) {
       letterSpacing: 1.5,
       marginBottom: 6,
     },
-    titleRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 10,
-      marginBottom: 12,
-    },
-    titleFileBtn: {
-      padding: 4,
-    },
     title: {
-      flex: 1,
       fontSize: 22,
       fontWeight: 'bold',
       color: t.textPrimary,
+      marginBottom: 12,
     },
     metaRow: {
       flexDirection: 'row',
@@ -307,7 +298,7 @@ function makeStyles(t: AppPalette) {
       gap: 6,
       marginBottom: 10,
     },
-    ratingText: { fontSize: 12, color: t.textMuted, marginLeft: 4 },
+    ratingText: { fontSize: 12, color: t.textMuted },
     ratingLink: { fontSize: 12, color: t.accent, textDecorationLine: 'underline' },
     ratingAccent: { fontSize: 12, color: t.accent },
     divider: {
