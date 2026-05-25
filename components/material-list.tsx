@@ -209,7 +209,7 @@ export function MaterialList({ items, emptyMessage = 'Sem conteúdo disponível.
             </View>
             <View style={s.info}>
               <Text style={s.title}>{item.title}</Text>
-              {item.subtitle ? <Text style={s.sub}>{item.subtitle}</Text> : null}
+              {item.subtitle ? <Text style={s.sub} numberOfLines={1} ellipsizeMode="tail">{item.subtitle}</Text> : null}
               <View style={s.ratingRow}>
                 {(() => {
                   const ratingCount = typeof item.ratingCount === 'number' ? item.ratingCount : null;
