@@ -73,7 +73,7 @@ describe('MaterialEvaluationScreen', () => {
         content: 'Bom material',
       });
       expect(refreshMaterialRating).toHaveBeenCalledWith('m1');
-      expect(replaceMock).toHaveBeenCalled();
+      expect(backMock).toHaveBeenCalled();
     });
   });
 });

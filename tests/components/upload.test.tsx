@@ -13,6 +13,7 @@ jest.mock('@/hooks/use-app-theme', () => ({
 
 jest.mock('expo-router', () => ({
   useRouter: () => ({ back: jest.fn(), push: jest.fn() }),
+  useLocalSearchParams: () => ({ preselect: undefined }),
   useFocusEffect: (cb: any) => {
     const React = require('react');
     React.useEffect(() => {
