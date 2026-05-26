@@ -12,6 +12,35 @@ jest.mock('expo-symbols', () => {
   };
 });
 
+// Mock NetInfo — native bridge isn't loaded in tests
+jest.mock('@react-native-community/netinfo', () => ({
+  __esModule: true,
+  default: {
+    addEventListener: jest.fn(() => () => {}),
+    fetch: jest.fn().mockResolvedValue({ isConnected: true, isInternetReachable: true }),
+    useNetInfo: () => ({ isConnected: true, isInternetReachable: true }),
+  },
+}));
+
+// Mock expo-file-system (new SDK 54 class-based API)
+jest.mock('expo-file-system', () => {
+  class MockFile {
+    uri = '';
+    constructor() {}
+    get exists() { return false; }
+    get size() { return 0; }
+    delete() {}
+    static downloadFileAsync() { return Promise.reject(new Error('not available in tests')); }
+  }
+  class MockDirectory {
+    uri = '';
+    constructor() {}
+    get exists() { return true; }
+    create() {}
+  }
+  return { File: MockFile, Directory: MockDirectory, Paths: { document: { uri: 'file:///doc' } } };
+});
+
 // Mock Ionicons
 jest.mock('@expo/vector-icons', () => {
   const React = require('react');

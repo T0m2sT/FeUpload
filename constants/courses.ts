@@ -9,6 +9,7 @@ export type Material = {
   pdf_solved?: string;
   is_solved?: boolean;
   created_at?: string;
+  class_code?: string;
 };
 
 export type ThreadReply = {
