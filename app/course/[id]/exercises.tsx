@@ -50,6 +50,7 @@ export default function CourseExercisesScreen() {
           rating: m.rating ?? undefined,
           ratingCount: m.ratingCount ?? 0,
           created_at: m.created_at,
+          class_code: m.class_code,
         })));
       })
       .catch(() => {
@@ -119,6 +120,7 @@ export default function CourseExercisesScreen() {
       ) : (
         <MaterialList
           items={sortedItems}
+          courseCode={courseCode}
           emptyMessage={
             solvedFilter === 'solved'
               ? 'Sem fichas resolvidas disponíveis.'

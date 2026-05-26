@@ -48,6 +48,7 @@ export default function CourseExamsScreen() {
           rating: m.rating ?? undefined,
           ratingCount: m.ratingCount ?? 0,
           created_at: m.created_at,
+          class_code: m.class_code,
         })));
       })
       .catch(() => {
@@ -117,6 +118,7 @@ export default function CourseExamsScreen() {
       ) : (
         <MaterialList
           items={sortedExams}
+          courseCode={courseCode}
           emptyMessage={
             solvedFilter === 'solved'
               ? 'Sem exames resolvidos disponíveis.'

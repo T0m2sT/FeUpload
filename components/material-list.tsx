@@ -49,9 +49,10 @@ function StarRating({ rating, accent }: { rating: number; accent: string }) {
 type Props = {
   items: Material[];
   emptyMessage?: string;
+  courseCode?: string;
 };
 
-export function MaterialList({ items, emptyMessage = 'Sem conteúdo disponível.' }: Props) {
+export function MaterialList({ items, emptyMessage = 'Sem conteúdo disponível.', courseCode }: Props) {
   const t = useAppTheme();
   const s = useMemo(() => makeStyles(t), [t]);
   const router = useRouter();
@@ -241,7 +242,7 @@ export function MaterialList({ items, emptyMessage = 'Sem conteúdo disponível.
       await downloadMaterial({
         id: item.id,
         title: item.title,
-        class_code: courseCode ?? 'OUTROS',
+        class_code: item.class_code ?? courseCode ?? 'OUTROS',
         type: item.type,
         file_url: item.pdf,
         file_url_solved: item.pdf_solved,
