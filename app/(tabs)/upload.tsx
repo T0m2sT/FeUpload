@@ -1,25 +1,25 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import {
   ActivityIndicator,
   Platform,
   ScrollView,
   StyleSheet,
+  Switch,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as DocumentPicker from 'expo-document-picker';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import type { AppPalette } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
 import { uploadMaterial, uploadMaterialFile } from '@/services/materials';
+import { suggestTagsFromFilename, type MaterialType } from '@/lib/tag-suggestions';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
-
-type MaterialType = 'exam' | 'exercise' | 'notes' | 'summary';
 type DropdownKey = 'course' | 'year' | 'type' | 'courseYear' | 'courseSemester' | null;
 
 type Course = {
@@ -70,6 +70,7 @@ export default function UploadScreen() {
   const [materialType, setMaterialType] = useState<MaterialType | null>(null);
   const [pickedFile, setPickedFile] = useState<PickedFile | null>(null);
   const [pickedFileSolved, setPickedFileSolved] = useState<PickedFile | null>(null);
+  const [hasAnswers, setHasAnswers] = useState(false);
   const [courseYear, setCourseYear] = useState<number | null>(null);
   const [courseSemester, setCourseSemester] = useState<number | null>(null);
   const [open, setOpen] = useState<DropdownKey>(null);
@@ -82,39 +83,49 @@ export default function UploadScreen() {
   const [done, setDone] = useState(false);
 
   // ── Load courses ────────────────────────────────────────────────────────────
-  useFocusEffect(
-    useCallback(() => {
-      let active = true;
-      const load = async () => {
-        setLoadingCourses(true);
-        try {
-          const { data, error: err } = await supabase
-            .from('courses')
-            .select('id, code, name, year, semester')
-            .order('name');
-          if (err) throw err;
-          if (active) {
-            const loaded = data ?? [];
-            setCourses(loaded);
-            if (preselect) {
-              const match = loaded.find((c) => c.code === preselect.toUpperCase());
-              if (match) {
-                setCourse(match);
-                setCourseYear(match.year);
-                setCourseSemester(match.semester);
-              }
+  const preselectCode = Array.isArray(preselect) ? preselect[0] : preselect;
+
+  useEffect(() => {
+    let active = true;
+    const load = async () => {
+      setLoadingCourses(true);
+      try {
+        const { data, error: err } = await supabase
+          .from('courses')
+          .select('id, code, name, year, semester')
+          .order('name');
+        if (err) throw err;
+        if (active) {
+          const loaded = data ?? [];
+          setCourses(loaded);
+          if (preselectCode) {
+            const match = loaded.find((c) => c.code === preselectCode.toUpperCase());
+            if (match) {
+              setCourse(match);
+              setCourseYear(match.year);
+              setCourseSemester(match.semester);
             }
           }
-        } catch {
-          // Silently fall back – user sees an empty list
-        } finally {
-          if (active) setLoadingCourses(false);
         }
-      };
-      load();
-      return () => { active = false; };
-    }, [preselect]),
-  );
+      } catch {
+        // Silently fall back – user sees an empty list
+      } finally {
+        if (active) setLoadingCourses(false);
+      }
+    };
+    load();
+    return () => { active = false; };
+  }, [preselectCode]);
+
+  // Notes/summary never carry a separate solution PDF — keep the toggle and
+  // any previously picked solution file in sync with the material type.
+  const supportsAnswers = materialType === 'exam' || materialType === 'exercise';
+  useEffect(() => {
+    if (!supportsAnswers && (hasAnswers || pickedFileSolved)) {
+      setHasAnswers(false);
+      setPickedFileSolved(null);
+    }
+  }, [supportsAnswers, hasAnswers, pickedFileSolved]);
 
   // ── Helpers ─────────────────────────────────────────────────────────────────
   const toggle = (key: DropdownKey) =>
@@ -141,6 +152,10 @@ export default function UploadScreen() {
         };
         if (version === 'unsolved') {
           setPickedFile(picked);
+          const tags = suggestTagsFromFilename(asset.name);
+          if (!title && tags.title) setTitle(tags.title);
+          if (!materialType && tags.type) setMaterialType(tags.type);
+          if (tags.year) setYear(tags.year);
         } else {
           setPickedFileSolved(picked);
         }
@@ -216,7 +231,7 @@ export default function UploadScreen() {
         academic_year: year,
         file_url: fileUrl,
         file_url_solved: fileUrlSolved,
-        is_solved: false,
+        is_solved: hasAnswers && !!pickedFileSolved,
       });
 
       setDone(true);
@@ -238,6 +253,7 @@ export default function UploadScreen() {
     setMaterialType(null);
     setPickedFile(null);
     setPickedFileSolved(null);
+    setHasAnswers(false);
     setError('');
     setDone(false);
     setOpen(null);
@@ -614,46 +630,72 @@ export default function UploadScreen() {
           )}
         </TouchableOpacity>
 
-        {/* ── Solved File picker ── */}
-        <Text style={s.sectionLabel}>Resolução / Soluções (Opcional)</Text>
-        <TouchableOpacity
-          style={[s.filePicker, pickedFileSolved && s.filePickerActive]}
-          onPress={() => pickFile('solved')}
-          accessibilityRole="button"
-          accessibilityLabel="Escolher resolução"
-        >
-          <View style={[s.fileIconWrap, pickedFileSolved && s.fileIconWrapActive]}>
-            <Ionicons
-              name={pickedFileSolved ? 'document-attach' : 'checkmark-circle-outline'}
-              size={24}
-              color={pickedFileSolved ? t.accent : t.textSecondary}
+        {/* ── Answers toggle (#110) ── */}
+        {supportsAnswers && (
+          <View style={s.answersToggleRow} accessibilityRole="switch">
+            <View style={{ flex: 1 }}>
+              <Text style={s.answersToggleLabel}>Tem soluções?</Text>
+              <Text style={s.answersToggleSub}>
+                Liga para juntar o PDF da resolução a este material.
+              </Text>
+            </View>
+            <Switch
+              value={hasAnswers}
+              onValueChange={(v) => {
+                setHasAnswers(v);
+                if (!v) setPickedFileSolved(null);
+              }}
+              trackColor={{ false: t.surfaceBorder, true: t.accent }}
+              thumbColor={Platform.OS === 'android' ? (hasAnswers ? t.accent : t.surface) : undefined}
+              accessibilityLabel="Material com soluções"
             />
           </View>
-          <View style={{ flex: 1 }}>
-            <Text
-              style={[s.filePickerLabel, pickedFileSolved && { color: t.accent }]}
-              numberOfLines={1}
-            >
-              {pickedFileSolved ? pickedFileSolved.name : 'Escolher resolução'}
-            </Text>
-            <Text style={s.filePickerSub}>
-              {pickedFileSolved
-                ? pickedFileSolved.size
-                  ? `${(pickedFileSolved.size / 1024).toFixed(1)} KB  ·  Toca para substituir`
-                  : 'Toca para substituir'
-                : 'PDF da resolução ou gabarito'}
-            </Text>
-          </View>
-          {pickedFileSolved && (
+        )}
+
+        {/* ── Solved File picker (only when answers toggle is on) ── */}
+        {supportsAnswers && hasAnswers && (
+          <>
+            <Text style={s.sectionLabel}>Resolução / Soluções</Text>
             <TouchableOpacity
-              onPress={(e) => { e.stopPropagation?.(); setPickedFileSolved(null); }}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              accessibilityLabel="Remover resolução"
+              style={[s.filePicker, pickedFileSolved && s.filePickerActive]}
+              onPress={() => pickFile('solved')}
+              accessibilityRole="button"
+              accessibilityLabel="Escolher resolução"
             >
-              <Ionicons name="close-circle" size={20} color={t.textSecondary} />
+              <View style={[s.fileIconWrap, pickedFileSolved && s.fileIconWrapActive]}>
+                <Ionicons
+                  name={pickedFileSolved ? 'document-attach' : 'checkmark-circle-outline'}
+                  size={24}
+                  color={pickedFileSolved ? t.accent : t.textSecondary}
+                />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text
+                  style={[s.filePickerLabel, pickedFileSolved && { color: t.accent }]}
+                  numberOfLines={1}
+                >
+                  {pickedFileSolved ? pickedFileSolved.name : 'Escolher resolução'}
+                </Text>
+                <Text style={s.filePickerSub}>
+                  {pickedFileSolved
+                    ? pickedFileSolved.size
+                      ? `${(pickedFileSolved.size / 1024).toFixed(1)} KB  ·  Toca para substituir`
+                      : 'Toca para substituir'
+                    : 'PDF da resolução ou gabarito'}
+                </Text>
+              </View>
+              {pickedFileSolved && (
+                <TouchableOpacity
+                  onPress={(e) => { e.stopPropagation?.(); setPickedFileSolved(null); }}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  accessibilityLabel="Remover resolução"
+                >
+                  <Ionicons name="close-circle" size={20} color={t.textSecondary} />
+                </TouchableOpacity>
+              )}
             </TouchableOpacity>
-          )}
-        </TouchableOpacity>
+          </>
+        )}
 
         {/* ── Submit ── */}
         <TouchableOpacity
@@ -869,6 +911,30 @@ function makeStyles(t: AppPalette) {
       marginBottom: 2,
     },
     filePickerSub: {
+      fontSize: 12,
+      color: t.textMuted,
+    },
+
+    // Answers toggle (#110)
+    answersToggleRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      backgroundColor: t.surface,
+      borderRadius: 14,
+      borderWidth: 1,
+      borderColor: t.surfaceBorder,
+      paddingVertical: 14,
+      paddingHorizontal: 16,
+      marginBottom: 16,
+    },
+    answersToggleLabel: {
+      fontSize: 15,
+      fontWeight: '600',
+      color: t.textPrimary,
+      marginBottom: 2,
+    },
+    answersToggleSub: {
       fontSize: 12,
       color: t.textMuted,
     },

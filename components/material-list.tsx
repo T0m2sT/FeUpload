@@ -20,6 +20,14 @@ import {
 import { type BookmarkCollection, BOOKMARK_COLORS } from '@/constants/bookmarks';
 import { supabase } from '@/lib/supabase';
 import { addBookmark } from '@/services/bookmarks';
+import {
+  downloadMaterial,
+  offlineSupported,
+  removeOfflineMaterial,
+  useOfflineIndex,
+} from '@/services/offline';
+import { useIsOnline } from '@/hooks/use-is-online';
+import { Alert } from 'react-native';
 
 function StarRating({ rating, accent }: { rating: number; accent: string }) {
   const rounded = Math.round(rating);
@@ -41,9 +49,10 @@ function StarRating({ rating, accent }: { rating: number; accent: string }) {
 type Props = {
   items: Material[];
   emptyMessage?: string;
+  courseCode?: string;
 };
 
-export function MaterialList({ items, emptyMessage = 'Sem conteúdo disponível.' }: Props) {
+export function MaterialList({ items, emptyMessage = 'Sem conteúdo disponível.', courseCode }: Props) {
   const t = useAppTheme();
   const s = useMemo(() => makeStyles(t), [t]);
   const router = useRouter();
@@ -52,6 +61,10 @@ export function MaterialList({ items, emptyMessage = 'Sem conteúdo disponível.
   const [collections, setCollections] = useState<BookmarkCollection[]>([]);
   const [isLoadingCollections, setIsLoadingCollections] = useState(false);
   
+  const offlineIndex = useOfflineIndex();
+  const isOnline = useIsOnline();
+  const [downloadingIds, setDownloadingIds] = useState<Set<string>>(new Set());
+
   const [showCollectionPicker, setShowCollectionPicker] = useState(false);
   const [selectedMaterial, setSelectedMaterial] = useState<Material | null>(null);
   const [showNewCollectionInput, setShowNewCollectionInput] = useState(false);
@@ -156,17 +169,91 @@ export function MaterialList({ items, emptyMessage = 'Sem conteúdo disponível.
   };
 
   const openPDF = (item: Material) => {
-    if (!item.pdf && !item.pdf_solved) return;
+    const offlineEntry = offlineIndex[item.id];
+    const remotePdf = item.pdf;
+    const remoteSolved = item.pdf_solved;
+    const localPdf = offlineEntry?.localUri;
+    const localSolved = offlineEntry?.localUriSolved;
+
+    if (!remotePdf && !remoteSolved && !localPdf && !localSolved) return;
+
+    if (!isOnline && !localPdf && !localSolved) {
+      Alert.alert(
+        'Sem ligação',
+        'Este ficheiro não está disponível offline. Liga-te à internet para o descarregar primeiro.',
+      );
+      return;
+    }
+
     if (Platform.OS === 'web') {
-      Linking.openURL(item.pdf || item.pdf_solved!);
-    } else {
-      router.push({
-        pathname: "/pdf-viewer" as any,
-        params: {
-          pdf: item.pdf ?? '',
-          pdf_solved: item.pdf_solved ?? '',
-          title: item.title ?? 'PDF',
-        },
+      Linking.openURL(remotePdf || remoteSolved!);
+      return;
+    }
+
+    router.push({
+      pathname: "/pdf-viewer" as any,
+      params: {
+        pdf: remotePdf ?? '',
+        pdf_solved: remoteSolved ?? '',
+        local_pdf: localPdf ?? '',
+        local_pdf_solved: localSolved ?? '',
+        title: item.title ?? 'PDF',
+      },
+    });
+  };
+
+  const handleOfflineButton = async (item: Material) => {
+    if (!offlineSupported) {
+      Alert.alert(
+        'Não disponível',
+        'O modo offline está disponível na app móvel.',
+      );
+      return;
+    }
+    const cached = offlineIndex[item.id];
+    if (cached) {
+      Alert.alert(
+        'Remover offline',
+        `Eliminar a cópia offline de "${item.title}"?`,
+        [
+          { text: 'Cancelar', style: 'cancel' },
+          {
+            text: 'Remover',
+            style: 'destructive',
+            onPress: () => { removeOfflineMaterial(item.id); },
+          },
+        ],
+      );
+      return;
+    }
+    if (!isOnline) {
+      Alert.alert(
+        'Sem ligação',
+        'Liga-te à internet para descarregares este ficheiro.',
+      );
+      return;
+    }
+    if (!item.pdf) {
+      Alert.alert('Sem ficheiro', 'Este material não tem PDF associado.');
+      return;
+    }
+    setDownloadingIds((prev) => new Set(prev).add(item.id));
+    try {
+      await downloadMaterial({
+        id: item.id,
+        title: item.title,
+        class_code: item.class_code ?? courseCode ?? 'OUTROS',
+        type: item.type,
+        file_url: item.pdf,
+        file_url_solved: item.pdf_solved,
+      });
+    } catch (err: any) {
+      Alert.alert('Erro', err?.message ?? 'Não foi possível descarregar.');
+    } finally {
+      setDownloadingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(item.id);
+        return next;
       });
     }
   };
@@ -219,7 +306,7 @@ export function MaterialList({ items, emptyMessage = 'Sem conteúdo disponível.
                   />
                 ) : null}
               </View>
-              {item.subtitle ? <Text style={s.sub}>{item.subtitle}</Text> : null}
+              {item.subtitle ? <Text style={s.sub} numberOfLines={1} ellipsizeMode="tail">{item.subtitle}</Text> : null}
               <View style={s.ratingRow}>
                 {(() => {
                   const ratingCount = typeof item.ratingCount === 'number' ? item.ratingCount : null;
@@ -246,6 +333,33 @@ export function MaterialList({ items, emptyMessage = 'Sem conteúdo disponível.
               >
                 <Ionicons name="bookmark-outline" size={20} color={t.textSecondary} />
               </TouchableOpacity>
+              {item.pdf && (() => {
+                const cached = !!offlineIndex[item.id];
+                const downloading = downloadingIds.has(item.id);
+                const canDownload = isOnline || cached;
+                let iconName: any = 'cloud-download-outline';
+                let iconColor = t.textSecondary;
+                if (cached) {
+                  iconName = 'cloud-done-outline';
+                  iconColor = t.accent;
+                } else if (!canDownload) {
+                  iconColor = t.textMuted;
+                }
+                return (
+                  <TouchableOpacity
+                    style={s.actionBtn}
+                    onPress={() => handleOfflineButton(item)}
+                    accessibilityLabel={cached ? 'Remover de offline' : 'Descarregar para offline'}
+                    disabled={downloading}
+                  >
+                    {downloading ? (
+                      <ActivityIndicator size="small" color={t.accent} />
+                    ) : (
+                      <Ionicons name={iconName} size={18} color={iconColor} />
+                    )}
+                  </TouchableOpacity>
+                );
+              })()}
               <TouchableOpacity
                 style={s.actionBtn}
                 accessibilityLabel="Detalhes do material"
@@ -258,15 +372,6 @@ export function MaterialList({ items, emptyMessage = 'Sem conteúdo disponível.
               >
                 <Ionicons name="information-circle-outline" size={18} color={t.textSecondary} />
               </TouchableOpacity>
-              {item.pdf && (
-                <TouchableOpacity
-                  style={s.actionBtn}
-                  onPress={() => Linking.openURL(item.pdf!)}
-                  accessibilityLabel="Download"
-                >
-                  <Ionicons name="cloud-download-outline" size={18} color={t.textSecondary} />
-                </TouchableOpacity>
-              )}
             </View>
           </TouchableOpacity>
         )}

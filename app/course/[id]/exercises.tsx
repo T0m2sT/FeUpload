@@ -1,6 +1,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { CourseSectionShell } from '@/components/course-section-shell';
 import { MaterialList } from '@/components/material-list';
+import { SolvedToggle, type SolvedFilter } from '@/components/solved-toggle';
 import { useEffect, useState } from 'react';
 import type { Material } from '@/constants/courses';
 import { getMaterialsByClassCodeAndType } from '@/services/materials';
@@ -26,6 +27,7 @@ export default function CourseExercisesScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<'rating' | 'date'>('rating');
+  const [solvedFilter, setSolvedFilter] = useState<SolvedFilter>('unsolved');
 
   useEffect(() => {
     if (!courseCode) return;
@@ -41,13 +43,14 @@ export default function CourseExercisesScreen() {
           id: m.id,
           title: m.title,
           type: 'exercise' as const,
-          subtitle: m.description || m.academic_year || undefined,
+          subtitle: m.academic_year ?? undefined,
           pdf: m.file_url || undefined,
           pdf_solved: m.file_url_solved ?? undefined,
           is_solved: m.is_solved ?? false,
           rating: m.rating ?? undefined,
           ratingCount: m.ratingCount ?? 0,
           created_at: m.created_at,
+          class_code: m.class_code,
         })));
       })
       .catch(() => {
@@ -60,15 +63,20 @@ export default function CourseExercisesScreen() {
     return () => { alive = false; };
   }, [courseCode]);
 
-  const sortedItems = [...items].sort((a, b) => {
+  const filteredItems = items.filter((m) =>
+    solvedFilter === 'solved' ? m.is_solved : !m.is_solved
+  );
+
+  const sortedItems = [...filteredItems].sort((a, b) => {
     if (sortBy === 'rating') {
       const ratingA = a.rating ?? 0;
       const ratingB = b.rating ?? 0;
       if (ratingB !== ratingA) return ratingB - ratingA;
-      return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
-    } else {
-      return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
     }
+    const yearA = a.subtitle ?? '';
+    const yearB = b.subtitle ?? '';
+    if (yearB !== yearA) return yearB.localeCompare(yearA);
+    return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
   });
 
   return (
@@ -80,6 +88,10 @@ export default function CourseExercisesScreen() {
       activeKey="exercises"
       onUpload={() => router.push({ pathname: '/upload', params: { preselect: courseCode } })}
     >
+      <View style={s.solvedToggleWrap}>
+        <SolvedToggle value={solvedFilter} onChange={setSolvedFilter} />
+      </View>
+
       <View style={s.toolbar}>
         <Text style={s.toolbarLabel}>Ordenar por:</Text>
         <TouchableOpacity
@@ -106,7 +118,15 @@ export default function CourseExercisesScreen() {
           <Text style={{ color: t.textPrimary, fontSize: 16 }}>{errorMsg}</Text>
         </View>
       ) : (
-        <MaterialList items={sortedItems} emptyMessage="Sem fichas disponíveis." />
+        <MaterialList
+          items={sortedItems}
+          courseCode={courseCode}
+          emptyMessage={
+            solvedFilter === 'solved'
+              ? 'Sem fichas resolvidas disponíveis.'
+              : 'Sem fichas por resolver disponíveis.'
+          }
+        />
       )}
     </CourseSectionShell>
   );
@@ -114,6 +134,10 @@ export default function CourseExercisesScreen() {
 
 function makeStyles(t: AppPalette) {
   return StyleSheet.create({
+    solvedToggleWrap: {
+      paddingHorizontal: 20,
+      paddingTop: 12,
+    },
     toolbar: {
       flexDirection: 'row',
       alignItems: 'center',

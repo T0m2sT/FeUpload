@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { GENERIC_PROGRAM_CODES } from '@/constants/academics';
 import { useAppTheme } from '@/hooks/use-app-theme';
+import { useOfflineIndex } from '@/services/offline';
 import { supabase } from '@/lib/supabase';
 import { normalizeCourse } from '@/lib/validation';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,7 +18,6 @@ import {
 } from 'react-native';
 
 
-const OFFLINE_COUNT = 4;
 const PINNED_STORAGE_KEY = '@feupload/pinned-courses';
 
 type Course = {
@@ -45,6 +45,8 @@ export default function HomeScreen() {
   const [pinnedCourses, setPinnedCourses] = useState<Course[]>([]);
   const [pinnedError, setPinnedError] = useState('');
   const searchRequestId = useRef(0);
+  const offlineIndex = useOfflineIndex();
+  const offlineCount = Object.keys(offlineIndex).length;
 
   useFocusEffect(useCallback(() => {
     const init = async () => {
@@ -62,8 +64,8 @@ export default function HomeScreen() {
       query = query.eq('year', Number(meta.year));
       query = query.eq('semester', Number(meta.semester));
 
-      if (courseToken && !GENERIC_PROGRAM_CODES.has(courseToken)) {
-        query = query.eq('code', courseToken);
+      if (courseToken && !GENERIC_PROGRAM_CODES.has(courseToken as 'LEIC')) {
+        query = query.eq('code', courseToken as 'LEIC');
       }
 
       const { data: coursesData, error } = await query;
@@ -121,7 +123,7 @@ export default function HomeScreen() {
       const byId = new Map((data ?? []).map((course) => [course.id, course]));
       const ordered = pinnedIds
         .map((id) => byId.get(id))
-        .filter((course): course is Course => Boolean(course));
+        .filter((course): course is NonNullable<typeof course> => Boolean(course)) as Course[];
       setPinnedCourses(ordered);
     };
     loadPinnedCourses();
@@ -321,9 +323,13 @@ export default function HomeScreen() {
       {/* Offline section */}
       <View style={s.offlineSection}>
         <Text style={s.offlineTitle}>Materiais Offline</Text>
-        <TouchableOpacity style={s.offlineRow}>
+        <TouchableOpacity
+          style={s.offlineRow}
+          onPress={() => router.push('/documents' as any)}
+          accessibilityLabel="Abrir os meus documentos offline"
+        >
           <Ionicons name="cloud-offline-outline" size={18} color={t.textSecondary} />
-          <Text style={s.offlineText}>{OFFLINE_COUNT} disponíveis offline</Text>
+          <Text style={s.offlineText}>{offlineCount} disponíveis offline</Text>
           <Ionicons name="chevron-forward" size={16} color={t.textMuted} />
         </TouchableOpacity>
       </View>

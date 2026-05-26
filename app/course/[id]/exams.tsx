@@ -1,5 +1,6 @@
 import { CourseSectionShell } from '@/components/course-section-shell';
 import { MaterialList } from '@/components/material-list';
+import { SolvedToggle, type SolvedFilter } from '@/components/solved-toggle';
 import type { Material } from '@/constants/courses';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { getMaterialsByClassCodeAndType } from '@/services/materials';
@@ -26,6 +27,7 @@ export default function CourseExamsScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<'rating' | 'date'>('rating');
+  const [solvedFilter, setSolvedFilter] = useState<SolvedFilter>('unsolved');
 
   useEffect(() => {
     let alive = true;
@@ -46,6 +48,7 @@ export default function CourseExamsScreen() {
           rating: m.rating ?? undefined,
           ratingCount: m.ratingCount ?? 0,
           created_at: m.created_at,
+          class_code: m.class_code,
         })));
       })
       .catch(() => {
@@ -58,15 +61,20 @@ export default function CourseExamsScreen() {
     return () => { alive = false; };
   }, [courseCode]);
 
-  const sortedExams = [...exams].sort((a, b) => {
+  const filteredExams = exams.filter((m) =>
+    solvedFilter === 'solved' ? m.is_solved : !m.is_solved
+  );
+
+  const sortedExams = [...filteredExams].sort((a, b) => {
     if (sortBy === 'rating') {
       const ratingA = a.rating ?? 0;
       const ratingB = b.rating ?? 0;
       if (ratingB !== ratingA) return ratingB - ratingA;
-      return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
-    } else {
-      return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
     }
+    const yearA = a.subtitle ?? '';
+    const yearB = b.subtitle ?? '';
+    if (yearB !== yearA) return yearB.localeCompare(yearA);
+    return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
   });
 
   return (
@@ -78,6 +86,10 @@ export default function CourseExamsScreen() {
       activeKey="exams"
       onUpload={() => router.push({ pathname: '/upload', params: { preselect: courseCode } })}
     >
+      <View style={s.solvedToggleWrap}>
+        <SolvedToggle value={solvedFilter} onChange={setSolvedFilter} />
+      </View>
+
       <View style={s.toolbar}>
         <Text style={s.toolbarLabel}>Ordenar por:</Text>
         <TouchableOpacity
@@ -104,7 +116,15 @@ export default function CourseExamsScreen() {
           <Text style={{ color: t.textPrimary, fontSize: 16 }}>{errorMsg}</Text>
         </View>
       ) : (
-        <MaterialList items={sortedExams} emptyMessage="Sem exames disponíveis." />
+        <MaterialList
+          items={sortedExams}
+          courseCode={courseCode}
+          emptyMessage={
+            solvedFilter === 'solved'
+              ? 'Sem exames resolvidos disponíveis.'
+              : 'Sem exames por resolver disponíveis.'
+          }
+        />
       )}
     </CourseSectionShell>
   );
@@ -112,6 +132,10 @@ export default function CourseExamsScreen() {
 
 function makeStyles(t: AppPalette) {
   return StyleSheet.create({
+    solvedToggleWrap: {
+      paddingHorizontal: 20,
+      paddingTop: 12,
+    },
     toolbar: {
       flexDirection: 'row',
       alignItems: 'center',

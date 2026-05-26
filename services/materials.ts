@@ -106,7 +106,7 @@ export async function getMaterialById(id: string) {
   const avgRating = ratings.length ? ratings.reduce((s, r) => s + r, 0) / ratings.length : 0;
   return {
     ...data,
-    author: data.profiles?.name ?? 'Desconhecido',
+    author: (Array.isArray(data.profiles) ? data.profiles[0]?.name : (data.profiles as any)?.name) ?? 'Desconhecido',
     avgRating,
     ratingCount: ratings.length,
   };
