@@ -64,8 +64,8 @@ export default function HomeScreen() {
       query = query.eq('year', Number(meta.year));
       query = query.eq('semester', Number(meta.semester));
 
-      if (courseToken && !GENERIC_PROGRAM_CODES.has(courseToken)) {
-        query = query.eq('code', courseToken);
+      if (courseToken && !GENERIC_PROGRAM_CODES.has(courseToken as 'LEIC')) {
+        query = query.eq('code', courseToken as 'LEIC');
       }
 
       const { data: coursesData, error } = await query;
@@ -123,7 +123,7 @@ export default function HomeScreen() {
       const byId = new Map((data ?? []).map((course) => [course.id, course]));
       const ordered = pinnedIds
         .map((id) => byId.get(id))
-        .filter((course): course is Course => Boolean(course));
+        .filter((course): course is NonNullable<typeof course> => Boolean(course)) as Course[];
       setPinnedCourses(ordered);
     };
     loadPinnedCourses();
@@ -193,12 +193,20 @@ export default function HomeScreen() {
     <ScrollView style={s.scroll} contentContainerStyle={s.container}>
       {/* Header */}
       <View style={s.header}>
-        <Text style={s.greetingStatic}>Bem-vindo, </Text>
-        <TouchableOpacity onPress={() => router.push('/profile')} accessibilityLabel="Ir para perfil">
-          <Text style={s.greetingName}>{userName}</Text>
-        </TouchableOpacity>
-        <View style={{ flex: 1 }} />
-        <TouchableOpacity onPress={() => router.push('/bookmarks')} accessibilityLabel="Marcadores">
+        <View style={s.greetingContainer}>
+          <Text style={s.greetingStatic} numberOfLines={1}>Bem-vindo, </Text>
+          <TouchableOpacity 
+            style={s.greetingNameTouch}
+            onPress={() => router.push('/profile')} 
+            accessibilityLabel="Ir para perfil"
+          >
+            <Text style={s.greetingName} numberOfLines={1} ellipsizeMode="tail">
+              {userName}
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        <TouchableOpacity onPress={() => router.push('/(tabs)/bookmarks' as any)} accessibilityLabel="Marcadores">
           <View style={s.avatarCircle}>
             <Ionicons name="bookmark-outline" size={18} color={t.accent} />
           </View>
@@ -344,11 +352,21 @@ function makeStyles(t: ReturnType<typeof useAppTheme>) {
       flexDirection: 'row',
       alignItems: 'center',
       marginBottom: 20,
+      gap: 8,
+    },
+    greetingContainer: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginRight: 4,
     },
     greetingStatic: {
       fontSize: 24,
       fontWeight: 'bold',
       color: t.textPrimary,
+    },
+    greetingNameTouch: {
+      flex: 1,
     },
     greetingName: {
       fontSize: 24,
@@ -469,7 +487,6 @@ function makeStyles(t: ReturnType<typeof useAppTheme>) {
       borderWidth: 1,
       borderColor: t.surfaceBorder,
       minHeight: 88,
-      // subtle accent glow on dark
       ...(t.isDark ? {
         shadowColor: t.accent,
         shadowOpacity: 0.06,

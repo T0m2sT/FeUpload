@@ -42,38 +42,38 @@ describe('AuthScreen', () => {
   it('renders login form by default', () => {
     const { getByPlaceholderText, getByText } = render(<AuthScreen />);
     expect(getByPlaceholderText('Email')).toBeDefined();
-    expect(getByPlaceholderText('Password')).toBeDefined();
-    expect(getByText('Sign In')).toBeDefined();
+    expect(getByPlaceholderText('Palavra-passe')).toBeDefined();
+    expect(getByText('Entrar')).toBeDefined();
   });
 
   it('switches to sign-up mode and shows name field', () => {
     const { getByText, getByPlaceholderText } = render(<AuthScreen />);
-    fireEvent.press(getByText("Don't have an account? Sign Up"));
-    expect(getByPlaceholderText('Name')).toBeDefined();
-    expect(getByText('Sign Up')).toBeDefined();
+    fireEvent.press(getByText('Ainda não tens conta? Regista-te'));
+    expect(getByPlaceholderText('Nome')).toBeDefined();
+    expect(getByText('Registar')).toBeDefined();
   });
 
   it('shows error when submitting empty fields', async () => {
     const { getByText } = render(<AuthScreen />);
-    fireEvent.press(getByText('Sign In'));
-    await waitFor(() => expect(getByText('Please fill in all fields.')).toBeDefined());
+    fireEvent.press(getByText('Entrar'));
+    await waitFor(() => expect(getByText('Por favor preenche todos os campos.')).toBeDefined());
   });
 
   it('shows error for invalid email format', async () => {
     const { getByText, getByPlaceholderText } = render(<AuthScreen />);
     fireEvent.changeText(getByPlaceholderText('Email'), 'not-an-email');
-    fireEvent.changeText(getByPlaceholderText('Password'), 'password123');
-    fireEvent.press(getByText('Sign In'));
-    await waitFor(() => expect(getByText('Please enter a valid email address.')).toBeDefined());
+    fireEvent.changeText(getByPlaceholderText('Palavra-passe'), 'password123');
+    fireEvent.press(getByText('Entrar'));
+    await waitFor(() => expect(getByText('Indica um endereço de email válido.')).toBeDefined());
   });
 
   it('shows error when signing up without a name', async () => {
     const { getByText, getByPlaceholderText } = render(<AuthScreen />);
-    fireEvent.press(getByText("Don't have an account? Sign Up"));
+    fireEvent.press(getByText('Ainda não tens conta? Regista-te'));
     fireEvent.changeText(getByPlaceholderText('Email'), 'test@fe.up.pt');
-    fireEvent.changeText(getByPlaceholderText('Password'), 'password123');
-    fireEvent.press(getByText('Sign Up'));
-    await waitFor(() => expect(getByText('Please enter your name.')).toBeDefined());
+    fireEvent.changeText(getByPlaceholderText('Palavra-passe'), 'password123');
+    fireEvent.press(getByText('Registar'));
+    await waitFor(() => expect(getByText('Indica o teu nome.')).toBeDefined());
   });
 
   it('calls signInWithPassword and navigates on successful login', async () => {
@@ -81,8 +81,8 @@ describe('AuthScreen', () => {
 
     const { getByText, getByPlaceholderText } = render(<AuthScreen />);
     fireEvent.changeText(getByPlaceholderText('Email'), 'user@fe.up.pt');
-    fireEvent.changeText(getByPlaceholderText('Password'), 'password');
-    fireEvent.press(getByText('Sign In'));
+    fireEvent.changeText(getByPlaceholderText('Palavra-passe'), 'password');
+    fireEvent.press(getByText('Entrar'));
 
     await waitFor(() => {
       expect(getSupabaseAuth().signInWithPassword).toHaveBeenCalledWith({
@@ -100,8 +100,8 @@ describe('AuthScreen', () => {
 
     const { getByText, getByPlaceholderText } = render(<AuthScreen />);
     fireEvent.changeText(getByPlaceholderText('Email'), 'user@fe.up.pt');
-    fireEvent.changeText(getByPlaceholderText('Password'), 'wrong');
-    fireEvent.press(getByText('Sign In'));
+    fireEvent.changeText(getByPlaceholderText('Palavra-passe'), 'wrong');
+    fireEvent.press(getByText('Entrar'));
 
     await waitFor(() => expect(getByText('Invalid credentials')).toBeDefined());
   });
@@ -110,11 +110,11 @@ describe('AuthScreen', () => {
     getSupabaseAuth().signUp.mockResolvedValue({ error: null });
 
     const { getByText, getByPlaceholderText } = render(<AuthScreen />);
-    fireEvent.press(getByText("Don't have an account? Sign Up"));
-    fireEvent.changeText(getByPlaceholderText('Name'), 'Tomas');
+    fireEvent.press(getByText('Ainda não tens conta? Regista-te'));
+    fireEvent.changeText(getByPlaceholderText('Nome'), 'Tomas');
     fireEvent.changeText(getByPlaceholderText('Email'), 'tomas@fe.up.pt');
-    fireEvent.changeText(getByPlaceholderText('Password'), 'password');
-    fireEvent.press(getByText('Sign Up'));
+    fireEvent.changeText(getByPlaceholderText('Palavra-passe'), 'password');
+    fireEvent.press(getByText('Registar'));
 
     await waitFor(() => {
       expect(getSupabaseAuth().signUp).toHaveBeenCalledWith({
@@ -128,23 +128,23 @@ describe('AuthScreen', () => {
 
   it('shows error when signing up with a weak password', async () => {
     const { getByText, getByPlaceholderText } = render(<AuthScreen />);
-    fireEvent.press(getByText("Don't have an account? Sign Up"));
-    fireEvent.changeText(getByPlaceholderText('Name'), 'Tomas');
+    fireEvent.press(getByText('Ainda não tens conta? Regista-te'));
+    fireEvent.changeText(getByPlaceholderText('Nome'), 'Tomas');
     fireEvent.changeText(getByPlaceholderText('Email'), 'tomas@fe.up.pt');
-    fireEvent.changeText(getByPlaceholderText('Password'), 'short');
-    fireEvent.press(getByText('Sign Up'));
-    await waitFor(() => expect(getByText('Password must have at least 8 characters.')).toBeDefined());
+    fireEvent.changeText(getByPlaceholderText('Palavra-passe'), 'short');
+    fireEvent.press(getByText('Registar'));
+    await waitFor(() => expect(getByText('A palavra-passe tem de ter pelo menos 8 caracteres.')).toBeDefined());
   });
 
   it('normalizes email and name before sign up', async () => {
     getSupabaseAuth().signUp.mockResolvedValue({ error: null });
 
     const { getByText, getByPlaceholderText } = render(<AuthScreen />);
-    fireEvent.press(getByText("Don't have an account? Sign Up"));
-    fireEvent.changeText(getByPlaceholderText('Name'), '  Tomás   Teixeira  ');
+    fireEvent.press(getByText('Ainda não tens conta? Regista-te'));
+    fireEvent.changeText(getByPlaceholderText('Nome'), '  Tomás   Teixeira  ');
     fireEvent.changeText(getByPlaceholderText('Email'), '  TOMAS@FE.UP.PT ');
-    fireEvent.changeText(getByPlaceholderText('Password'), 'password123');
-    fireEvent.press(getByText('Sign Up'));
+    fireEvent.changeText(getByPlaceholderText('Palavra-passe'), 'password123');
+    fireEvent.press(getByText('Registar'));
 
     await waitFor(() => {
       expect(getSupabaseAuth().signUp).toHaveBeenCalledWith({

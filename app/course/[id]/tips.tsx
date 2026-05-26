@@ -40,6 +40,8 @@ export default function CourseTipsScreen() {
           type: 'notes' as const,
           subtitle: m.description || m.academic_year || undefined,
           pdf: m.file_url || undefined,
+          rating: m.rating ?? undefined,
+          ratingCount: m.ratingCount ?? 0,
         })));
       })
       .catch(() => {
@@ -59,7 +61,7 @@ export default function CourseTipsScreen() {
       courseName={courseNameParam ?? courseCode}
       courseDescription={courseDescription}
       activeKey="tips"
-      onUpload={() => router.push('/upload')}
+      onUpload={() => router.push({ pathname: '/upload', params: { preselect: courseCode } })}
     >
       {isLoading ? (
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingTop: 60 }}>
@@ -71,7 +73,7 @@ export default function CourseTipsScreen() {
           <Text style={{ color: t.textPrimary, fontSize: 16 }}>{errorMsg}</Text>
         </View>
       ) : (
-        <MaterialList items={items} emptyMessage="Sem dicas disponíveis." courseCode={courseCode} />
+        <MaterialList items={items} emptyMessage="Sem dicas disponíveis." />
       )}
     </CourseSectionShell>
   );

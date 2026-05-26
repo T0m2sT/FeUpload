@@ -13,11 +13,26 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import type { AppPalette } from '@/constants/theme';
-import { getSummaryById } from '@/services/materials';
+import { getMaterialById } from '@/services/materials';
 import { supabase } from '@/lib/supabase';
 import { getCachedSummary, setCachedSummary } from '@/lib/ai-summary-cache';
 import Markdown from 'react-native-markdown-display';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+type MaterialDetail = {
+  id: string;
+  title: string;
+  description: string | null;
+  file_url: string | null;
+  file_url_solved: string | null;
+  created_at: string;
+  type: string;
+  class_code: string;
+  academic_year: string | null;
+  author: string;
+  avgRating: number;
+  ratingCount: number;
+};
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('pt-PT', {
@@ -27,29 +42,48 @@ function formatDate(iso: string) {
   });
 }
 
-export default function SummaryDetailScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+function Stars({ rating, size, color, muted }: { rating: number; size: number; color: string; muted: string }) {
+  const rounded = Math.round(rating);
+  return (
+    <View style={stylesStatic.starsRow}>
+      {[1, 2, 3, 4, 5].map((i) => (
+        <Ionicons
+          key={i}
+          name={i <= rounded ? 'star' : 'star-outline'}
+          size={size}
+          color={i <= rounded ? color : muted}
+          style={stylesStatic.starIcon}
+        />
+      ))}
+    </View>
+  );
+}
+
+export default function MaterialDetailScreen() {
+  const { id } = useLocalSearchParams<{ id: string | string[] }>();
   const router = useRouter();
   const t = useAppTheme();
   const s = makeStyles(t);
 
-  const [summary, setSummary] = useState<any>(null);
+  const materialId = Array.isArray(id) ? id[0] : id;
+
+  const [material, setMaterial] = useState<MaterialDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [aiSummary, setAiSummary] = useState<string | null>(() => getCachedSummary(id ?? '') ?? null);
+  const [aiSummary, setAiSummary] = useState<string | null>(() => getCachedSummary(materialId ?? '') ?? null);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
 
   useEffect(() => {
     let alive = true;
-    if (!id) return;
+    if (!materialId) return;
     setLoading(true);
-    getSummaryById(id)
+    getMaterialById(materialId)
       .then((data) => {
-        if (alive) setSummary(data);
+        if (alive) setMaterial(data as MaterialDetail);
       })
       .catch((e) => {
-        if (alive) setError(e.message ?? 'Erro a carregar resumo');
+        if (alive) setError(e.message ?? 'Erro ao carregar material.');
       })
       .finally(() => {
         if (alive) setLoading(false);
@@ -57,19 +91,19 @@ export default function SummaryDetailScreen() {
     return () => {
       alive = false;
     };
-  }, [id]);
+  }, [materialId]);
 
   const generateAiSummary = async () => {
-    if (!summary?.file_url) return;
+    if (!material?.file_url) return;
     setAiLoading(true);
     setAiError(null);
     try {
       const { data, error: fnError } = await supabase.functions.invoke('summarize-pdf', {
-        body: { fileUrl: summary.file_url, title: summary.title },
+        body: { fileUrl: material.file_url, title: material.title },
       });
       if (fnError) throw fnError;
       setAiSummary(data.summary);
-      if (id) setCachedSummary(id, data.summary);
+      if (materialId) setCachedSummary(materialId, data.summary);
     } catch (e: any) {
       setAiError(e?.message ?? 'Não foi possível gerar o resumo. Tenta novamente.');
     } finally {
@@ -77,18 +111,27 @@ export default function SummaryDetailScreen() {
     }
   };
 
-  const openFile = (url: string) => {
+  const openFile = (url: string | null, startSolved = false) => {
+    if (!url) return;
     if (Platform.OS === 'web') {
       Linking.openURL(url);
     } else {
-      router.push({ pathname: '/pdf-viewer' as any, params: { pdf: url } });
+      router.push({
+        pathname: '/pdf-viewer' as any,
+        params: {
+          pdf: startSolved ? (material?.file_url ?? url) : url,
+          pdf_solved: material?.file_url_solved ?? '',
+          title: material?.title ?? 'PDF',
+          ...(startSolved && { initialSolved: '1' }),
+        },
+      });
     }
   };
 
   return (
     <SafeAreaView style={s.root}>
       <View style={s.chrome}>
-        <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
+        <TouchableOpacity style={s.backBtn} onPress={() => router.back()} accessibilityLabel="Voltar">
           <Ionicons name="arrow-back" size={20} color={t.accent} />
           <Text style={s.backText}>Voltar</Text>
         </TouchableOpacity>
@@ -102,65 +145,77 @@ export default function SummaryDetailScreen() {
         <View style={s.center}>
           <Text style={s.errorText}>{error}</Text>
         </View>
-      ) : !summary ? (
+      ) : !material ? (
         <View style={s.center}>
-          <Text style={s.errorText}>Resumo não encontrado.</Text>
+          <Text style={s.errorText}>Material não encontrado.</Text>
         </View>
       ) : (
         <ScrollView contentContainerStyle={s.container}>
-          {summary.class_code ? (
-            <Text style={s.code}>{summary.class_code}</Text>
-          ) : null}
-          <Text style={s.title}>{summary.title}</Text>
+          {material.class_code ? <Text style={s.code}>{material.class_code}</Text> : null}
+          {material.file_url ? (
+            <TouchableOpacity onPress={() => openFile(material.file_url)} accessibilityLabel="Abrir ficheiro">
+              <Text style={s.title}>{material.title}</Text>
+            </TouchableOpacity>
+          ) : (
+            <Text style={s.title}>{material.title}</Text>
+          )}
 
           <View style={s.metaRow}>
             <Ionicons name="person-outline" size={14} color={t.textSecondary} />
-            <Text style={s.metaText}>{summary.profiles?.name ?? 'Desconhecido'}</Text>
+            <Text style={s.metaText}>{material.author}</Text>
             <Text style={s.metaDot}>·</Text>
             <Ionicons name="calendar-outline" size={14} color={t.textSecondary} />
-            <Text style={s.metaText}>{formatDate(summary.created_at)}</Text>
+            <Text style={s.metaText}>{formatDate(material.created_at)}</Text>
           </View>
 
-          <View style={s.ratingRow}>
-            {[1, 2, 3, 4, 5].map((i) => (
-              <Ionicons
-                key={i}
-                name={i <= Math.round(summary.avgRating) ? 'star' : 'star-outline'}
-                size={16}
-                color={i <= Math.round(summary.avgRating) ? t.accent : t.textMuted}
-              />
-            ))}
-            <Text style={s.ratingText}>
-              {summary.ratingCount > 0
-                ? `${summary.avgRating.toFixed(1)} (${summary.ratingCount} avaliações)`
-                : 'Sem avaliações'}
-            </Text>
-          </View>
+          <TouchableOpacity
+            style={s.ratingRow}
+            onPress={() =>
+              router.push({
+                pathname: '/ratings',
+                params: {
+                  materialId: material.id,
+                  materialTitle: material.title,
+                  courseCode: material.class_code,
+                },
+              })
+            }
+            accessibilityLabel="Ver avaliações"
+          >
+            <Stars rating={material.avgRating} size={16} color={t.accent} muted={t.textMuted} />
+            {material.ratingCount > 0 ? (
+              <Text style={s.ratingText}>
+                <Text style={s.ratingAccent}>{material.avgRating.toFixed(1)} (</Text><Text style={s.ratingLink}>{`${material.ratingCount} ${material.ratingCount === 1 ? 'avaliação' : 'avaliações'})`}</Text>
+              </Text>
+            ) : (
+              <Text style={s.ratingLink}>Sem avaliações</Text>
+            )}
+          </TouchableOpacity>
 
           <View style={s.divider} />
 
-          {summary.description ? (
-            <Text style={s.body}>{summary.description}</Text>
+          {material.description ? (
+            <Text style={s.body}>{material.description}</Text>
           ) : (
-            <Text style={s.bodyMuted}>Sem texto. Abra o ficheiro abaixo para ver o conteúdo.</Text>
+            <Text style={s.bodyMuted}>Sem descrição. Abra o ficheiro abaixo para ver o conteúdo.</Text>
           )}
 
-          {summary.file_url ? (
-            <TouchableOpacity style={s.fileBtn} onPress={() => openFile(summary.file_url)}>
-              <Ionicons name="document-outline" size={18} color={t.accent} />
-              <Text style={s.fileBtnText}>Abrir ficheiro</Text>
-            </TouchableOpacity>
-          ) : null}
-
           <View style={s.divider} />
 
-          {/* AI Summary */}
-          {!aiSummary && !aiLoading && summary.file_url ? (
-            <TouchableOpacity style={s.aiBtn} onPress={generateAiSummary}>
-              <Ionicons name="sparkles-outline" size={16} color={t.accent} />
-              <Text style={s.aiBtnText}>Gerar resumo com IA</Text>
-            </TouchableOpacity>
-          ) : null}
+          <View style={s.actionsRow}>
+            {material.file_url_solved ? (
+              <TouchableOpacity style={s.fileBtn} onPress={() => openFile(material.file_url_solved, true)}>
+                <Ionicons name="checkmark-circle-outline" size={18} color={t.accent} />
+                <Text style={s.fileBtnText}>Abrir resolução</Text>
+              </TouchableOpacity>
+            ) : null}
+            {!aiSummary && !aiLoading && material.file_url ? (
+              <TouchableOpacity style={s.aiBtn} onPress={generateAiSummary}>
+                <Ionicons name="sparkles-outline" size={16} color={t.accent} />
+                <Text style={s.aiBtnText}>Gerar resumo com IA</Text>
+              </TouchableOpacity>
+            ) : null}
+          </View>
 
           {aiLoading ? (
             <View style={s.aiBox}>
@@ -188,6 +243,17 @@ export default function SummaryDetailScreen() {
     </SafeAreaView>
   );
 }
+
+const stylesStatic = StyleSheet.create({
+  starsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+  },
+  starIcon: {
+    marginRight: 2,
+  },
+});
 
 function makeStyles(t: AppPalette) {
   return StyleSheet.create({
@@ -229,14 +295,17 @@ function makeStyles(t: AppPalette) {
     ratingRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 4,
-      marginBottom: 8,
+      gap: 6,
+      marginBottom: 10,
     },
-    ratingText: { fontSize: 12, color: t.textMuted, marginLeft: 6 },
+    ratingText: { fontSize: 12, color: t.textMuted },
+    ratingLink: { fontSize: 12, color: t.accent, textDecorationLine: 'underline' },
+    ratingAccent: { fontSize: 12, color: t.accent },
     divider: {
       height: 1,
       backgroundColor: t.surfaceBorder,
       marginVertical: 16,
+      marginBottom: 8,
     },
     body: {
       fontSize: 15,
@@ -248,12 +317,16 @@ function makeStyles(t: AppPalette) {
       color: t.textMuted,
       fontStyle: 'italic',
     },
+    actionsRow: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 12,
+      marginTop: 8,
+    },
     fileBtn: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 8,
-      marginTop: 24,
-      alignSelf: 'flex-start',
       paddingHorizontal: 14,
       paddingVertical: 10,
       borderRadius: 10,

@@ -91,9 +91,9 @@ describe('MaterialList', () => {
     expect(downloadBtns).toHaveLength(1);
   });
 
-  it('renders favorite button for each item', () => {
+  it('renders details button for each item', () => {
     const { getAllByLabelText } = render(<MaterialList items={mockItems as any} />);
-    expect(getAllByLabelText('Avaliar material')).toHaveLength(mockItems.length);
+    expect(getAllByLabelText('Detalhes do material')).toHaveLength(mockItems.length);
   });
 
   describe('openPDF', () => {

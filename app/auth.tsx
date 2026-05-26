@@ -42,24 +42,24 @@ export default function AuthScreen() {
     const normalizedName = normalizeSpaces(name);
 
     if (!normalizedEmail || !password.trim()) {
-      setError('Please fill in all fields.');
+      setError('Por favor preenche todos os campos.');
       return;
     }
     if (!isValidEmail(normalizedEmail)) {
-      setError('Please enter a valid email address.');
+      setError('Indica um endereço de email válido.');
       return;
     }
 
     if (!isLogin && !normalizedName) {
-      setError('Please enter your name.');
+      setError('Indica o teu nome.');
       return;
     }
     if (!isLogin && !isValidName(normalizedName)) {
-      setError('Please enter a valid name (letters and spaces only).');
+      setError('Indica um nome válido (apenas letras e espaços).');
       return;
     }
     if (!isLogin && !isValidPassword(password)) {
-      setError('Password must have at least 8 characters.');
+      setError('A palavra-passe tem de ter pelo menos 8 caracteres.');
       return;
     }
 
@@ -82,7 +82,7 @@ export default function AuthScreen() {
         router.replace('/complete-profile');
       }
     } catch (e: any) {
-      setError(e.message || 'Something went wrong.');
+      setError(e.message || 'Ocorreu um erro.');
     } finally {
       setLoading(false);
     }
@@ -94,14 +94,14 @@ export default function AuthScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       {/* Theme toggle */}
-      <TouchableOpacity style={styles.themeBtn} onPress={toggleTheme} accessibilityLabel="Toggle theme">
+      <TouchableOpacity style={styles.themeBtn} onPress={toggleTheme} accessibilityLabel="Alternar tema">
         <Ionicons name={t.isDark ? 'sunny-outline' : 'moon-outline'} size={22} color={t.accent} />
       </TouchableOpacity>
 
       <View style={styles.container}>
         <Text style={[styles.logo, { color: t.accent }]}>FeUpload</Text>
         <Text style={[styles.subtitle, { color: t.textSecondary }]}>
-          {isLogin ? 'Sign in to your account' : 'Create a new account'}
+          {isLogin ? 'Entra na tua conta' : 'Cria uma nova conta'}
         </Text>
 
         {error ? <Text style={[styles.error, { color: t.error }]}>{error}</Text> : null}
@@ -109,7 +109,7 @@ export default function AuthScreen() {
         {!isLogin && (
           <TextInput
             style={[styles.input, { backgroundColor: t.surface, borderColor: t.surfaceBorder, color: t.textPrimary }]}
-            placeholder="Name"
+            placeholder="Nome"
             placeholderTextColor={t.textMuted}
             value={name}
             onChangeText={setName}
@@ -131,7 +131,7 @@ export default function AuthScreen() {
 
         <TextInput
           style={[styles.input, { backgroundColor: t.surface, borderColor: t.surfaceBorder, color: t.textPrimary }]}
-          placeholder="Password"
+          placeholder="Palavra-passe"
           placeholderTextColor={t.textMuted}
           value={password}
           onChangeText={setPassword}
@@ -145,13 +145,13 @@ export default function AuthScreen() {
           disabled={loading}
         >
           <Text style={[styles.buttonText, { color: t.isDark ? '#000' : '#fff' }]}>
-            {loading ? 'Please wait...' : isLogin ? 'Sign In' : 'Sign Up'}
+            {loading ? 'Aguarda...' : isLogin ? 'Entrar' : 'Registar'}
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => { setIsLogin(!isLogin); setError(''); }}>
           <Text style={[styles.toggle, { color: t.accent }]}>
-            {isLogin ? "Don't have an account? Sign Up" : 'Already have an account? Sign In'}
+            {isLogin ? 'Ainda não tens conta? Regista-te' : 'Já tens conta? Entra'}
           </Text>
         </TouchableOpacity>
       </View>

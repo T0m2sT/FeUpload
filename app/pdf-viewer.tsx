@@ -8,12 +8,13 @@ import { Dimensions, StyleSheet, TouchableOpacity, View, Text } from 'react-nati
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function PdfViewer() {
-    const { pdf, pdf_solved, local_pdf, local_pdf_solved, title } = useLocalSearchParams<{
+    const { pdf, pdf_solved, local_pdf, local_pdf_solved, title, initialSolved } = useLocalSearchParams<{
         pdf?: string;
         pdf_solved?: string;
         local_pdf?: string;
         local_pdf_solved?: string;
         title: string;
+        initialSolved?: string;
     }>();
     const router = useRouter();
     const t = useAppTheme();
@@ -25,7 +26,7 @@ export default function PdfViewer() {
     const solvedUri = local_pdf_solved || pdf_solved || '';
 
     const hasBoth = !!mainUri && !!solvedUri;
-    const [showSolved, setShowSolved] = useState(!mainUri && !!solvedUri);
+    const [showSolved, setShowSolved] = useState(initialSolved === '1' || (!mainUri && !!solvedUri));
 
     const activePdfUri = showSolved ? solvedUri : mainUri;
     const activeIsLocal = activePdfUri.startsWith('file://');
@@ -44,9 +45,11 @@ export default function PdfViewer() {
                         </TouchableOpacity>
                     ),
                     headerStyle: {
-                        backgroundColor: t.surface,
+                        backgroundColor: t.background,
                     },
                     headerTintColor: t.textPrimary,
+                    headerShadowVisible: false,
+                    headerBackVisible: false,
                 }}
             />
             {hasBoth && (

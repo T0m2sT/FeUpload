@@ -7,13 +7,22 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import type { AppPalette } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
-import { getThreadWithReplies, createReply } from '@/services/threads';
+import { getThreadWithReplies, createReply, deleteThread, deleteReply } from '@/services/threads';
+
+const LABELS = [
+  { name: 'Question', color: '#FF6B6B' },
+  { name: 'Project', color: '#4ECDC4' },
+  { name: 'Advice', color: '#FFE66D' },
+  { name: 'Other', color: '#95E1D3' },
+];
 
 type ThreadRow = {
   id: string;
   title: string;
   body: string;
+  label: string;
   created_at: string;
+  user_id: string;
   profiles?: { name: string } | null;
 };
 
@@ -21,6 +30,7 @@ type ReplyRow = {
   id: string;
   body: string;
   created_at: string;
+  user_id: string;
   profiles?: { name: string } | null;
 };
 
@@ -37,8 +47,24 @@ export default function ThreadDetailScreen() {
   const [thread, setThread] = useState<ThreadRow | null>(null);
   const [replies, setReplies] = useState<ReplyRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [replyText, setReplyText] = useState('');
   const [sending, setSending] = useState(false);
+
+  useEffect(() => {
+    getCurrentUser();
+  }, [threadId]);
+
+  const getCurrentUser = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setCurrentUserId(user.id);
+      }
+    } catch (err) {
+      console.error('Error getting current user:', err);
+    }
+  };
 
   useEffect(() => {
     fetchThreadAndReplies();
@@ -83,6 +109,50 @@ export default function ThreadDetailScreen() {
     }
   };
 
+  const handleDeleteThread = () => {
+    Alert.alert(
+      'Eliminar Publicação',
+      'Tens a certeza que queres eliminar esta publicação? Esta ação não pode ser desfeita.',
+      [
+        { text: 'Cancelar', onPress: () => {}, style: 'cancel' },
+        {
+          text: 'Eliminar',
+          onPress: async () => {
+            try {
+              await deleteThread(threadId);
+              router.back();
+            } catch (err: any) {
+              Alert.alert('Erro', 'Não foi possível eliminar a publicação.');
+            }
+          },
+          style: 'destructive',
+        },
+      ],
+    );
+  };
+
+  const handleDeleteReply = (replyId: string) => {
+    Alert.alert(
+      'Eliminar Resposta',
+      'Tens a certeza que queres eliminar esta resposta? Esta ação não pode ser desfeita.',
+      [
+        { text: 'Cancelar', onPress: () => {}, style: 'cancel' },
+        {
+          text: 'Eliminar',
+          onPress: async () => {
+            try {
+              await deleteReply(replyId);
+              fetchThreadAndReplies();
+            } catch (err: any) {
+              Alert.alert('Erro', 'Não foi possível eliminar a resposta.');
+            }
+          },
+          style: 'destructive',
+        },
+      ],
+    );
+  };
+
   if (loading) {
     return (
       <View style={[s.root, { justifyContent: 'center' }]}>
@@ -116,7 +186,36 @@ export default function ThreadDetailScreen() {
 
       <ScrollView style={s.scroll} contentContainerStyle={s.container}>
         <View style={s.op}>
-          <Text style={s.opTitle}>{thread.title}</Text>
+          <View style={{ gap: 10 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10, justifyContent: 'space-between' }}>
+              <Text style={[s.opTitle, { flex: 1 }]}>{thread.title}</Text>
+              {currentUserId === thread.user_id && (
+                <TouchableOpacity
+                  style={s.deleteButton}
+                  onPress={handleDeleteThread}
+                  accessibilityLabel="Eliminar publicação"
+                >
+                  <Ionicons name="trash" size={18} color="#DC3545" />
+                </TouchableOpacity>
+              )}
+            </View>
+            <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10 }}>
+              {thread.label && (
+                <View
+                  style={{
+                    backgroundColor: LABELS.find(l => l.name === thread.label)?.color,
+                    paddingHorizontal: 10,
+                    paddingVertical: 4,
+                    borderRadius: 10,
+                  }}
+                >
+                  <Text style={{ fontSize: 11, fontWeight: '600', color: '#333' }}>
+                    {thread.label}
+                  </Text>
+                </View>
+              )}
+            </View>
+          </View>
           <View style={s.opMeta}>
             <Ionicons name="person-circle-outline" size={14} color={t.textMuted} />
             <Text style={s.opMetaText}>{thread.profiles?.name ?? 'Utilizador'}</Text>
@@ -138,10 +237,19 @@ export default function ThreadDetailScreen() {
                   {(reply.profiles?.name ?? 'U').charAt(0).toUpperCase()}
                 </Text>
               </View>
-              <View>
+              <View style={{ flex: 1 }}>
                 <Text style={s.replyAuthor}>{reply.profiles?.name ?? 'Utilizador'}</Text>
                 <Text style={s.replyDate}>{new Date(reply.created_at).toLocaleDateString()}</Text>
               </View>
+              {currentUserId === reply.user_id && (
+                <TouchableOpacity
+                  style={s.deleteButton}
+                  onPress={() => handleDeleteReply(reply.id)}
+                  accessibilityLabel="Eliminar resposta"
+                >
+                  <Ionicons name="trash" size={18} color="#DC3545" />
+                </TouchableOpacity>
+              )}
             </View>
             <Text style={s.replyBody}>{reply.body}</Text>
           </View>
@@ -277,5 +385,15 @@ function makeStyles(t: AppPalette) {
     },
     replyBtnDisabled: { opacity: 0.4 },
     replyBtnText: { fontSize: 15, fontWeight: '700', color: t.background },
+    deleteButton: {
+      backgroundColor: 'rgba(220, 53, 69, 0.15)',
+      borderWidth: 1.5,
+      borderColor: '#DC3545',
+      width: 36,
+      height: 36,
+      borderRadius: 8,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
   });
 }

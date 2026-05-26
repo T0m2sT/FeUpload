@@ -14,15 +14,25 @@ export async function getMaterialsByCourse(classCode: string) {
 export async function getMaterialsByClassCodeAndType(
   classCode: string,
   type: 'exam' | 'exercise' | 'notes' | 'summary',
-): Promise<{ id: string; title: string; file_url: string | null; file_url_solved: string | null; is_solved: boolean; academic_year: string | null; description: string | null; class_code: string; type: string; rating: number | null; created_at: string }[]> {
+): Promise<{ id: string; title: string; file_url: string | null; file_url_solved: string | null; is_solved: boolean; academic_year: string | null; description: string | null; class_code: string; type: string; rating: number | null; ratingCount: number; created_at: string }[]> {
   const { data, error } = await supabase
     .from('materials')
-    .select('id, title, file_url, file_url_solved, is_solved, academic_year, class_code, type, description, rating, created_at')
+    .select('id, title, file_url, file_url_solved, is_solved, academic_year, class_code, type, description, created_at, reviews(rating)')
     .eq('class_code', classCode)
     .eq('type', type)
     .order('created_at', { ascending: false });
   if (error) throw error;
-  return data ?? [];
+  return (data ?? []).map((row: any) => {
+    const ratings: number[] = (row.reviews ?? []).map((r: any) => r.rating);
+    const ratingCount = ratings.length;
+    const avgRating = ratingCount ? ratings.reduce((s, r) => s + r, 0) / ratingCount : null;
+    const { reviews, ...rest } = row;
+    return {
+      ...rest,
+      rating: avgRating,
+      ratingCount,
+    };
+  });
 }
 
 export async function getMaterialsByType(type: 'exam' | 'exercise' | 'notes' | 'summary') {
@@ -83,6 +93,23 @@ export async function getSummaryById(id: string) {
   const ratings: number[] = (data.reviews ?? []).map((r: any) => r.rating);
   const avgRating = ratings.length ? ratings.reduce((s, r) => s + r, 0) / ratings.length : 0;
   return { ...data, avgRating, ratingCount: ratings.length };
+}
+
+export async function getMaterialById(id: string) {
+  const { data, error } = await supabase
+    .from('materials')
+    .select('id, title, description, file_url, file_url_solved, created_at, type, class_code, academic_year, profiles(name), reviews(rating)')
+    .eq('id', id)
+    .single();
+  if (error) throw error;
+  const ratings: number[] = (data.reviews ?? []).map((r: any) => r.rating);
+  const avgRating = ratings.length ? ratings.reduce((s, r) => s + r, 0) / ratings.length : 0;
+  return {
+    ...data,
+    author: (Array.isArray(data.profiles) ? data.profiles[0]?.name : (data.profiles as any)?.name) ?? 'Desconhecido',
+    avgRating,
+    ratingCount: ratings.length,
+  };
 }
 
 /**

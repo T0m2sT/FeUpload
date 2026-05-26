@@ -1,4 +1,11 @@
-import { getThreadsByCourse, createThread, getReplies, createReply } from '../../services/threads';
+import { 
+  getThreadsByCourse, 
+  createThread, 
+  getReplies, 
+  createReply,
+  deleteThread,
+  deleteReply 
+} from '../../services/threads';
 import { buildSupabaseMock } from '../utils';
 
 jest.mock('../../lib/supabase', () => ({
@@ -58,6 +65,17 @@ describe('threads service', () => {
       expect(result).toEqual({ id: 't1', ...newThread });
     });
 
+    it('creates a thread with a label', async () => {
+      const newThread = { title: 'T', body: 'B', course_id: 'c1', user_id: 'u1', label: 'Question' };
+      mockChain._data = { id: 't1', ...newThread };
+
+      const result = await createThread(newThread);
+
+      expect(getFrom()).toHaveBeenCalledWith('threads');
+      expect(mockChain.insert).toHaveBeenCalledWith(newThread);
+      expect(result.label).toEqual('Question');
+    });
+
     it('throws error when creation fails', async () => {
       mockChain._error = new Error('Insert failed');
       await expect(
@@ -70,6 +88,22 @@ describe('threads service', () => {
       mockChain._data = {};
       await createThread(newThread);
       expect(mockChain.insert).toHaveBeenCalledWith(newThread);
+    });
+
+    it('supports all label types', async () => {
+      const labels = ['Question', 'Project', 'Advice', 'Other'];
+      
+      for (const label of labels) {
+        mockChain._data = {};
+        jest.clearAllMocks();
+        getFrom().mockReturnValue(mockChain);
+        
+        const newThread = { title: 'T', body: 'B', course_id: 'c1', user_id: 'u1', label };
+        mockChain._data = { id: `t-${label}`, ...newThread };
+        
+        const result = await createThread(newThread);
+        expect(result.label).toEqual(label);
+      }
     });
   });
 
@@ -101,7 +135,6 @@ describe('threads service', () => {
     it('orders replies chronologically (ascending)', async () => {
       mockChain._data = [];
       await getReplies('t1');
-      // getReplies uses order('created_at') without ascending:false, meaning ascending
       expect(mockChain.order).toHaveBeenCalledWith('created_at');
     });
   });
@@ -123,6 +156,58 @@ describe('threads service', () => {
       await expect(
         createReply({ thread_id: 't1', user_id: 'u1', body: 'B' })
       ).rejects.toThrow('Reply insert failed');
+    });
+  });
+
+  describe('deleteThread', () => {
+    it('deletes a thread by ID', async () => {
+      mockChain._error = null;
+
+      await deleteThread('t1');
+
+      expect(getFrom()).toHaveBeenCalledWith('threads');
+      expect(mockChain.delete).toHaveBeenCalled();
+      expect(mockChain.eq).toHaveBeenCalledWith('id', 't1');
+    });
+
+    it('throws error when deletion fails', async () => {
+      mockChain._error = new Error('Delete failed');
+
+      await expect(deleteThread('t1')).rejects.toThrow('Delete failed');
+    });
+
+    it('deletes the correct thread when multiple exist', async () => {
+      mockChain._error = null;
+
+      await deleteThread('t-specific');
+
+      expect(mockChain.eq).toHaveBeenCalledWith('id', 't-specific');
+    });
+  });
+
+  describe('deleteReply', () => {
+    it('deletes a reply by ID', async () => {
+      mockChain._error = null;
+
+      await deleteReply('r1');
+
+      expect(getFrom()).toHaveBeenCalledWith('thread_replies');
+      expect(mockChain.delete).toHaveBeenCalled();
+      expect(mockChain.eq).toHaveBeenCalledWith('id', 'r1');
+    });
+
+    it('throws error when deletion fails', async () => {
+      mockChain._error = new Error('Delete reply failed');
+
+      await expect(deleteReply('r1')).rejects.toThrow('Delete reply failed');
+    });
+
+    it('deletes the correct reply when multiple exist', async () => {
+      mockChain._error = null;
+
+      await deleteReply('r-specific');
+
+      expect(mockChain.eq).toHaveBeenCalledWith('id', 'r-specific');
     });
   });
 });

@@ -1,36 +1,14 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { CourseSectionShell } from '@/components/course-section-shell';
+import { MaterialList } from '@/components/material-list';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import type { AppPalette } from '@/constants/theme';
-import { getSummariesByClassCode, type SummaryListItem } from '@/services/materials';
+import type { Material } from '@/constants/courses';
+import { getMaterialsByClassCodeAndType } from '@/services/materials';
 
 type SortKey = 'rating' | 'date';
-
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString('pt-PT', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  });
-}
-
-function StarRating({ avg, accent, mute }: { avg: number; accent: string; mute: string }) {
-  return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
-      {[1, 2, 3, 4, 5].map((i) => (
-        <Ionicons
-          key={i}
-          name={i <= Math.round(avg) ? 'star' : 'star-outline'}
-          size={12}
-          color={i <= Math.round(avg) ? accent : mute}
-        />
-      ))}
-    </View>
-  );
-}
 
 export default function CourseSummariesScreen() {
   const { id, name, description } = useLocalSearchParams<{
@@ -46,18 +24,31 @@ export default function CourseSummariesScreen() {
   const courseNameParam = Array.isArray(name) ? name[0] : name;
   const courseDescription = Array.isArray(description) ? description[0] : description;
 
-  const [items, setItems] = useState<SummaryListItem[]>([]);
+  const [items, setItems] = useState<Material[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<SortKey>('rating');
 
   useEffect(() => {
+    if (!courseCode) return;
     let alive = true;
     setLoading(true);
     setError(null);
-    getSummariesByClassCode(courseCode)
+    getMaterialsByClassCodeAndType(courseCode, 'summary')
       .then((data) => {
-        if (alive) setItems(data);
+        if (!alive) return;
+        setItems(data.map((m) => ({
+          id: m.id,
+          title: m.title,
+          type: 'summary' as const,
+          subtitle: m.academic_year ?? undefined,
+          pdf: m.file_url || undefined,
+          pdf_solved: m.file_url_solved ?? undefined,
+          is_solved: m.is_solved ?? false,
+          rating: m.rating ?? undefined,
+          ratingCount: m.ratingCount ?? 0,
+          created_at: m.created_at,
+        })));
       })
       .catch((e) => {
         if (alive) setError(e.message ?? 'Erro a carregar resumos');
@@ -70,11 +61,17 @@ export default function CourseSummariesScreen() {
     };
   }, [courseCode]);
 
-  const sorted = [...items].sort((a, b) =>
-    sortBy === 'rating'
-      ? b.avgRating - a.avgRating
-      : new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
-  );
+  const sorted = [...items].sort((a, b) => {
+    if (sortBy === 'rating') {
+      const ratingA = a.rating ?? 0;
+      const ratingB = b.rating ?? 0;
+      if (ratingB !== ratingA) return ratingB - ratingA;
+    }
+    const yearA = a.subtitle ?? '';
+    const yearB = b.subtitle ?? '';
+    if (yearB !== yearA) return yearB.localeCompare(yearA);
+    return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+  });
 
   return (
     <CourseSectionShell
@@ -83,7 +80,7 @@ export default function CourseSummariesScreen() {
       courseName={courseNameParam ?? courseCode}
       courseDescription={courseDescription}
       activeKey="summaries"
-      onUpload={() => router.push('/upload')}
+      onUpload={() => router.push({ pathname: '/upload', params: { preselect: courseCode } })}
     >
       <View style={s.toolbar}>
         <Text style={s.toolbarLabel}>Ordenar por:</Text>
@@ -109,49 +106,8 @@ export default function CourseSummariesScreen() {
         <View style={s.center}>
           <Text style={s.errorText}>{error}</Text>
         </View>
-      ) : sorted.length === 0 ? (
-        <View style={s.center}>
-          <Ionicons name="document-text-outline" size={40} color={t.textMuted} />
-          <Text style={s.emptyText}>Sem resumos disponíveis.</Text>
-        </View>
       ) : (
-        <FlatList
-          data={sorted}
-          keyExtractor={(it) => it.id}
-          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 24 }}
-          ItemSeparatorComponent={() => <View style={s.sep} />}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={s.row}
-              onPress={() =>
-                router.push({ pathname: '/summary/[id]' as any, params: { id: item.id } })
-              }
-              accessibilityLabel={item.title}
-              testID={`summary-${item.id}`}
-            >
-              <View style={s.iconWrap}>
-                <Ionicons name="document-text-outline" size={18} color={t.accent} />
-              </View>
-              <View style={s.info}>
-                <Text style={s.title} numberOfLines={2}>
-                  {item.title}
-                </Text>
-                <Text style={s.meta}>
-                  {item.author} · {formatDate(item.created_at)}
-                </Text>
-                <View style={s.ratingRow}>
-                  <StarRating avg={item.avgRating} accent={t.accent} mute={t.textMuted} />
-                  <Text style={s.ratingText}>
-                    {item.ratingCount > 0
-                      ? `${item.avgRating.toFixed(1)} (${item.ratingCount})`
-                      : 'sem avaliações'}
-                  </Text>
-                </View>
-              </View>
-              <Ionicons name="chevron-forward" size={16} color={t.textMuted} />
-            </TouchableOpacity>
-          )}
-        />
+        <MaterialList items={sorted} emptyMessage="Sem resumos disponíveis." />
       )}
     </CourseSectionShell>
   );
@@ -201,53 +157,6 @@ function makeStyles(t: AppPalette) {
       fontSize: 13,
       paddingHorizontal: 20,
       textAlign: 'center',
-    },
-    emptyText: {
-      color: t.textMuted,
-      fontSize: 14,
-    },
-    row: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingVertical: 13,
-      gap: 12,
-    },
-    iconWrap: {
-      width: 40,
-      height: 40,
-      borderRadius: 10,
-      backgroundColor: t.accentDim,
-      borderWidth: 1,
-      borderColor: t.accentBorder,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    info: {
-      flex: 1,
-    },
-    title: {
-      fontSize: 14,
-      fontWeight: '600',
-      color: t.textPrimary,
-    },
-    meta: {
-      fontSize: 12,
-      color: t.textSecondary,
-      marginTop: 2,
-    },
-    ratingRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 6,
-      marginTop: 4,
-    },
-    ratingText: {
-      fontSize: 11,
-      color: t.textMuted,
-    },
-    sep: {
-      height: 1,
-      backgroundColor: t.surfaceBorder,
     },
   });
 }

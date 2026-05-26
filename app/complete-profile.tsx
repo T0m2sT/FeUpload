@@ -60,31 +60,31 @@ export default function CompleteProfileScreen() {
     const parsedSemester = parseOptionalInteger(normalizedSemester);
 
     if (!normalizedName || !normalizedStudentId || !normalizedCourse) {
-      setError('Please fill in name, student number, and course.');
+      setError('Preenche o nome, número de estudante e curso.');
       return;
     }
     if (!isValidName(normalizedName)) {
-      setError('Please enter a valid full name.');
+      setError('Indica um nome completo válido.');
       return;
     }
     if (!isValidStudentId(normalizedStudentId)) {
-      setError('Please enter a valid student number.');
+      setError('Indica um número de estudante válido.');
       return;
     }
     if (!isValidCourse(normalizedCourse)) {
-      setError('Please enter a valid course.');
+      setError('Indica um curso válido.');
       return;
     }
     if (!Number.isNaN(parsedYear) && parsedYear !== null && (parsedYear < 1 || parsedYear > 3)) {
-      setError('Year must be 1, 2, or 3.');
+      setError('O ano tem de ser 1, 2 ou 3.');
       return;
     }
     if (!Number.isNaN(parsedSemester) && parsedSemester !== null && (parsedSemester < 1 || parsedSemester > 2)) {
-      setError('Semester must be 1 or 2.');
+      setError('O semestre tem de ser 1 ou 2.');
       return;
     }
     if (Number.isNaN(parsedYear) || Number.isNaN(parsedSemester)) {
-      setError('Year and semester must be numeric.');
+      setError('Ano e semestre têm de ser numéricos.');
       return;
     }
 
@@ -114,7 +114,7 @@ export default function CompleteProfileScreen() {
 
       router.replace('/(tabs)');
     } catch (e: any) {
-      setError(e.message || 'Something went wrong.');
+      setError(e.message || 'Ocorreu um erro.');
     } finally {
       setLoading(false);
     }
@@ -126,18 +126,18 @@ export default function CompleteProfileScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-        <Text style={[styles.heading, { color: t.textPrimary }]}>Complete your profile</Text>
+        <Text style={[styles.heading, { color: t.textPrimary }]}>Completa o teu perfil</Text>
         <Text style={[styles.sub, { color: t.textSecondary }]}>
-          This information helps personalise your experience.
+          Esta informação ajuda a personalizar a tua experiência.
         </Text>
 
         {error ? <Text style={[styles.error, { color: t.error }]}>{error}</Text> : null}
 
         <View style={styles.fieldWrap}>
-          <Text style={[styles.label, { color: t.textSecondary }]}>Full name</Text>
+          <Text style={[styles.label, { color: t.textSecondary }]}>Nome completo</Text>
           <TextInput
             style={[styles.input, { backgroundColor: t.surface, borderColor: t.surfaceBorder, color: t.textPrimary }]}
-            placeholder="e.g. Rafael Silva"
+            placeholder="ex. Rafael Silva"
             placeholderTextColor={t.textMuted}
             value={values.name}
             onChangeText={set('name')}
@@ -147,10 +147,10 @@ export default function CompleteProfileScreen() {
         </View>
 
         <View style={styles.fieldWrap}>
-          <Text style={[styles.label, { color: t.textSecondary }]}>Student number</Text>
+          <Text style={[styles.label, { color: t.textSecondary }]}>Número de estudante</Text>
           <TextInput
             style={[styles.input, { backgroundColor: t.surface, borderColor: t.surfaceBorder, color: t.textPrimary }]}
-            placeholder="e.g. up202312345"
+            placeholder="ex. up202312345"
             placeholderTextColor={t.textMuted}
             value={values.studentId}
             onChangeText={set('studentId')}
@@ -160,7 +160,7 @@ export default function CompleteProfileScreen() {
         </View>
 
         <View style={styles.fieldWrap}>
-          <Text style={[styles.label, { color: t.textSecondary }]}>Course</Text>
+          <Text style={[styles.label, { color: t.textSecondary }]}>Curso</Text>
           <View style={styles.optionRow}>
             {courseOptions.map((course) => {
               const active = values.course === course;
@@ -175,7 +175,7 @@ export default function CompleteProfileScreen() {
                     },
                   ]}
                   onPress={() => set('course')(course)}
-                  accessibilityLabel={`Course ${course}`}
+                  accessibilityLabel={`Curso ${course}`}
                 >
                   <Text style={[styles.optionText, { color: active ? (t.isDark ? '#000' : '#fff') : t.textSecondary }]}>
                     {course}
@@ -187,7 +187,7 @@ export default function CompleteProfileScreen() {
         </View>
 
         <View style={styles.fieldWrap}>
-          <Text style={[styles.label, { color: t.textSecondary }]}>Year</Text>
+          <Text style={[styles.label, { color: t.textSecondary }]}>Ano</Text>
           <View style={styles.optionRow}>
             {YEAR_OPTIONS.map((year) => {
               const key = String(year);
@@ -203,7 +203,7 @@ export default function CompleteProfileScreen() {
                     },
                   ]}
                   onPress={() => set('year')(key)}
-                  accessibilityLabel={`Year ${year}`}
+                  accessibilityLabel={`Ano ${year}`}
                 >
                   <Text style={[styles.optionText, { color: active ? (t.isDark ? '#000' : '#fff') : t.textSecondary }]}>
                     {year}º
@@ -215,7 +215,7 @@ export default function CompleteProfileScreen() {
         </View>
 
         <View style={styles.fieldWrap}>
-          <Text style={[styles.label, { color: t.textSecondary }]}>Semester</Text>
+          <Text style={[styles.label, { color: t.textSecondary }]}>Semestre</Text>
           <View style={styles.optionRow}>
             {SEMESTER_OPTIONS.map((semester) => {
               const key = String(semester);
@@ -231,7 +231,7 @@ export default function CompleteProfileScreen() {
                     },
                   ]}
                   onPress={() => set('semester')(key)}
-                  accessibilityLabel={`Semester ${semester}`}
+                  accessibilityLabel={`Semestre ${semester}`}
                 >
                   <Text style={[styles.optionText, { color: active ? (t.isDark ? '#000' : '#fff') : t.textSecondary }]}>
                     {semester}º
@@ -247,7 +247,7 @@ export default function CompleteProfileScreen() {
           onPress={handleSave}
           disabled={loading}
         >
-          <Text style={styles.buttonText}>{loading ? 'Saving…' : 'Get started'}</Text>
+          <Text style={styles.buttonText}>{loading ? 'A guardar…' : 'Começar'}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity onPress={async () => { await supabase.auth.updateUser({ data: { profileComplete: true } }); router.replace('/(tabs)'); }} style={styles.skipBtn}>

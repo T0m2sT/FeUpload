@@ -29,13 +29,14 @@ import {
 import { useIsOnline } from '@/hooks/use-is-online';
 import { Alert } from 'react-native';
 
-function StarRating({ count, accent }: { count: number; accent: string }) {
+function StarRating({ rating, accent }: { rating: number; accent: string }) {
+  const rounded = Math.round(rating);
   return (
     <View style={{ flexDirection: 'row', marginTop: 4 }}>
       {[1, 2, 3, 4, 5].map((i) => (
         <Ionicons
           key={i}
-          name={i <= count ? 'star' : 'star-outline'}
+          name={i <= rounded ? 'star' : 'star-outline'}
           size={11}
           color={accent}
           style={{ marginRight: 1 }}
@@ -48,10 +49,9 @@ function StarRating({ count, accent }: { count: number; accent: string }) {
 type Props = {
   items: Material[];
   emptyMessage?: string;
-  courseCode?: string;
 };
 
-export function MaterialList({ items, emptyMessage = 'Sem conteúdo disponível.', courseCode }: Props) {
+export function MaterialList({ items, emptyMessage = 'Sem conteúdo disponível.' }: Props) {
   const t = useAppTheme();
   const s = useMemo(() => makeStyles(t), [t]);
   const router = useRouter();
@@ -268,15 +268,15 @@ export function MaterialList({ items, emptyMessage = 'Sem conteúdo disponível.
 
   return (
     <>
-      <FlatList
-        data={items}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={s.row}
-            onPress={() => openPDF(item)}
-            accessibilityLabel={item.title}
-          >
+        <FlatList
+          data={items}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={s.row}
+              onPress={() => openPDF(item)}
+              accessibilityLabel={item.title}
+            >
             <View style={[
               s.iconWrap,
               t.isDark && Platform.select({
@@ -295,8 +295,24 @@ export function MaterialList({ items, emptyMessage = 'Sem conteúdo disponível.
             </View>
             <View style={s.info}>
               <Text style={s.title}>{item.title}</Text>
-              {item.subtitle ? <Text style={s.sub}>{item.subtitle}</Text> : null}
-              {item.rating != null ? <StarRating count={item.rating} accent={t.accent} /> : null}
+              {item.subtitle ? <Text style={s.sub} numberOfLines={1} ellipsizeMode="tail">{item.subtitle}</Text> : null}
+              <View style={s.ratingRow}>
+                {(() => {
+                  const ratingCount = typeof item.ratingCount === 'number' ? item.ratingCount : null;
+                  const hasRating = ratingCount !== null
+                    ? ratingCount > 0
+                    : typeof item.rating === 'number' && item.rating > 0;
+                  const ratingValue = typeof item.rating === 'number' ? item.rating : 0;
+                  return (
+                    <>
+                      <StarRating rating={hasRating ? ratingValue : 0} accent={hasRating ? t.accent : t.textMuted} />
+                      <Text style={hasRating ? s.ratingValue : s.ratingEmpty}>
+                        {hasRating ? ratingValue.toFixed(1) : 'Sem avaliações'}
+                      </Text>
+                    </>
+                  );
+                })()}
+              </View>
             </View>
             <View style={s.actions}>
               <TouchableOpacity 
@@ -335,19 +351,15 @@ export function MaterialList({ items, emptyMessage = 'Sem conteúdo disponível.
               })()}
               <TouchableOpacity
                 style={s.actionBtn}
-                accessibilityLabel="Avaliar material"
+                accessibilityLabel="Detalhes do material"
                 onPress={() =>
                   router.push({
-                    pathname: '/ratings',
-                    params: {
-                      materialId: item.id,
-                      materialTitle: item.title,
-                      courseCode,
-                    },
+                    pathname: '/material/[id]',
+                    params: { id: item.id },
                   })
                 }
               >
-                <Ionicons name="star-outline" size={18} color={t.textSecondary} />
+                <Ionicons name="information-circle-outline" size={18} color={t.textSecondary} />
               </TouchableOpacity>
             </View>
           </TouchableOpacity>
@@ -488,6 +500,21 @@ function makeStyles(t: AppPalette) {
       fontSize: 12,
       color: t.textSecondary,
       marginTop: 2,
+    },
+    ratingRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      marginTop: 4,
+    },
+    ratingValue: {
+      fontSize: 11,
+      color: t.textMuted,
+    },
+    ratingEmpty: {
+      fontSize: 11,
+      color: t.textMuted,
+      marginTop: 4,
     },
     actions: {
       flexDirection: 'row',
