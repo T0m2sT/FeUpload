@@ -451,9 +451,19 @@ A Product Backlog Item is considered ready for Sprint Planning only if:
 
 - [Sprint Review details](https://github.com/LEIC-ES-2025-26-2LEIC13/T2/blob/main/misc/scrum/sprint-review.md#sprint-3-review)
 
+<h4>Happiness Meters</h4>
+<p align="center" justify="center">
+  <img src="./misc/sprints/sprint3-happiness.png"/>
+</p>
+
 **New Features implemented in Sprint 3:**
 - Implemented AI-powered study flashcards and a PDF Q&A chat interface.
 - Enhanced document and course UI/UX layout.
 - Added comprehensive unit and integration (Maestro) tests for new AI features.
+
+<h4>Tests can be found in this directories:</h4>
+
+- [Acceptance tests directory](https://github.com/LEIC-ES-2025-26-2LEIC13/T2/tree/main/.maestro)
+- [Unit tests directory](https://github.com/LEIC-ES-2025-26-2LEIC13/T2/tree/main/tests)
 
 ### Final Release

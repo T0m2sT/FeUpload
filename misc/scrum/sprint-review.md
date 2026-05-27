@@ -63,3 +63,29 @@ This file records Sprint Reviews and the resulting backlog adaptation decisions.
 - Prioritize additional user experience improvements based on feedback received.
 - Add new backlog items related to usability and interface enhancements.
 - Refine and update existing backlog items according to sprint outcomes.
+
+## Sprint 3 Review
+
+### Demonstrated increment
+- AI study tools: AI-generated summaries, flashcards, and PDF Q&A powered by Gemini edge function.
+- Offline materials: download indicator, offline access across sessions and platforms, dedicated Documents screen.
+- Solved/unsolved toggle on Exams and Exercises screens with checkmark indicator on material list.
+- Forum improvements: labels on posts with filter support, delete post button.
+- Upload improvements: "Tem soluções?" toggle, pre-selected course when navigating from a course section, rule-based filename tag suggestions.
+- Search autocomplete on material search.
+- Collection management: enable/disable collections, fix deletion on web.
+- App logo integrated and branding aligned across main and course screens.
+- Bug fixes: offline file access, thread navigation, PDF viewer dark theme, sort order for exams/summaries.
+
+### Stakeholders present
+- Team members.
+- Teacher (reviewed increment and repository artifacts).
+
+### Feedback received
+- Keep improving test coverage for new AI features.
+- Continue polishing the user experience and accessibility.
+
+### Product Backlog adaptation
+- Add any remaining AI feature polish (e.g. flashcard regeneration UX) to the backlog.
+- Evaluate expanding offline support to additional content types.
+- Improve Maestro CI reliability for end-to-end tests.

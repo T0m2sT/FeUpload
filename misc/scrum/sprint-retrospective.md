@@ -66,3 +66,35 @@ This file records sprint retrospectives with verifiable action points.
 
 ### Improvements compared to last sprint
 - We significantly improved our use of the Scrum board. As mentioned previously, we assigned issues to team members and moved them to In Progress when work started. This led to faster communication regarding ongoing tasks and provided a better understanding of the current status of the project.
+
+## Sprint 3 Retrospective
+
+### What went well
+
+- Successfully delivered the AI study tools feature (summaries, flashcards, PDF Q&A), which was the most ambitious item in the backlog.
+- Offline support was fully resolved across sessions and platforms after earlier instability.
+- Team collaboration improved further; most features were reviewed and merged via pull requests with clear scope.
+- UX polish items (autocomplete, solved toggle, forum labels, branding) were completed alongside the main AI feature.
+
+### What did not go well
+
+- Maestro (end-to-end) tests continued to fail in CI, which means we could not rely on automated E2E validation.
+- Some fixes were reactive (e.g. TypeScript errors, icon order, navigation loops) rather than caught during development.
+- The volume of small bug-fix commits suggests that some items were not fully tested before merging.
+
+### Puzzles
+
+- We still do not understand why the GitHub Actions Maestro runner is consistently failing. It may be an environment or emulator issue outside our control.
+
+### Improvement strategy (verifiable)
+
+| Action                                                   | Owner      | Verification                                                    |
+| -------------------------------------------------------- | ---------- | --------------------------------------------------------------- |
+| Investigate and document root cause of Maestro CI failure | Whole team | Issue created with findings; workaround or fix applied          |
+| Add a pre-merge checklist (lint + unit tests pass locally) | Whole team | Fewer reactive fix commits in next sprint git log               |
+| Keep sprint items small enough to test before merging    | Whole team | No item merged without at least one acceptance test or unit test |
+
+### Improvements compared to last sprint
+
+- Sprint planning followed Yesterday's Weather more closely; delivered features matched planned scope better than Sprint 2.
+- Scrum board usage remained disciplined: assignees set at In Progress, no large paused queues observed.
