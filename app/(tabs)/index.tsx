@@ -9,6 +9,8 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Image,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -193,6 +195,7 @@ export default function HomeScreen() {
     <ScrollView style={s.scroll} contentContainerStyle={s.container}>
       {/* Header */}
       <View style={s.header}>
+        <Image source={require('@/assets/Logo.png')} style={s.logo} />
         <View style={s.greetingContainer}>
           <Text style={s.greetingStatic} numberOfLines={1}>Bem-vindo, </Text>
           <TouchableOpacity 
@@ -206,16 +209,18 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity onPress={() => router.push('/(tabs)/bookmarks' as any)} accessibilityLabel="Marcadores">
-          <View style={s.avatarCircle}>
-            <Ionicons name="bookmark-outline" size={18} color={t.accent} />
-          </View>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => router.push('/profile')} accessibilityLabel="Perfil">
-          <View style={s.avatarCircle}>
-            <Ionicons name="person-outline" size={18} color={t.accent} />
-          </View>
-        </TouchableOpacity>
+        <View style={s.headerActions}>
+          <TouchableOpacity onPress={() => router.push('/(tabs)/bookmarks' as any)} accessibilityLabel="Marcadores" style={s.actionBtn}>
+            <View style={s.avatarCircle}>
+              <Ionicons name="bookmark-outline" size={18} color={t.accent} />
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push('/profile')} accessibilityLabel="Perfil" style={s.actionBtn}>
+            <View style={s.avatarCircle}>
+              <Ionicons name="person-outline" size={18} color={t.accent} />
+            </View>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Search */}
@@ -344,15 +349,29 @@ function makeStyles(t: ReturnType<typeof useAppTheme>) {
       backgroundColor: t.background,
     },
     container: {
-      padding: 20,
-      paddingTop: 60,
+      padding: Platform.OS === 'web' ? 12 : 20,
+      paddingTop: Platform.OS === 'web' ? 28 : 60,
       paddingBottom: 32,
     },
     header: {
       flexDirection: 'row',
       alignItems: 'center',
+      justifyContent: 'space-between',
       marginBottom: 20,
       gap: 8,
+    },
+    headerActions: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+    },
+    actionBtn: {
+      padding: 8,
+    },
+    logo: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
     },
     greetingContainer: {
       flex: 1,
@@ -474,11 +493,12 @@ function makeStyles(t: ReturnType<typeof useAppTheme>) {
     grid: {
       flexDirection: 'row',
       flexWrap: 'wrap',
-      gap: 12,
+      gap: 16,
       marginBottom: 28,
+      justifyContent: 'space-between',
     },
     card: {
-      width: '47%',
+      width: Platform.OS === 'web' ? 'calc(50% - 8px)' : '46%',
       borderRadius: 14,
       padding: 14,
       paddingTop: 12,
@@ -487,6 +507,7 @@ function makeStyles(t: ReturnType<typeof useAppTheme>) {
       borderWidth: 1,
       borderColor: t.surfaceBorder,
       minHeight: 88,
+      marginBottom: 12,
       ...(t.isDark ? {
         shadowColor: t.accent,
         shadowOpacity: 0.06,
@@ -494,6 +515,7 @@ function makeStyles(t: ReturnType<typeof useAppTheme>) {
         shadowOffset: { width: 0, height: 0 },
       } : {}),
     },
+
     pinBadge: {
       position: 'absolute',
       top: 8,

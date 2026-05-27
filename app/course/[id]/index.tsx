@@ -1,4 +1,5 @@
-import { Text, View, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import React, { useState } from 'react';
+import { Text, View, TouchableOpacity, StyleSheet, ScrollView, Platform, Image } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppTheme } from '@/hooks/use-app-theme';
@@ -58,17 +59,24 @@ export default function CourseIndexScreen() {
   const router = useRouter();
   const t = useAppTheme();
   const s = makeStyles(t);
+  const [expanded, setExpanded] = useState(false);
   const courseCode = (id ?? '').toUpperCase();
   const courseName = Array.isArray(name) ? name[0] : name;
   const courseDescription = Array.isArray(description) ? description[0] : description;
 
   return (
     <View style={s.root}>
-      <ScrollView contentContainerStyle={s.container}>
-        <TouchableOpacity style={s.backBtn} onPress={() => router.push('/')}>
-          <Ionicons name="arrow-back" size={20} color={t.accent} />
-          <Text style={s.backText}>Voltar</Text>
-        </TouchableOpacity>
+      <ScrollView 
+        contentContainerStyle={s.container}
+        style={{ flex: 1 }}
+      >
+        <View style={s.headerRow}>
+          <TouchableOpacity style={s.backBtn} onPress={() => router.push('/')}>
+            <Ionicons name="arrow-back" size={20} color={t.accent} />
+            <Text style={s.backText}>Voltar</Text>
+          </TouchableOpacity>
+          <Image source={require('@/assets/Logo.png')} style={s.logo} />
+        </View>
 
         {/* Course header */}
         <Text testID="course-code" style={s.code}>{courseCode}</Text>
@@ -76,9 +84,17 @@ export default function CourseIndexScreen() {
 
         {/* Description block */}
         {!!courseDescription && (
-          <View style={s.metaCard}>
-            <Text style={s.metaDescription} numberOfLines={3} ellipsizeMode="tail">{courseDescription}</Text>
-          </View>
+          <TouchableOpacity
+            style={s.metaCard}
+            onPress={() => setExpanded(!expanded)}
+          >
+            <Text 
+              style={s.metaDescription} 
+              numberOfLines={expanded ? undefined : 3}
+            >
+              {courseDescription}
+            </Text>
+          </TouchableOpacity>
         )}
 
         {/* Section list */}
@@ -110,7 +126,7 @@ export default function CourseIndexScreen() {
                   shadowOffset: { width: 0, height: 0 },
                 },
               ]}>
-                <Ionicons name={section.icon} size={20} color={t.accent} />
+                <Ionicons name={section.icon} size={Platform.OS === 'web' ? 24 : 20} color={t.accent} />
               </View>
               <View style={s.cardInfo}>
                 <Text style={s.cardTitle}>{section.label}</Text>
@@ -149,7 +165,7 @@ export default function CourseIndexScreen() {
                 shadowOffset: { width: 0, height: 0 },
               },
             ]}>
-              <Ionicons name="chatbubbles-outline" size={20} color={t.accent} />
+              <Ionicons name="chatbubbles-outline" size={Platform.OS === 'web' ? 24 : 20} color={t.accent} />
             </View>
             <View style={s.cardInfo}>
               <Text style={s.cardTitle}>Fórum de Discussão</Text>
@@ -171,15 +187,25 @@ function makeStyles(t: AppPalette) {
       backgroundColor: t.background,
     },
     container: {
-      padding: 20,
-      paddingTop: 60,
+      paddingHorizontal: 20,
+      paddingTop: Platform.OS === 'web' ? 20 : 60,
       paddingBottom: 32,
+    },
+    headerRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 20,
+    },
+    logo: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
     },
     backBtn: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 6,
-      marginBottom: 20,
     },
     backText: {
       color: t.accent,

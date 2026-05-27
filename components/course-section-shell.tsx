@@ -4,7 +4,7 @@ import { useAppTheme } from '@/hooks/use-app-theme';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 type Tab = {
   key: CourseNavKey;
@@ -60,86 +60,159 @@ export function CourseSectionShell({
 
   return (
     <View style={s.root}>
-      {/* Fixed chrome — never re-mounts when switching tabs */}
-      <View style={s.chrome}>
-        <View style={s.topRow}>
-          <TouchableOpacity
-            style={s.backBtn}
-            onPress={() =>
-              router.push({
-                pathname: '/course/[id]',
-                params: {
-                  id: courseId,
-                  name: courseName,
-                  description: courseDescription ?? '',
-                },
-              })
-            }
-            accessibilityLabel="Voltar para cadeira"
-          >
-            <Ionicons name="arrow-back" size={20} color={t.accent} />
-            <Text style={s.backText}>{courseCode}</Text>
-          </TouchableOpacity>
-
-          {/* Star logo — centred, taps go home */}
-          <TouchableOpacity
-            style={s.logoWrap}
-            onPress={() => router.push('/')}
-            accessibilityLabel="Ir para o início"
-          >
-            <Ionicons name="star" size={22} color={t.accent} />
-          </TouchableOpacity>
-
-          <View style={s.uploadBtnSpacer}>
-            {onUpload && (
+      {Platform.OS === 'web' ? (
+        <ScrollView style={s.content}>
+          <View style={s.chrome}>
+            <View style={s.topRow}>
               <TouchableOpacity
-                style={s.uploadBtn}
-                onPress={onUpload}
-                accessibilityLabel="Enviar material"
+                style={s.backBtn}
+                onPress={() =>
+                  router.push({
+                    pathname: '/course/[id]',
+                    params: {
+                      id: courseId,
+                      name: courseName,
+                      description: courseDescription ?? '',
+                    },
+                  })
+                }
+                accessibilityLabel="Voltar para cadeira"
               >
-                <Ionicons name="cloud-upload-outline" size={14} color={t.accent} />
-                <Text style={s.uploadBtnText}>Enviar</Text>
+                <Ionicons name="arrow-back" size={20} color={t.accent} />
+                <Text style={s.backText}>{courseCode}</Text>
               </TouchableOpacity>
-            )}
+
+              <TouchableOpacity
+                style={s.logoWrap}
+                onPress={() => router.push('/')}
+                accessibilityLabel="Ir para o início"
+              >
+                <Image source={require('@/assets/Logo.png')} style={s.logo} />
+              </TouchableOpacity>
+
+              <View style={s.uploadBtnSpacer}>
+                {onUpload && (
+                  <TouchableOpacity
+                    style={s.uploadBtn}
+                    onPress={onUpload}
+                    accessibilityLabel="Enviar material"
+                  >
+                    <Ionicons name="cloud-upload-outline" size={14} color={t.accent} />
+                    <Text style={s.uploadBtnText}>Enviar</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            </View>
+
+            <Text style={s.courseName}>{courseName}</Text>
+
+            <View style={s.tabStrip}>
+              {TABS.map((tab) => {
+                const active = tab.key === activeKey;
+                return (
+                  <TouchableOpacity
+                    key={tab.key}
+                    style={[s.tab, active && s.tabActive]}
+                    onPress={() => {
+                      if (!active) {
+                        router.replace({
+                          pathname: getTabPath(tab.key),
+                          params: {
+                            id: courseId,
+                            name: courseName,
+                            description: courseDescription ?? '',
+                          },
+                        });
+                      }
+                    }}
+                    accessibilityRole="tab"
+                    accessibilityState={{ selected: active }}
+                  >
+                    <Text style={[s.tabText, active && s.tabTextActive]}>{tab.label}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
           </View>
-        </View>
-
-        <Text style={s.courseName}>{courseName}</Text>
-
-        {/* Tab strip */}
-        <View style={s.tabStrip}>
-          {TABS.map((tab) => {
-            const active = tab.key === activeKey;
-            return (
+          <View style={s.content}>{children}</View>
+        </ScrollView>
+      ) : (
+        <View style={s.root}>
+          <View style={s.chrome}>
+            <View style={s.topRow}>
               <TouchableOpacity
-                key={tab.key}
-                style={[s.tab, active && s.tabActive]}
-                onPress={() => {
-                  if (!active) {
-                    router.replace({
-                      pathname: getTabPath(tab.key),
-                      params: {
-                        id: courseId,
-                        name: courseName,
-                        description: courseDescription ?? '',
-                      },
-                    });
-                  }
-                }}
-                accessibilityRole="tab"
-                accessibilityState={{ selected: active }}
+                style={s.backBtn}
+                onPress={() =>
+                  router.push({
+                    pathname: '/course/[id]',
+                    params: {
+                      id: courseId,
+                      name: courseName,
+                      description: courseDescription ?? '',
+                    },
+                  })
+                }
+                accessibilityLabel="Voltar para cadeira"
               >
-                <Text style={[s.tabText, active && s.tabTextActive]}>{tab.label}</Text>
+                <Ionicons name="arrow-back" size={20} color={t.accent} />
+                <Text style={s.backText}>{courseCode}</Text>
               </TouchableOpacity>
-            );
-          })}
-        </View>
-      </View>
 
-      {/* Scrollable content area — only this part changes between tabs */}
-      <View style={s.content}>
-        {children}
-      </View>
+              <TouchableOpacity
+                style={s.logoWrap}
+                onPress={() => router.push('/')}
+                accessibilityLabel="Ir para o início"
+              >
+                <Image source={require('@/assets/Logo.png')} style={s.logo} />
+              </TouchableOpacity>
+
+              <View style={s.uploadBtnSpacer}>
+                {onUpload && (
+                  <TouchableOpacity
+                    style={s.uploadBtn}
+                    onPress={onUpload}
+                    accessibilityLabel="Enviar material"
+                  >
+                    <Ionicons name="cloud-upload-outline" size={14} color={t.accent} />
+                    <Text style={s.uploadBtnText}>Enviar</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            </View>
+
+            <Text style={s.courseName}>{courseName}</Text>
+
+            <View style={s.tabStrip}>
+              {TABS.map((tab) => {
+                const active = tab.key === activeKey;
+                return (
+                  <TouchableOpacity
+                    key={tab.key}
+                    style={[s.tab, active && s.tabActive]}
+                    onPress={() => {
+                      if (!active) {
+                        router.replace({
+                          pathname: getTabPath(tab.key),
+                          params: {
+                            id: courseId,
+                            name: courseName,
+                            description: courseDescription ?? '',
+                          },
+                        });
+                      }
+                    }}
+                    accessibilityRole="tab"
+                    accessibilityState={{ selected: active }}
+                  >
+                    <Text style={[s.tabText, active && s.tabTextActive]}>{tab.label}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+          <View style={s.content}>{children}</View>
+        </View>
+      )}
     </View>
   );
 }
@@ -151,7 +224,7 @@ function makeStyles(t: AppPalette) {
       backgroundColor: t.background,
     },
     chrome: {
-      paddingTop: Platform.OS === 'ios' ? 56 : 44,
+      paddingTop: Platform.OS === 'ios' ? 44 : 32,
       paddingHorizontal: 20,
       paddingBottom: 0,
       backgroundColor: t.background,
@@ -168,7 +241,7 @@ function makeStyles(t: AppPalette) {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 6,
-      flex: 1,            // pushes star to centre
+      flex: 1,            // pushes logo to centre
     },
     backText: {
       color: t.accent,
@@ -179,6 +252,11 @@ function makeStyles(t: AppPalette) {
       paddingHorizontal: 12,
       alignItems: 'center',
       justifyContent: 'center',
+    },
+    logo: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
     },
     uploadBtnSpacer: {
       flex: 1,
