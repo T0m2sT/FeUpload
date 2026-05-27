@@ -1,0 +1,21 @@
+appId: com.anonymous.feupload
+---
+- launchApp:
+    clearState: true
+- tapOn: Email
+- inputText: test2@example.com
+- tapOn: Password
+- inputText: "test2"
+- tapOn: Sign In
+- extendedWaitUntil:
+    visible: "Bem-vindo, "
+    timeout: 40000
+- tapOn: Engenharia de Software
+- tapOn: Slides
+- tapOn: chatbubble-ellipses-outline
+- assertVisible: Perguntar sobre o documento
+- tapOn: Faz uma pergunta...
+- inputText: O que são testes unitários?
+- tapOn: arrow-up
+- extendedWaitUntil:
+    visible: Os testes unitários são...
