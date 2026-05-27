@@ -1,5 +1,5 @@
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
+import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Animated } from 'react-native';
 import {
   ActivityIndicator,
@@ -82,23 +82,32 @@ export default function MaterialDetailScreen() {
   const [flipped, setFlipped] = useState(false);
   const flipAnim = useRef(new Animated.Value(0)).current;
 
-  useEffect(() => {
-    let alive = true;
+  const fetchMaterial = useCallback(() => {
     if (!materialId) return;
     setLoading(true);
     getMaterialById(materialId)
       .then((data) => {
-        if (alive) setMaterial(data as MaterialDetail);
+        setMaterial(data as MaterialDetail);
       })
       .catch((e) => {
-        if (alive) setError(e.message ?? 'Erro ao carregar material.');
+        setError(e.message ?? 'Erro ao carregar material.');
       })
       .finally(() => {
-        if (alive) setLoading(false);
+        setLoading(false);
       });
-    return () => {
-      alive = false;
-    };
+  }, [materialId]);
+
+  useFocusEffect(fetchMaterial);
+
+  // Pre-warm the AI functions to avoid cold start issues
+  useEffect(() => {
+    if (Platform.OS === 'web' && materialId) {
+      // Small delay to let the page settle before pre-warming
+      setTimeout(() => {
+        supabase.functions.invoke('summarize-pdf', { body: { warmup: true } }).catch(() => {});
+        supabase.functions.invoke('study-questions', { body: { warmup: true } }).catch(() => {});
+      }, 2000);
+    }
   }, [materialId]);
 
   const generateAiSummary = async () => {
@@ -260,12 +269,6 @@ export default function MaterialDetailScreen() {
           ) : null}
 
           {/* Fichas de estudo */}
-          {material.file_url && !flashcardsLoading && !flashcards ? (
-            <TouchableOpacity style={s.aiBtn} onPress={generateFlashcards}>
-              <Ionicons name="layers-outline" size={16} color={t.accent} />
-              <Text style={s.aiBtnText}>Gerar fichas de estudo</Text>
-            </TouchableOpacity>
-          ) : null}
           {flashcardsLoading ? (
             <View style={s.aiBox}>
               <ActivityIndicator size="small" color={t.accent} style={{ marginBottom: 8 }} />
@@ -320,15 +323,14 @@ export default function MaterialDetailScreen() {
                 </TouchableOpacity>
               </View>
             </View>
+          ) : material.file_url ? (
+            <TouchableOpacity style={s.aiBtn} onPress={generateFlashcards}>
+              <Ionicons name="layers-outline" size={16} color={t.accent} />
+              <Text style={s.aiBtnText}>Gerar fichas de estudo</Text>
+            </TouchableOpacity>
           ) : null}
 
           {/* Resumo com IA */}
-          {material.file_url && !aiSummary && !aiLoading ? (
-            <TouchableOpacity style={s.aiBtn} onPress={generateAiSummary}>
-              <Ionicons name="sparkles-outline" size={16} color={t.accent} />
-              <Text style={s.aiBtnText}>Gerar resumo com IA</Text>
-            </TouchableOpacity>
-          ) : null}
           {aiLoading ? (
             <View style={s.aiBox}>
               <ActivityIndicator size="small" color={t.accent} style={{ marginBottom: 8 }} />
@@ -349,6 +351,11 @@ export default function MaterialDetailScreen() {
               </View>
               <Markdown style={{ body: s.aiText, bullet_list_icon: s.aiText, bullet_list_content: s.aiText, strong: { color: s.aiText.color, fontWeight: '700' } }}>{aiSummary}</Markdown>
             </View>
+          ) : material.file_url ? (
+            <TouchableOpacity style={s.aiBtn} onPress={generateAiSummary}>
+              <Ionicons name="sparkles-outline" size={16} color={t.accent} />
+              <Text style={s.aiBtnText}>Gerar resumo com IA</Text>
+            </TouchableOpacity>
           ) : null}
         </ScrollView>
       )}

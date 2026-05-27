@@ -1,6 +1,7 @@
 import { PdfViewerComponent } from '@/components/PdfViewerComponent';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { useIsOnline } from '@/hooks/use-is-online';
+import { refreshOfflineIndex } from '@/services/offline';
 import { supabase } from '@/lib/supabase';
 import { Ionicons } from '@expo/vector-icons';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
@@ -25,8 +26,14 @@ type QAEntry = { question: string; answer: string };
 function PdfBackButton() {
     const router = useRouter();
     const t = useAppTheme();
+    const onBack = async () => {
+        try {
+            await refreshOfflineIndex();
+        } catch {}
+        router.back();
+    };
     return (
-        <TouchableOpacity onPress={() => router.back()} style={{ paddingHorizontal: 8 }}>
+        <TouchableOpacity onPress={onBack} style={{ paddingHorizontal: 8 }}>
             <Ionicons name="chevron-back" size={24} color={t.accent} />
         </TouchableOpacity>
     );
@@ -55,6 +62,13 @@ export default function PdfViewer() {
     const insets = useSafeAreaInsets();
     const isOnline = useIsOnline();
 
+    // Ensure offline index is refreshed when this viewer unmounts so parent screens show updates immediately
+    React.useEffect(() => {
+      return () => {
+        refreshOfflineIndex().catch(() => {});
+      };
+    }, []);
+
     // Prefer local files when available — they work offline and load faster.
     const mainUri = local_pdf || pdf || '';
     const solvedUri = local_pdf_solved || pdf_solved || '';
@@ -69,7 +83,7 @@ export default function PdfViewer() {
     const scrollRef = useRef<ScrollView>(null);
 
     const activePdfUri = showSolved ? solvedUri : mainUri;
-    const activeIsLocal = activePdfUri.startsWith('file://');
+    const activeIsLocal = activePdfUri.startsWith('file://') || activePdfUri.startsWith('blob:');
     const pdfSource = { uri: activePdfUri, cache: true };
     const showOfflineError = !activeIsLocal && !isOnline;
     
@@ -358,7 +372,7 @@ const styles = StyleSheet.create({
         borderTopWidth: 1,
         borderLeftWidth: 1,
         borderRightWidth: 1,
-        height: '40%',
+        height: Platform.OS === 'web' ? '40%' : '40%',
     },
     qaSheetHeader: {
         flexDirection: 'row',
