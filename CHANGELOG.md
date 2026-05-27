@@ -68,6 +68,24 @@ All notable changes to this project are documented in this file.
 - Refactoring work focused on improving maintainability, UI consistency, and overall code quality.
 - Additional validation and error-handling logic added across authentication and profile-related flows.
 
+## Sprint 4
+
+### End-user value
+- Students can generate AI-powered study flashcards for any material to reinforce learning.
+- Students can interact with PDF documents via a new Q&A chat interface powered by AI, allowing them to ask questions about the document content.
+- Document and course screens have been polished for better navigation and consistent layout across all devices.
+
+### Closed PBIs (implemented in this increment)
+- AI-powered study flashcards feature for materials (PR #125).
+- PDF Q&A chat interface implementation (PR #126).
+- UI/UX layout improvements for document and course navigation (PR #127).
+- Offline service extended to support remote URI caching for AI features (PR #128).
+
+### Quality and delivery notes
+- State-based caching implemented for flashcards to reduce redundant API requests.
+- Keyboard handling and modal UI optimized for seamless PDF interaction.
+- Unit tests updated to cover new components and service logic.
+
 ## Sprint 3
 
 ### End-user value
