@@ -271,23 +271,16 @@ export default function BookmarksScreen() {
 
   return (
     <View style={s.container}>
-      <View style={s.headerSection}>
-        <View style={s.headerTop}>
-          <Text style={s.screenTitle}>Coleções</Text>
-          <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons name="close" size={24} color={t.textSecondary} />
-          </TouchableOpacity>
-        </View>
+      <View style={s.header}>
+        <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
+          <Ionicons name="arrow-back" size={20} color={t.accent} />
+        </TouchableOpacity>
+        <Text style={s.heading}>Coleções</Text>
+        <TouchableOpacity onPress={() => handleOpenCreateModal()} style={s.addBtn}>
+          <Ionicons name="add-circle-outline" size={20} color={t.accent} />
+          <Text style={s.addBtnText}>Nova</Text>
+        </TouchableOpacity>
       </View>
-
-      <TouchableOpacity
-        style={s.createButton}
-        onPress={handleOpenCreateModal}
-        disabled={!userId}
-      >
-        <Ionicons name="add-circle-outline" size={20} color={t.background} />
-        <Text style={s.createButtonText}>Nova Coleção</Text>
-      </TouchableOpacity>
 
       {isLoading ? (
         <View style={s.centerContainer}><ActivityIndicator color={t.accent} /></View>
@@ -365,11 +358,11 @@ export default function BookmarksScreen() {
 
 const makeStyles = (t: AppPalette) => StyleSheet.create({
   container: { flex: 1, backgroundColor: t.background },
-  headerSection: { padding: 16, paddingTop: 48 },
-  headerTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  screenTitle: { fontSize: 28, fontWeight: 'bold', color: t.textPrimary },
-  createButton: { flexDirection: 'row', alignItems: 'center', margin: 16, padding: 12, borderRadius: 12, backgroundColor: t.accent, gap: 8 },
-  createButtonText: { fontSize: 14, fontWeight: '600', color: t.background },
+  header: { flexDirection: 'row', alignItems: 'center', padding: 16, paddingTop: 64, gap: 12, borderBottomWidth: 1, borderBottomColor: t.surfaceBorder },
+  backBtn: { padding: 2 },
+  heading: { fontSize: 24, fontWeight: 'bold', color: t.textPrimary, marginRight: 'auto' },
+  addBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: t.accentDim, borderWidth: 1, borderColor: t.accentBorder, borderRadius: 20, paddingHorizontal: 12, paddingVertical: 6 },
+  addBtnText: { fontSize: 13, fontWeight: '600', color: t.accent },
   collectionsContent: { padding: 16, gap: 12 },
   collectionCardContainer: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   collectionCard: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: t.surface, borderRadius: 12, borderLeftWidth: 4, padding: 12, gap: 12, borderWidth: 1, borderColor: t.surfaceBorder },
@@ -409,5 +402,10 @@ const makeStyles = (t: AppPalette) => StyleSheet.create({
   createModalButtonText: { color: t.background, fontWeight: 'bold', fontSize: 16 },
   errorBanner: { backgroundColor: '#FFE5E5', padding: 10, borderRadius: 8, marginBottom: 10 },
   errorText: { color: '#D32F2F', fontSize: 13, fontWeight: '500' },
-  backButton: { padding: 2, marginRight: 12 },
+  createButton: { display: 'none' },
+  headerSection: { display: 'none' },
+  screenTitle: { display: 'none' },
+  headerTop: { display: 'none' },
+  backButton: { display: 'none' },
+  createButtonText: { display: 'none' },
 });
