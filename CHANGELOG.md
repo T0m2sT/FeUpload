@@ -68,27 +68,12 @@ All notable changes to this project are documented in this file.
 - Refactoring work focused on improving maintainability, UI consistency, and overall code quality.
 - Additional validation and error-handling logic added across authentication and profile-related flows.
 
-## Sprint 4
+## Sprint 3
 
 ### End-user value
 - Students can generate AI-powered study flashcards for any material to reinforce learning.
 - Students can interact with PDF documents via a new Q&A chat interface powered by AI, allowing them to ask questions about the document content.
 - Document and course screens have been polished for better navigation and consistent layout across all devices.
-
-### Closed PBIs (implemented in this increment)
-- AI-powered study flashcards feature for materials (PR #125).
-- PDF Q&A chat interface implementation (PR #126).
-- UI/UX layout improvements for document and course navigation (PR #127).
-- Offline service extended to support remote URI caching for AI features (PR #128).
-
-### Quality and delivery notes
-- State-based caching implemented for flashcards to reduce redundant API requests.
-- Keyboard handling and modal UI optimized for seamless PDF interaction.
-- Unit tests updated to cover new components and service logic.
-
-## Sprint 3
-
-### End-user value
 - Students can filter and sort course materials by rating or academic year, with exams correctly ordered by year.
 - Students can toggle between a material and its resolution directly inside the PDF viewer.
 - Students can get an AI-generated summary of any PDF material with a single tap, powered by Gemini.
@@ -98,6 +83,10 @@ All notable changes to this project are documented in this file.
 - Material detail screens show cleaner metadata with a clickable rating count linking to reviews.
 
 ### Closed PBIs (implemented in this increment)
+- AI-powered study flashcards feature for materials (PR #125).
+- PDF Q&A chat interface implementation (PR #126).
+- UI/UX layout improvements for document and course navigation (PR #127).
+- Offline service extended to support remote URI caching for AI features (PR #128).
 - Forum post labels and filtering implemented (PR #114).
 - Material widget refactored for consistency (PR #113).
 - Upload form course pre-selection from course section navigation (PR #112).
@@ -112,6 +101,9 @@ All notable changes to this project are documented in this file.
 - Pre-existing TypeScript compilation errors resolved across multiple screens.
 
 ### Quality and delivery notes
+- State-based caching implemented for flashcards to reduce redundant API requests.
+- Keyboard handling and modal UI optimized for seamless PDF interaction.
+- Unit tests updated to cover new components and service logic.
 - Supabase edge function deployed for AI summarization (Gemini 2.5 Flash Lite).
 - Markdown rendering added to AI summary output via react-native-markdown-display.
 - Deno-based edge functions excluded from the TypeScript project to prevent compiler errors.
