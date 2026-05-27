@@ -56,8 +56,8 @@ describe('Delete Button Unit Tests', () => {
     });
 
     it('should hide delete button when user is not thread owner', () => {
-      const currentUserId = 'user-123';
-      const threadUserId = 'user-456';
+      const currentUserId: string = 'user-123';
+      const threadUserId: string = 'user-456';
       const shouldShow = currentUserId === threadUserId;
       expect(shouldShow).toBe(false);
     });
@@ -70,8 +70,8 @@ describe('Delete Button Unit Tests', () => {
     });
 
     it('should hide delete button when user is not reply owner', () => {
-      const currentUserId = 'user-123';
-      const replyUserId = 'user-789';
+      const currentUserId: string = 'user-123';
+      const replyUserId: string = 'user-789';
       const shouldShow = currentUserId === replyUserId;
       expect(shouldShow).toBe(false);
     });

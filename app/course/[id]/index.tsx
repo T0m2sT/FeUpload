@@ -77,7 +77,7 @@ export default function CourseIndexScreen() {
         {/* Description block */}
         {!!courseDescription && (
           <View style={s.metaCard}>
-            <Text style={s.metaDescription}>{courseDescription}</Text>
+            <Text style={s.metaDescription} numberOfLines={3} ellipsizeMode="tail">{courseDescription}</Text>
           </View>
         )}
 
