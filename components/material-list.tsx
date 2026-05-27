@@ -19,12 +19,13 @@ import {
 } from 'react-native';
 import { type BookmarkCollection, BOOKMARK_COLORS } from '@/constants/bookmarks';
 import { supabase } from '@/lib/supabase';
-import { addBookmark } from '@/services/bookmarks';
+import { addBookmark, removeBookmarksByName } from '@/services/bookmarks';
 import {
   downloadMaterial,
   offlineSupported,
   removeOfflineMaterial,
   useOfflineIndex,
+  resolveLocalUri,
 } from '@/services/offline';
 import { useIsOnline } from '@/hooks/use-is-online';
 import { Alert } from 'react-native';
@@ -172,8 +173,8 @@ export function MaterialList({ items, emptyMessage = 'Sem conteúdo disponível.
     const offlineEntry = offlineIndex[item.id];
     const remotePdf = item.pdf;
     const remoteSolved = item.pdf_solved;
-    const localPdf = offlineEntry?.localUri;
-    const localSolved = offlineEntry?.localUriSolved;
+    const localPdf = offlineEntry?.localUri ? resolveLocalUri(offlineEntry.localUri) : undefined;
+    const localSolved = offlineEntry?.localUriSolved ? resolveLocalUri(offlineEntry.localUriSolved) : undefined;
 
     if (!remotePdf && !remoteSolved && !localPdf && !localSolved) return;
 
@@ -182,11 +183,6 @@ export function MaterialList({ items, emptyMessage = 'Sem conteúdo disponível.
         'Sem ligação',
         'Este ficheiro não está disponível offline. Liga-te à internet para o descarregar primeiro.',
       );
-      return;
-    }
-
-    if (Platform.OS === 'web') {
-      Linking.openURL(remotePdf || remoteSolved!);
       return;
     }
 
@@ -203,7 +199,7 @@ export function MaterialList({ items, emptyMessage = 'Sem conteúdo disponível.
   };
 
   const handleOfflineButton = async (item: Material) => {
-    if (!offlineSupported) {
+    if (!offlineSupported && Platform.OS !== 'web') {
       Alert.alert(
         'Não disponível',
         'O modo offline está disponível na app móvel.',
@@ -211,7 +207,7 @@ export function MaterialList({ items, emptyMessage = 'Sem conteúdo disponível.
       return;
     }
     const cached = offlineIndex[item.id];
-    if (cached) {
+    if (cached && Platform.OS !== 'web') {
       Alert.alert(
         'Remover offline',
         `Eliminar a cópia offline de "${item.title}"?`,
@@ -226,7 +222,7 @@ export function MaterialList({ items, emptyMessage = 'Sem conteúdo disponível.
       );
       return;
     }
-    if (!isOnline) {
+    if (!isOnline && !cached && Platform.OS !== 'web') {
       Alert.alert(
         'Sem ligação',
         'Liga-te à internet para descarregares este ficheiro.',
@@ -418,12 +414,33 @@ export function MaterialList({ items, emptyMessage = 'Sem conteúdo disponível.
                     <ActivityIndicator style={{ margin: 20 }} color={t.accent} />
                   ) : (
                     collections.map((col) => (
-                      <TouchableOpacity key={col.name} style={s.collectionOption} onPress={() => handleSelectCollection(col)}>
+                      <TouchableOpacity 
+                        key={col.name} 
+                        style={s.collectionOption} 
+                        onPress={() => handleSelectCollection(col)}
+                      >
                         <View style={[s.collectionColorBadge, { backgroundColor: col.color }]} />
                         <View style={s.collectionOptionContent}>
                           <Text style={s.collectionOptionName}>{col.name}</Text>
                           <Text style={s.collectionOptionCount}>{col.item_count} materiais</Text>
                         </View>
+                        <TouchableOpacity
+                          onPress={() => {
+                            if (Platform.OS === 'web') {
+                              if (confirm(`Eliminar a coleção "${col.name}"?`)) {
+                                removeBookmarksByName(userId!, col.name).then(() => fetchCollections(userId!));
+                              }
+                            } else {
+                              Alert.alert('Eliminar coleção', `Eliminar "${col.name}"?`, [
+                                { text: 'Cancelar' },
+                                { text: 'Eliminar', style: 'destructive', onPress: () => removeBookmarksByName(userId!, col.name).then(() => fetchCollections(userId!)) }
+                              ]);
+                            }
+                          }}
+                          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                        >
+                          <Ionicons name="trash-outline" size={22} color={t.textMuted} />
+                        </TouchableOpacity>
                       </TouchableOpacity>
                     ))
                   )}
