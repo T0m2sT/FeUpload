@@ -109,26 +109,35 @@ export default function ThreadDetailScreen() {
     }
   };
 
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const handleDeleteThread = () => {
-    Alert.alert(
-      'Eliminar Publicação',
-      'Tens a certeza que queres eliminar esta publicação? Esta ação não pode ser desfeita.',
-      [
-        { text: 'Cancelar', onPress: () => {}, style: 'cancel' },
-        {
-          text: 'Eliminar',
-          onPress: async () => {
-            try {
-              await deleteThread(threadId);
-              router.back();
-            } catch (err: any) {
-              Alert.alert('Erro', 'Não foi possível eliminar a publicação.');
-            }
-          },
-          style: 'destructive',
-        },
-      ],
-    );
+    const performDelete = async () => {
+      if (isDeleting) return;
+      setIsDeleting(true);
+      try {
+        await deleteThread(threadId);
+        router.back();
+      } catch (err: any) {
+        setIsDeleting(false);
+        Platform.OS === 'web' ? window.alert('Erro ao eliminar') : Alert.alert('Erro', 'Não foi possível eliminar a publicação.');
+      }
+    };
+
+    if (Platform.OS === 'web') {
+      if (window.confirm('Tens a certeza que queres eliminar esta publicação?')) {
+        performDelete();
+      }
+    } else {
+      Alert.alert(
+        'Eliminar Publicação',
+        'Tens a certeza que queres eliminar esta publicação? Esta ação não pode ser desfeita.',
+        [
+          { text: 'Cancelar', style: 'cancel' },
+          { text: 'Eliminar', onPress: performDelete, style: 'destructive' },
+        ],
+      );
+    }
   };
 
   const handleDeleteReply = (replyId: string) => {
@@ -191,8 +200,9 @@ export default function ThreadDetailScreen() {
               <Text style={[s.opTitle, { flex: 1 }]}>{thread.title}</Text>
               {currentUserId === thread.user_id && (
                 <TouchableOpacity
-                  style={s.deleteButton}
+                  style={[s.deleteButton, isDeleting && { opacity: 0.5 }]}
                   onPress={handleDeleteThread}
+                  disabled={isDeleting}
                   accessibilityLabel="Eliminar publicação"
                 >
                   <Ionicons name="trash" size={18} color="#DC3545" />
