@@ -1,5 +1,6 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { Animated } from 'react-native';
 import {
   ActivityIndicator,
   Linking,
@@ -15,7 +16,7 @@ import { useAppTheme } from '@/hooks/use-app-theme';
 import type { AppPalette } from '@/constants/theme';
 import { getMaterialById } from '@/services/materials';
 import { supabase } from '@/lib/supabase';
-import { getCachedSummary, setCachedSummary } from '@/lib/ai-summary-cache';
+import { getCachedSummary, setCachedSummary, getCachedFlashcards, setCachedFlashcards, type Flashcard } from '@/lib/ai-summary-cache';
 import Markdown from 'react-native-markdown-display';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -74,6 +75,13 @@ export default function MaterialDetailScreen() {
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
 
+  const [flashcards, setFlashcards] = useState<Flashcard[] | null>(() => getCachedFlashcards(materialId ?? '') ?? null);
+  const [flashcardsLoading, setFlashcardsLoading] = useState(false);
+  const [flashcardsError, setFlashcardsError] = useState<string | null>(null);
+  const [flashcardIndex, setFlashcardIndex] = useState(0);
+  const [flipped, setFlipped] = useState(false);
+  const flipAnim = useRef(new Animated.Value(0)).current;
+
   useEffect(() => {
     let alive = true;
     if (!materialId) return;
@@ -109,6 +117,48 @@ export default function MaterialDetailScreen() {
     } finally {
       setAiLoading(false);
     }
+  };
+
+  const generateFlashcards = async () => {
+    if (!material?.file_url) return;
+    setFlashcardsLoading(true);
+    setFlashcardsError(null);
+    try {
+      const { data, error: fnError } = await supabase.functions.invoke('study-questions', {
+        body: { fileUrl: material.file_url, title: material.title },
+      });
+      if (fnError) throw fnError;
+      const cards: Flashcard[] = data.questions;
+      setFlashcards(cards);
+      setFlashcardIndex(0);
+      setFlipped(false);
+      flipAnim.setValue(0);
+      if (materialId) setCachedFlashcards(materialId, cards);
+    } catch (e: any) {
+      setFlashcardsError(e?.message ?? 'Não foi possível gerar as fichas. Tenta novamente.');
+    } finally {
+      setFlashcardsLoading(false);
+    }
+  };
+
+  const handleFlip = () => {
+    const toValue = flipped ? 0 : 1;
+    Animated.spring(flipAnim, { toValue, useNativeDriver: true, friction: 8 }).start();
+    setFlipped(!flipped);
+  };
+
+  const handleNext = () => {
+    if (!flashcards || flashcardIndex >= flashcards.length - 1) return;
+    setFlipped(false);
+    flipAnim.setValue(0);
+    setFlashcardIndex(flashcardIndex + 1);
+  };
+
+  const handlePrev = () => {
+    if (flashcardIndex <= 0) return;
+    setFlipped(false);
+    flipAnim.setValue(0);
+    setFlashcardIndex(flashcardIndex - 1);
   };
 
   const openFile = (url: string | null, startSolved = false) => {
@@ -202,21 +252,83 @@ export default function MaterialDetailScreen() {
 
           <View style={s.divider} />
 
-          <View style={s.actionsRow}>
-            {material.file_url_solved ? (
-              <TouchableOpacity style={s.fileBtn} onPress={() => openFile(material.file_url_solved, true)}>
-                <Ionicons name="checkmark-circle-outline" size={18} color={t.accent} />
-                <Text style={s.fileBtnText}>Abrir resolução</Text>
-              </TouchableOpacity>
-            ) : null}
-            {!aiSummary && !aiLoading && material.file_url ? (
-              <TouchableOpacity style={s.aiBtn} onPress={generateAiSummary}>
-                <Ionicons name="sparkles-outline" size={16} color={t.accent} />
-                <Text style={s.aiBtnText}>Gerar resumo com IA</Text>
-              </TouchableOpacity>
-            ) : null}
-          </View>
+          {material.file_url_solved ? (
+            <TouchableOpacity style={s.fileBtn} onPress={() => openFile(material.file_url_solved, true)}>
+              <Ionicons name="checkmark-circle-outline" size={18} color={t.accent} />
+              <Text style={s.fileBtnText}>Abrir resolução</Text>
+            </TouchableOpacity>
+          ) : null}
 
+          {/* Fichas de estudo */}
+          {material.file_url && !flashcardsLoading && !flashcards ? (
+            <TouchableOpacity style={s.aiBtn} onPress={generateFlashcards}>
+              <Ionicons name="layers-outline" size={16} color={t.accent} />
+              <Text style={s.aiBtnText}>Gerar fichas de estudo</Text>
+            </TouchableOpacity>
+          ) : null}
+          {flashcardsLoading ? (
+            <View style={s.aiBox}>
+              <ActivityIndicator size="small" color={t.accent} style={{ marginBottom: 8 }} />
+              <Text style={s.aiBoxMuted}>A gerar fichas de estudo...</Text>
+            </View>
+          ) : flashcardsError ? (
+            <View style={s.aiBox}>
+              <Text style={s.aiErrorText}>{flashcardsError}</Text>
+              <TouchableOpacity onPress={generateFlashcards} style={{ marginTop: 8 }}>
+                <Text style={s.aiBtnText}>Tentar novamente</Text>
+              </TouchableOpacity>
+            </View>
+          ) : flashcards && flashcards.length > 0 ? (
+            <View style={s.aiBox}>
+              <View style={s.aiHeader}>
+                <Ionicons name="layers-outline" size={14} color={t.accent} />
+                <Text style={s.aiLabel}>Fichas de estudo</Text>
+                <TouchableOpacity onPress={generateFlashcards} disabled={flashcardsLoading} style={{ marginLeft: 'auto' as any }}>
+                  <Text style={[s.aiLabel, { color: flashcardIndex === flashcards.length - 1 ? t.accent : t.textMuted }]}>Regenerar</Text>
+                </TouchableOpacity>
+                <Text style={[s.aiLabel, { color: t.textMuted, marginLeft: 8 }]}>
+                  {flashcardIndex + 1}/{flashcards.length}
+                </Text>
+              </View>
+              <TouchableOpacity onPress={handleFlip} activeOpacity={0.85}>
+                <View style={s.flashcard}>
+                  {!flipped ? (
+                    <>
+                      <Text style={s.flashcardHint}>Pergunta</Text>
+                      <Text style={s.flashcardText}>{flashcards[flashcardIndex].question}</Text>
+                      <Text style={s.flashcardTap}>Toca para ver a resposta</Text>
+                    </>
+                  ) : (
+                    <>
+                      <Text style={[s.flashcardHint, { color: t.accent }]}>Resposta</Text>
+                      <Text style={s.flashcardText}>{flashcards[flashcardIndex].answer}</Text>
+                    </>
+                  )}
+                </View>
+              </TouchableOpacity>
+              <View style={s.flashcardNav}>
+                <TouchableOpacity onPress={handlePrev} disabled={flashcardIndex === 0} style={[s.navBtn, flashcardIndex === 0 && s.navBtnDisabled]}>
+                  <Ionicons name="chevron-back" size={20} color={flashcardIndex === 0 ? t.textMuted : t.accent} />
+                </TouchableOpacity>
+                <View style={s.flashcardDots}>
+                  {flashcards.map((_, i) => (
+                    <View key={i} style={[s.dot, i === flashcardIndex && { backgroundColor: t.accent }]} />
+                  ))}
+                </View>
+                <TouchableOpacity onPress={handleNext} disabled={flashcardIndex === flashcards.length - 1} style={[s.navBtn, flashcardIndex === flashcards.length - 1 && s.navBtnDisabled]}>
+                  <Ionicons name="chevron-forward" size={20} color={flashcardIndex === flashcards.length - 1 ? t.textMuted : t.accent} />
+                </TouchableOpacity>
+              </View>
+            </View>
+          ) : null}
+
+          {/* Resumo com IA */}
+          {material.file_url && !aiSummary && !aiLoading ? (
+            <TouchableOpacity style={s.aiBtn} onPress={generateAiSummary}>
+              <Ionicons name="sparkles-outline" size={16} color={t.accent} />
+              <Text style={s.aiBtnText}>Gerar resumo com IA</Text>
+            </TouchableOpacity>
+          ) : null}
           {aiLoading ? (
             <View style={s.aiBox}>
               <ActivityIndicator size="small" color={t.accent} style={{ marginBottom: 8 }} />
@@ -318,17 +430,17 @@ function makeStyles(t: AppPalette) {
       fontStyle: 'italic',
     },
     actionsRow: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      gap: 12,
+      flexDirection: 'column',
+      gap: 16,
       marginTop: 8,
     },
     fileBtn: {
       flexDirection: 'row',
       alignItems: 'center',
+      justifyContent: 'center',
       gap: 8,
       paddingHorizontal: 14,
-      paddingVertical: 10,
+      paddingVertical: 12,
       borderRadius: 10,
       backgroundColor: t.accentDim,
       borderWidth: 1,
@@ -336,12 +448,13 @@ function makeStyles(t: AppPalette) {
     },
     fileBtnText: { color: t.accent, fontWeight: '600', fontSize: 14 },
     aiBtn: {
+      marginTop: 16,
       flexDirection: 'row',
       alignItems: 'center',
+      justifyContent: 'center',
       gap: 8,
-      alignSelf: 'flex-start',
       paddingHorizontal: 14,
-      paddingVertical: 10,
+      paddingVertical: 12,
       borderRadius: 10,
       backgroundColor: t.accentDim,
       borderWidth: 1,
@@ -366,5 +479,59 @@ function makeStyles(t: AppPalette) {
     aiText: { fontSize: 14, lineHeight: 22, color: t.textPrimary },
     aiBoxMuted: { fontSize: 13, color: t.textMuted, textAlign: 'center' },
     aiErrorText: { fontSize: 13, color: t.error },
+    flashcard: {
+      backgroundColor: t.background,
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: t.surfaceBorder,
+      padding: 16,
+      minHeight: 120,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginVertical: 8,
+    },
+    flashcardHint: {
+      fontSize: 11,
+      fontWeight: '700',
+      color: t.textMuted,
+      textTransform: 'uppercase',
+      letterSpacing: 0.8,
+      marginBottom: 8,
+    },
+    flashcardText: {
+      fontSize: 15,
+      color: t.textPrimary,
+      textAlign: 'center',
+      lineHeight: 22,
+    },
+    flashcardTap: {
+      marginTop: 12,
+      fontSize: 11,
+      color: t.textMuted,
+      fontStyle: 'italic',
+    },
+    flashcardNav: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginTop: 4,
+    },
+    flashcardDots: {
+      flexDirection: 'row',
+      gap: 5,
+      alignItems: 'center',
+    },
+    dot: {
+      width: 6,
+      height: 6,
+      borderRadius: 3,
+      backgroundColor: t.surfaceBorder,
+    },
+    navBtn: {
+      padding: 8,
+    },
+    navBtnDisabled: {
+      opacity: 0.3,
+    },
   });
 }
