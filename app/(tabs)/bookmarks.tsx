@@ -87,51 +87,59 @@ export default function BookmarksScreen() {
 
   // --- Handlers ---
   const handleDeleteBookmark = (bookmarkId: string) => {
-    Alert.alert(
-      'Remover Favorito',
-      'Tem certeza que deseja remover este material dos favoritos?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Remover',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await removeBookmark(bookmarkId);
-              await fetchBookmarks();
-            } catch (err) {
-              setError('Falha ao remover favorito.');
-            }
-          },
-        },
-      ]
-    );
+    const performDelete = async () => {
+      try {
+        await removeBookmark(bookmarkId);
+        await fetchBookmarks();
+      } catch (err) {
+        setError('Falha ao remover favorito.');
+      }
+    };
+
+    if (Platform.OS === 'web') {
+      if (confirm('Tem certeza que deseja remover este material dos favoritos?')) {
+        performDelete();
+      }
+    } else {
+      Alert.alert(
+        'Remover Favorito',
+        'Tem certeza que deseja remover este material dos favoritos?',
+        [
+          { text: 'Cancelar', style: 'cancel' },
+          { text: 'Remover', style: 'destructive', onPress: performDelete },
+        ]
+      );
+    }
   };
 
   const handleDeleteCollection = (collectionName: string) => {
-    Alert.alert(
-      'Eliminar Coleção',
-      `Tem certeza que deseja eliminar a coleção "${collectionName}" e todos os seus materiais?`,
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Eliminar',
-          style: 'destructive',
-          onPress: async () => {
-            if (!userId) return;
-            try {
-              await removeBookmarksByName(userId, collectionName);
-              await fetchBookmarks();
-              if (selectedGroupName === collectionName) {
-                setSelectedGroupName(null);
-              }
-            } catch (err) {
-              setError('Falha ao eliminar coleção.');
-            }
-          },
-        },
-      ]
-    );
+    const performDelete = async () => {
+      if (!userId) return;
+      try {
+        await removeBookmarksByName(userId, collectionName);
+        await fetchBookmarks();
+        if (selectedGroupName === collectionName) {
+          setSelectedGroupName(null);
+        }
+      } catch (err) {
+        setError('Falha ao eliminar coleção.');
+      }
+    };
+
+    if (Platform.OS === 'web') {
+      if (confirm(`Tem certeza que deseja eliminar a coleção "${collectionName}" e todos os seus materiais?`)) {
+        performDelete();
+      }
+    } else {
+      Alert.alert(
+        'Eliminar Coleção',
+        `Tem certeza que deseja eliminar a coleção "${collectionName}" e todos os seus materiais?`,
+        [
+          { text: 'Cancelar', style: 'cancel' },
+          { text: 'Eliminar', style: 'destructive', onPress: performDelete },
+        ]
+      );
+    }
   };
 
   const handleCreateCollection = async () => {

@@ -1,0 +1,22 @@
+appId: com.anonymous.feupload
+---
+- launchApp:
+    clearState: true
+- tapOn: Email
+- inputText: test2@example.com
+- tapOn: Password
+- inputText: "test2"
+- tapOn: Sign In
+- extendedWaitUntil:
+    visible: "Bem-vindo, "
+    timeout: 40000
+- tapOn: Engenharia de Software
+- tapOn: Slides
+- tapOn: Gerar fichas de estudo
+- assertVisible: "Pergunta"
+- tapOn:
+    text: "Pergunta"
+- assertVisible: "Resposta"
+- tapOn:
+    index: 1 # Next button
+- assertVisible: "Pergunta"

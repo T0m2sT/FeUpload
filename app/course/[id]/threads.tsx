@@ -10,7 +10,7 @@ import {
     ActivityIndicator,
     Alert,
 } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { CourseSectionShell } from '@/components/course-section-shell';
 import { useAppTheme } from '@/hooks/use-app-theme';
@@ -62,9 +62,11 @@ export default function CourseThreadsScreen() {
   const [selectedFilters, setSelectedFilters] = useState<Set<string>>(new Set(LABELS.map(l => l.name)));
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
 
-  useEffect(() => {
-    fetchThreads();
-  }, [courseCode]);
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchThreads();
+    }, [courseCode])
+  );
 
   const fetchThreads = async () => {
     try {

@@ -446,4 +446,14 @@ A Product Backlog Item is considered ready for Sprint Planning only if:
 </p>
 <h4>Sprint Retrospective</h4>
 
+- [Sprint retrospective details](https://github.com/LEIC-ES-2025-26-2LEIC13/T2/blob/main/misc/scrum/sprint-retrospective.md#sprint-3-retrospective)
+<h4>Sprint review</h4>
+
+- [Sprint Review details](https://github.com/LEIC-ES-2025-26-2LEIC13/T2/blob/main/misc/scrum/sprint-review.md#sprint-3-review)
+
+**New Features implemented in Sprint 3:**
+- Implemented AI-powered study flashcards and a PDF Q&A chat interface.
+- Enhanced document and course UI/UX layout.
+- Added comprehensive unit and integration (Maestro) tests for new AI features.
+
 ### Final Release

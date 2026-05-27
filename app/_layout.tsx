@@ -53,6 +53,7 @@ function RootLayoutInner() {
     <NavThemeProvider value={navTheme}>
       <Stack screenOptions={{ animation: 'none' }}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="documents" options={{ headerShown: true }} />
         <Stack.Screen name="course/[id]" options={{ headerShown: false }} />
         <Stack.Screen name="profile" options={{ headerShown: false }} />
         <Stack.Screen name="ratings" options={{ headerShown: false }} />

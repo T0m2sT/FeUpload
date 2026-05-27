@@ -137,6 +137,7 @@ function makeStyles(t: AppPalette) {
     solvedToggleWrap: {
       paddingHorizontal: 20,
       paddingTop: 12,
+      backgroundColor: t.background,
     },
     toolbar: {
       flexDirection: 'row',
@@ -144,6 +145,7 @@ function makeStyles(t: AppPalette) {
       gap: 8,
       paddingHorizontal: 20,
       paddingVertical: 12,
+      backgroundColor: t.background,
     },
     toolbarLabel: {
       fontSize: 12,

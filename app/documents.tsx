@@ -1,7 +1,7 @@
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { Ionicons } from '@expo/vector-icons';
 import { Stack, useRouter } from 'expo-router';
-import React, { useMemo } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import {
   Alert,
   FlatList,
@@ -11,11 +11,13 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   type OfflineEntry,
   offlineSupported,
   removeOfflineMaterial,
   useOfflineIndex,
+  resolveLocalUri,
 } from '@/services/offline';
 
 const TYPE_LABELS: Record<string, string> = {
@@ -25,11 +27,33 @@ const TYPE_LABELS: Record<string, string> = {
   summary: 'Resumo',
 };
 
+function BackButton() {
+  const router = useRouter();
+  const t = useAppTheme();
+  
+  return (
+    <TouchableOpacity onPress={() => router.back()} style={{ paddingHorizontal: 8, alignItems: 'center', justifyContent: 'center' }} accessibilityLabel="Voltar">
+      <Ionicons name="chevron-back" size={24} color={t.accent} />
+    </TouchableOpacity>
+  );
+}
+
 export default function DocumentsScreen() {
   const t = useAppTheme();
   const router = useRouter();
   const offlineIndex = useOfflineIndex();
+  const insets = useSafeAreaInsets();
   const s = useMemo(() => makeStyles(t), [t]);
+  
+  // Memoize header options to prevent unnecessary re-renders
+  const headerOptions = useMemo(() => ({
+    title: 'Os meus documentos',
+    headerBackVisible: false,
+    headerLeft: () => <BackButton />,
+    headerStyle: { backgroundColor: t.background },
+    headerTintColor: t.accent,
+    headerShadowVisible: false,
+  }), [t.background, t.accent]);
 
   const grouped = useMemo(() => {
     const entries = Object.values(offlineIndex).sort((a, b) =>
@@ -50,32 +74,41 @@ export default function DocumentsScreen() {
     router.push({
       pathname: '/pdf-viewer' as any,
       params: {
-        local_pdf: entry.localUri,
-        local_pdf_solved: entry.localUriSolved ?? '',
+        local_pdf: resolveLocalUri(entry.localUri),
+        local_pdf_solved: entry.localUriSolved ? resolveLocalUri(entry.localUriSolved) : '',
+        pdf: entry.remoteUri ?? '',
+        pdf_solved: entry.remoteUriSolved ?? '',
         title: entry.title,
       },
     });
   };
 
-  const handleRemove = (entry: OfflineEntry) => {
-    Alert.alert(
-      'Remover offline',
-      `Eliminar "${entry.title}" do armazenamento local?`,
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Remover',
-          style: 'destructive',
-          onPress: () => { removeOfflineMaterial(entry.materialId); },
-        },
-      ],
-    );
+  const handleRemove = async (entry: OfflineEntry) => {
+    if (Platform.OS === 'web') {
+      if (confirm(`Eliminar "${entry.title}" do armazenamento local?`)) {
+        await removeOfflineMaterial(entry.materialId);
+      }
+    } else {
+      Alert.alert(
+        'Remover offline',
+        `Eliminar "${entry.title}" do armazenamento local?`,
+        [
+          { text: 'Cancelar', style: 'cancel' },
+          {
+            text: 'Remover',
+            style: 'destructive',
+            onPress: () => { removeOfflineMaterial(entry.materialId); },
+          },
+        ],
+      );
+    }
   };
 
-  if (!offlineSupported) {
+
+  if (!offlineSupported && Platform.OS !== 'web' && totalCount === 0) {
     return (
       <View style={s.empty}>
-        <Stack.Screen options={{ title: 'Os meus documentos' }} />
+        <Stack.Screen options={headerOptions} />
         <Ionicons name="laptop-outline" size={48} color={t.textMuted} />
         <Text style={s.emptyTitle}>Não disponível na web</Text>
         <Text style={s.emptyText}>
@@ -88,11 +121,11 @@ export default function DocumentsScreen() {
   if (totalCount === 0) {
     return (
       <View style={s.empty}>
-        <Stack.Screen options={{ title: 'Os meus documentos' }} />
+        <Stack.Screen options={headerOptions} />
         <Ionicons name="cloud-offline-outline" size={48} color={t.textMuted} />
         <Text style={s.emptyTitle}>Sem documentos</Text>
         <Text style={s.emptyText}>
-          Ainda não tens documentos guardados. Descarrega ficheiros para os leres sem ligação.
+          Ainda não tens documentos guardados.
         </Text>
       </View>
     );
@@ -100,7 +133,7 @@ export default function DocumentsScreen() {
 
   return (
     <View style={s.container}>
-      <Stack.Screen options={{ title: 'Os meus documentos' }} />
+      <Stack.Screen options={headerOptions} />
       <FlatList
         data={grouped}
         keyExtractor={([code]) => code}
