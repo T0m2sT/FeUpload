@@ -17,6 +17,7 @@ import {
   offlineSupported,
   removeOfflineMaterial,
   useOfflineIndex,
+  resolveLocalUri,
 } from '@/services/offline';
 
 const TYPE_LABELS: Record<string, string> = {
@@ -73,8 +74,8 @@ export default function DocumentsScreen() {
     router.push({
       pathname: '/pdf-viewer' as any,
       params: {
-        local_pdf: entry.localUri,
-        local_pdf_solved: entry.localUriSolved ?? '',
+        local_pdf: resolveLocalUri(entry.localUri),
+        local_pdf_solved: entry.localUriSolved ? resolveLocalUri(entry.localUriSolved) : '',
         pdf: entry.remoteUri ?? '',
         pdf_solved: entry.remoteUriSolved ?? '',
         title: entry.title,
@@ -82,22 +83,29 @@ export default function DocumentsScreen() {
     });
   };
 
-  const handleRemove = (entry: OfflineEntry) => {
-    Alert.alert(
-      'Remover offline',
-      `Eliminar "${entry.title}" do armazenamento local?`,
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Remover',
-          style: 'destructive',
-          onPress: () => { removeOfflineMaterial(entry.materialId); },
-        },
-      ],
-    );
+  const handleRemove = async (entry: OfflineEntry) => {
+    if (Platform.OS === 'web') {
+      if (confirm(`Eliminar "${entry.title}" do armazenamento local?`)) {
+        await removeOfflineMaterial(entry.materialId);
+      }
+    } else {
+      Alert.alert(
+        'Remover offline',
+        `Eliminar "${entry.title}" do armazenamento local?`,
+        [
+          { text: 'Cancelar', style: 'cancel' },
+          {
+            text: 'Remover',
+            style: 'destructive',
+            onPress: () => { removeOfflineMaterial(entry.materialId); },
+          },
+        ],
+      );
+    }
   };
 
-  if (!offlineSupported) {
+
+  if (!offlineSupported && Platform.OS !== 'web' && totalCount === 0) {
     return (
       <View style={s.empty}>
         <Stack.Screen options={headerOptions} />
@@ -117,7 +125,7 @@ export default function DocumentsScreen() {
         <Ionicons name="cloud-offline-outline" size={48} color={t.textMuted} />
         <Text style={s.emptyTitle}>Sem documentos</Text>
         <Text style={s.emptyText}>
-          Ainda não tens documentos guardados. Descarrega ficheiros para os leres sem ligação.
+          Ainda não tens documentos guardados.
         </Text>
       </View>
     );

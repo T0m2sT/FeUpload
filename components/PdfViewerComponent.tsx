@@ -1,18 +1,13 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 
 export function PdfViewerComponent({ source, style }: any) {
   return (
-    <View style={styles.container}>
-      <Text>PDF viewing is not supported in the browser. Please open the link directly.</Text>
+    <View style={style}>
+      <iframe
+        src={source.uri}
+        style={{ width: '100%', height: '100%', border: 'none' }}
+      />
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  }
-});
