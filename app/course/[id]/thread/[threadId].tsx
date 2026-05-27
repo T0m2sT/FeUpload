@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  View, Text, TouchableOpacity, ScrollView, TextInput, StyleSheet, Platform, ActivityIndicator, Alert,
+  View, Text, TouchableOpacity, ScrollView, TextInput, StyleSheet, Platform, ActivityIndicator, Alert, Image,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -189,7 +189,7 @@ export default function ThreadDetailScreen() {
           onPress={() => router.push('/')}
           accessibilityLabel="Ir para o início"
         >
-          <Ionicons name="star" size={22} color={t.accent} />
+          <Image source={require('@/assets/Logo.png')} style={{ width: 32, height: 32, borderRadius: 16 }} />
         </TouchableOpacity>
       </View>
 
