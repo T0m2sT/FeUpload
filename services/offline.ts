@@ -12,6 +12,8 @@ export type OfflineEntry = {
   localUriSolved?: string;
   sizeBytes: number;
   downloadedAt: string;
+  remoteUri?: string;
+  remoteUriSolved?: string;
 };
 
 type Index = Record<string, OfflineEntry>;
@@ -82,6 +84,8 @@ export async function downloadMaterial(input: {
     localUriSolved: solved?.uri,
     sizeBytes: main.size + (solved?.size ?? 0),
     downloadedAt: new Date().toISOString(),
+    remoteUri: input.file_url,
+    remoteUriSolved: input.file_url_solved ?? undefined,
   };
 
   const idx = await readIndex();
