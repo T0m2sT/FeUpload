@@ -467,3 +467,32 @@ A Product Backlog Item is considered ready for Sprint Planning only if:
 - [Unit tests directory](https://github.com/LEIC-ES-2025-26-2LEIC13/T2/tree/main/tests)
 
 ### Final Release
+### Validation
+After completing the development of the application, we conducted interviews with members of the app's target audience to evaluate their experience using it. The purpose of these interviews was to gather feedback on the application's usability, functionality, and overall effectiveness.<br>
+
+<h3>Results:</h3>
+<img align="center" justify="center" src="./misc/interviews/i1.png"/>
+<img align="center" justify="center" src="./misc/interviews/i2.png"/>
+<img align="center" justify="center" src="./misc/interviews/i3.png"/>
+<img align="center" justify="center" src="./misc/interviews/i4.png"/>
+<img align="center" justify="center" src="./misc/interviews/i5.png"/>
+<img align="center" justify="center" src="./misc/interviews/i6.png"/>
+<img align="center" justify="center" src="./misc/interviews/i7.png"/>
+<img align="center" justify="center" src="./misc/interviews/i8.png"/>
+
+<h3>Reflection</h3>
+<h4>Usability and Visuals:</h4>
+The results showed that the majority of the interviewees had a positive opinion of the application, although they identified several areas that could be improved. We largely agreed with this feedback, as some features can be difficult to discover, and in certain cases users need to navigate through multiple screens or perform extra clicks to access specific functionalities. These observations highlight opportunities to improve the application's usability and streamline the user experience.
+
+<h4>Features implemented</h4>
+The next questions were aimed to analyze the impact of each feature on the user experience. The results showed that the main feature of our application, providing access to past exams and exercises, received 100% positive feedback. This was followed by the file upload functionality, the easy toggle for switching between files, and offline access, each receiving 87.5% positive reviews. These results were expected, as we understand from our own experience as students how time-consuming and frustrating it can be to search for study materials.
+
+The remaining features received a mix of positive and neutral feedback, with the only negative response relating to the AI functionality. Despite this, the overall results indicate that all features were beneficial to users and contributed positively to their experience. We therefore conclude that the implemented features successfully improved the application's usability and overall quality.
+
+<h4>Conclusions</h4>
+At the end of the survey, participants were asked three final questions regarding the most relevant features of the application, an overall rating, and whether they would use the application in their daily lives. The results showed that the most valued feature was the ability to easily switch between the solved and unsolved versions of a study material. This result is understandable, as it is one of the most distinctive aspects of our application when compared to existing alternatives. Furthermore, having this functionality directly on a mobile device greatly improves convenience, since switching between different files on a phone can be time-consuming and boring.
+
+The responses regarding the overall rating of the application and the likelihood of using it in real-life scenarios were also highly positive, which was in line with our expectations. The application provides a practical and efficient solution to a common problem faced by students. Moreover, the main alternative currently available is a website rather than a dedicated mobile application, making it less convenient for students who primarily access study materials through their phones. These results suggest that our application offers a valuable and user-friendly approach to supporting students in their studies.
+
+### Final product
+After validating our application with our target users, we can confirm that it has reached a stable and polished version suitable for release to the market. The interface is visually appealing, and our test suite provides strong code coverage. Regarding code quality, we believe the codebase is modular and easy to understand. Although we used an LLM to assist in development, the simplicity and common nature of the application’s features allowed it to generate a well-structured foundation that we can continue building on.
