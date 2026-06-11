@@ -496,3 +496,19 @@ The responses regarding the overall rating of the application and the likelihood
 
 ### Final product
 After validating our application with our target users, we can confirm that it has reached a stable and polished version suitable for release to the market. The interface is visually appealing, and our test suite provides strong code coverage. Regarding code quality, we believe the codebase is modular and easy to understand. Although we used an LLM to assist in development, the simplicity and common nature of the application’s features allowed it to generate a well-structured foundation that we can continue building on.
+
+## Pitch
+
+Have you ever been ready to start studying, only to spend half your time searching for resources? Last year's exam is on Moodle, except the professor actually uses Sigarra. Then someone says the latest test is in the course WhatsApp group, but it turns out it's hidden somewhere on Accio. Finding the right materials can quickly become more frustrating than studying itself.
+
+FeUpload solves this problem by bringing everything together in one place. Access past exams, summaries, study resources, and useful tips through a single platform. Easily filter content by academic year, discover the most valuable materials through community ratings, and contribute your own resources, tips, and reviews to help future students.
+
+FeUpload also integrates AI-powered features, allowing you to generate flashcards and summaries without spending your own tokens. You can even chat with the AI while viewing a document, giving it the context of the currently open file to ask questions, clarify concepts, or get help with specific exercises.
+
+Studying past exams is also more convenient than ever. When both versions are available, you can instantly switch between the solved and unsolved exam with a single click, without needing to close or search for another file.
+
+For even greater convenience, you can save your favorite materials for offline access, ensuring they are always available when you need them instead of being scattered across different platforms and folders.
+
+Everything you need to study, all in one place.
+
+FeUpload - Upload knowledge. Make a difference.
