@@ -6,7 +6,7 @@ FeUpload is a mobile app for sharing study materials among students, built with 
 
 For the full Software Development Report, see [`docs/README.md`](docs/README.md).
 
-![Grade](https://img.shields.io/badge/Grade-20%2F20-1E90FF?style=for-the-badge&labelColor=21262d)
+![Grade](https://img.shields.io/badge/Grade-19.5%2F20-1E90FF?style=for-the-badge&labelColor=21262d)
 ![Course](https://img.shields.io/badge/Course-ES-1E90FF?style=for-the-badge&labelColor=21262d)
 ![Year](https://img.shields.io/badge/Year-2025%2F26-1E90FF?style=for-the-badge&labelColor=21262d)
 
