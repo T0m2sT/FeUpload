@@ -30,7 +30,7 @@ Development ran across four sprints. Sprint 3 added AI-powered study flashcards,
 
 ## Validation
 
-After development, the team interviewed members of the app's target audience to evaluate usability, functionality, and overall effectiveness. Access to past exams and exercises — the app's core feature — received 100% positive feedback; file upload, the solved/unsolved toggle, and offline access each scored 87.5% positive. The most valued feature overall was the solved/unsolved toggle, since it's one of the app's most distinctive advantages over existing (mostly web-based) alternatives. Overall ratings and likelihood-to-use were highly positive, confirming the app addresses a real, common problem for students better than the alternatives available.
+After development, the team interviewed members of the app's target audience to evaluate usability, functionality, and overall effectiveness. Access to past exams and exercises - the app's core feature - received 100% positive feedback; file upload, the solved/unsolved toggle, and offline access each scored 87.5% positive. The most valued feature overall was the solved/unsolved toggle, since it's one of the app's most distinctive advantages over existing (mostly web-based) alternatives. Overall ratings and likelihood-to-use were highly positive, confirming the app addresses a real, common problem for students better than the alternatives available.
 
 ## Final Product
 
